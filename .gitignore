@@ -12,3 +12,10 @@ native/verification.json
 native/*test*.json
 *.log
 .vs/
+
+/self-test.json
+/internet-test.json
+/visual-tests/
+/loop-test/
+/benchmark/
+/render-data/
