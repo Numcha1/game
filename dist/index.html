@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#405e3d"><title>สวนเพลง • Cozy Farm</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar"><a href="./" class="brand"><span class="brandmark" aria-hidden="true">✿</span><span>สวนเพลง<small>COZY FARM & GOOD TUNES</small></span></a><span class="saved" id="saveStatus">บันทึกอัตโนมัติ</span><button id="helpBtn" class="quiet">วิธีเล่น</button></header>
+<main>
+ <section class="welcome"><div><p class="eyebrow">YOUR LITTLE HAPPY PLACE</p><h1>ปลูกความสุข <span>ทีละต้น</span></h1><p>ดูแลสวนเล็ก ๆ เปิดเพลงที่ชอบ แล้วค่อย ๆ เติบโตไปด้วยกัน</p></div><div class="stats" aria-label="สถานะฟาร์ม"><div><span>เหรียญของคุณ</span><strong><i aria-hidden="true">◉</i> <b id="coins">100</b></strong></div><div><span>ชาวสวนระดับ</span><strong id="level">01</strong><div class="xp-track"><span id="xpBar"></span></div><small id="xpLabel">0 / 50 XP</small></div></div></section>
+ <div class="layout">
+  <section class="farm-section" aria-labelledby="farmTitle"><div class="section-heading"><div><p class="eyebrow">GROW AT YOUR OWN PACE</p><h2 id="farmTitle">สวนของเรา</h2></div><span class="season"><span aria-hidden="true">☀</span> วันดี ๆ ในสวน</span></div>
+  <div class="garden"><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div><div class="scene-top" aria-hidden="true"><div class="tree tree-one"><span></span><i></i></div><div class="barn"><div class="roof"></div><div class="barn-window"></div><div class="barn-door"></div></div><div class="tree tree-two"><span></span><i></i></div><div class="fence"></div><div class="path"></div></div><div class="plots" id="plots" aria-label="แปลงผัก 12 แปลง"></div><div class="garden-bottom"><span>✿ สวนเล็ก ๆ ที่เติบโตด้วยมือคุณ</span><span id="plotCount">6 / 12 แปลง</span></div></div>
+  <div class="garden-note"><span class="note-icon" aria-hidden="true">☘</span><div><strong id="tipTitle">เริ่มต้นจากเมล็ดเล็ก ๆ</strong><p id="tipText">เลือกเมล็ดด้านขวา แล้วแตะแปลงว่างเพื่อปลูก อย่าลืมรดน้ำด้วยนะ</p></div><button id="giftBtn" class="quiet" hidden>รับเมล็ดฟรี</button></div>
+  <section class="inventory" aria-labelledby="inventoryTitle"><div><p class="eyebrow">FRESH FROM YOUR GARDEN</p><h2 id="inventoryTitle">ตะกร้าเก็บเกี่ยว <span id="inventoryCount">0</span></h2></div><div id="inventoryItems" class="inventory-items"></div><button id="sellBtn" class="primary" disabled>ขายผลผลิต</button></section>
+  <div class="milestones"><span id="achievement">○ เก็บเกี่ยวครั้งแรก แล้วรับตราชาวสวน</span><button id="resetBtn" class="quiet">เริ่มสวนใหม่</button></div>
+ </section>
+ <aside><section class="seed-panel"><p class="eyebrow">A LITTLE SEED, A NEW BEGINNING</p><h2>วันนี้ปลูกอะไรดี?</h2><p class="panel-sub">เลือกเมล็ด แล้วแตะแปลงว่าง</p><div id="seeds" class="seeds"></div><div class="selected-note" id="selectedNote"></div></section>
+ <section class="music-panel" aria-labelledby="musicTitle"><div class="music-heading"><span class="record" aria-hidden="true">♫</span><div><p class="eyebrow">THE SOUND OF SLOW LIVING</p><h2 id="musicTitle">เพลงประจำสวน</h2></div></div><p>ใส่ลิงก์ YouTube ของคุณ แล้วปลูกผักไปพร้อมเพลงโปรด</p><form id="musicForm"><label for="musicUrl">ลิงก์วิดีโอหรือเพลย์ลิสต์ YouTube</label><input id="musicUrl" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off"><button class="music-load" type="submit">♫ เปิดเพลงในสวน</button></form><p id="musicError" class="error" role="alert"></p><div id="musicPlayer" class="music-player"><div class="music-empty"><span aria-hidden="true">♪</span><strong>ให้เพลงเติมบรรยากาศ</strong><span>ผู้เล่นจะปรากฏเมื่อคุณเปิดเพลง</span></div></div><div class="music-actions"><a id="youtubeLink" target="_blank" rel="noopener noreferrer" hidden>เปิดบน YouTube ↗</a><button id="stopMusic" class="quiet" hidden>หยุดและล้างเพลง</button></div><small>กดเล่น / หยุดจากตัวเล่น วิดีโอบางรายการอาจไม่อนุญาตให้ฝัง ให้เปิดบน YouTube แทน</small></section></aside>
+ </div><footer>สวนเพลง <span>เวลาช้า ๆ ความสุขเล็ก ๆ</span><span>บันทึกสวนไว้ในเบราว์เซอร์นี้</span></footer>
+</main><div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<dialog id="helpDialog"><h2>ยินดีต้อนรับสู่สวนเพลง ☘</h2><ol><li>เลือกเมล็ด แล้วแตะแปลงว่างเพื่อปลูก</li><li>แตะต้นที่ปลูกอีกครั้งเพื่อรดน้ำ จึงจะเริ่มเติบโต</li><li>รอจนพร้อมเก็บเกี่ยว แล้วแตะเพื่อใส่ตะกร้า</li><li>ขายผลผลิตเพื่อซื้อเมล็ดและขยายสวน</li></ol><p>ต้นไม้เติบโตต่อเมื่อคุณปิดหน้าเว็บด้วย ถ้าเหรียญไม่พอ คุณรับเมล็ดแครอตฟรีได้</p><p>เพิ่มเพลงด้วยลิงก์ YouTube แล้วกดเล่นที่ตัวเล่น สวนจะบันทึกอัตโนมัติในเบราว์เซอร์นี้</p><form method="dialog"><button class="primary">ไปปลูกผักกัน!</button></form></dialog>
+<dialog id="resetDialog"><h2>เริ่มสวนใหม่ไหม?</h2><p>เหรียญ แปลงผัก ผลผลิต และความคืบหน้าจะกลับไปจุดเริ่มต้น</p><div class="dialog-actions"><button id="cancelReset" class="quiet">เก็บสวนเดิมไว้</button><button id="confirmReset" class="primary">เริ่มใหม่</button></div></dialog>
+<script src="assets/game.js"></script>
+</body></html>
