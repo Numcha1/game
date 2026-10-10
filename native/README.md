@@ -1,49 +1,64 @@
-# สวนเพลง — Seasons Together (Windows prototype 0.2)
+# สวนเพลง — Seasons Together 0.3
 
-Native 2D Windows game. The game scene and character movement are drawn by Windows/.NET, with no webpage or browser used for gameplay.
+Native Windows x64 farming game built with C# / .NET 8 WinForms and GDI+. The farm is rendered by the game itself; gameplay does not run in a browser. The self-contained EXE includes the .NET runtime and the online connector.
 
-## Run
+## Play
 
-Open `SuanPleng.exe`. The online connector is bundled in the executable and is extracted automatically on first use. The self-contained build includes the .NET runtime. Windows x64 only.
+Open `SuanPleng.exe`. Choose solo play to continue your existing farm, create an online room, or join a friend's room. Saves remain in `%LOCALAPPDATA%\SuanPleng\farm.json` with the same version 1 format. Graphics preferences are separate in `visual-settings.json`.
 
-## Internet co-op
+The host shares the entire invitation, including the `#` fragment, privately with friends. Up to four active players share the calendar, weather and money, with separate bags and energy. The host must keep the game running. Cloudflare Quick Tunnels require no account or router port forwarding, but rooms are temporary and invitations change on each launch.
 
-1. Host chooses สร้างห้องออนไลน์ and enters a name.
-2. Copy the entire invite (including the fragment after `#`) and give it to friends privately.
-3. Each friend opens their own copy of the game, chooses เข้าห้องเพื่อน, pastes the invite and enters a name.
-4. Up to four active players share the farm, calendar, weather and money. Each has separate energy and harvested inventory. Expensive greenhouse purchase is host-only.
-5. Host must keep the game running. Closing the host saves the farm and stops its tunnel. The invite changes at the next online launch. Rejoining with the same Windows profile restores that player's bag.
+## Controls
 
-Prototype networking uses Cloudflare Quick Tunnels, which require no account or router port forwarding but have no uptime guarantee. This is suitable for testing with friends; a permanent release should use a stable managed relay or authenticated dedicated server. The room only exposes a loopback game JSON service through its tunnel, requires a random invitation secret, never serves local files, and validates commands on the host. Do not publish invites publicly.
+| Control | Action |
+| --- | --- |
+| WASD / arrows | Walk |
+| Click a nearby plot | Use selected tool |
+| 1–7 | Seed, water, harvest, treatment, fertilizer, stakes, clear |
+| Tab | Select seeds and inspect season/harvest information |
+| B / I | Inventory and current sale prices |
+| O | Farm shop, greenhouse and emergency funds |
+| E | Sell near shipping crate |
+| Space | Sleep near home; all active players must vote |
+| Esc | Host toggles pause; closes an open menu |
+| F1 | Thai farming guide |
+| F2 | Reduce ambient motion and particles |
+| F3 | Low / Medium / High graphics, sound and zoom |
+| M | Toggle action sounds |
+| + / − | Change camera zoom |
 
-## Controls and mechanics
+The UI scales with the window, including letterboxing. Recommended minimum client size is 960×640; the default is 1280×800. Camera zoom changes presentation only; plot coordinates, action distances and collision rules remain the same.
 
-- WASD/arrows: walk. Select seed/tool then click a nearby plot. 1–7 select tools.
-- E near shipping crate: sell your inventory to shared funds.
-- Space near the house: sleep; all active players must sleep to skip the day. Space again cancels sleep.
-- Esc: host pauses/unpauses world. F1: help.
-- One farming day is about 10 real minutes, with four 14-day seasons. Time stops while the game is closed.
-- Eight seasonal crops, daily watering, harvest windows, soil depletion and rotation, weather/heat/storms, stakes, disease and adjacent spread, treatment, fertilizers, variable sale prices, overnight inventory spoilage, host-approved greenhouse roof and emergency money.
-- Hover a plot for its moisture, fertility, crop age, quality and remaining harvest window.
-- Saves: `%LOCALAPPDATA%\SuanPleng\farm.json`; previous version is `.bak`. Start-new menu preserves a dated backup. Corrupt saves are refused, never silently overwritten.
-- YouTube music currently opens a validated YouTube link in the default browser; it plays separately while the native game remains running. Embedded music playback is a future feature.
+## Farming systems
 
-## Animation update 0.2
+Four 14-day seasons, roughly ten-minute days, eight seasonal crops, daily watering, crop harvest windows, soil fertility/rotation, weather, heat, storms, stakes, adjacent disease spread, treatment, fertilizer, variable sale prices, overnight bag spoilage, shared funds, all-player sleep and host-only greenhouse approval. Time stops while the host game is closed. Previous/corrupt-save protection is retained.
 
-Layered scene rendering with ground shadows, raised soil beds, detailed roofs/trees, eight distinct crop drawings, and depth sorting around characters. Local characters animate arms, legs, facing direction and tool gestures; remote movement is interpolated between network snapshots. Confirmed server action events drive planting dust, watering droplets/ripples, harvest arcs, floating labels and sale effects for all players. Rejected/retried commands do not generate duplicate successful effects. Trees sway, water ripples, ducks paddle, butterflies flutter, weather creates rain/snow/leaves, and the farm dims toward evening. Soft generated action sounds can be toggled with M; F2 reduces ambient motion and particle density. Save version 1 remains compatible.
+YouTube links still open music in the default browser separately from gameplay.
 
-## Development
+## Graphics update
 
-`dotnet build -c Release`
+Original cached pixel sprites, seasonal textured ground, detailed buildings/props, soft contact shadows, smooth camera, idle/walk/tool animations, depth sorting, weather-driven wind, layered rain, pond ripples/splashes, butterflies, snow, falling leaves, morning/evening lighting, glowing night windows and a day transition. Confirmed host events drive planting dust, watering, harvest arcs and animated sale coins for all players. The particle pool is bounded; failed/retried actions do not replay successful effects.
 
-`dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o release`
+The native UI now uses a HUD, icon hotbar, seed selection, inventory, shop, guide and graphics settings panels. Modal panels exclusively own input. Thai text uses the Windows Tahoma font.
 
-Run `SuanPleng.exe --self-test` for simulation/network checks, `--internet-test` for two HTTP clients through a real temporary public tunnel, or `--render-test` to create offscreen menu/farm screenshots. Tests write JSON results next to the executable. GUI tests do not open a visible window.
+See [original art details](ART.md) and [measured performance](PERFORMANCE.md). High targets 60 FPS at the default window on the measured machine; use Medium or Low for additional headroom at larger resolutions or on slower CPUs. This software renderer does not guarantee the same performance on every Windows machine.
 
-Native self-contained publishing: https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview
+## Build and verify
 
-Temporary tunnel limitations: https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/
+Install the .NET SDK 8 on Windows, then run:
 
-Cloudflared redistribution: official Cloudflare build, Apache-2.0. See CLOUDFlARED-LICENSE.txt supplied in release.
+```powershell
+./build.ps1
+```
 
-For a clean Git clone, run ./build.ps1 to download the pinned, checksum-verified tunnel connector and publish the Windows executable.
+The script obtains the pinned official cloudflared release, verifies SHA-256 and publishes `release/SuanPleng.exe`. No other art/runtime assets need downloading.
+
+```powershell
+./release/SuanPleng.exe --self-test
+./release/SuanPleng.exe --internet-test
+./release/SuanPleng.exe --visual-test
+./release/SuanPleng.exe --loop-test
+./release/SuanPleng.exe --benchmark
+```
+
+Checks create isolated profiles and reports beside the EXE. `--internet-test` opens and closes a temporary public tunnel. `--visual-test` exports the production atlas and visual verification images. `--loop-test` exercises the actual UI frame scheduler, network polling and two clients without opening a visible window. `--benchmark` measures full offscreen rendering across three qualities and resolutions with four active fixture players. Presentation by the monitor/DWM and Internet latency are excluded from FPS benchmarks.

@@ -1,0 +1,11 @@
+{
+  "method": "Actual WinForms frame and network timers, two local protocol clients, moving character, full crop farm and storm/night. Rendered into an offscreen bitmap; excludes display presentation.",
+  "frames": 401,
+  "seconds": 10.019769800000006,
+  "fps": 40.020879521603355,
+  "meanIntervalMs": 24.986957107231934,
+  "p95IntervalMs": 32.13500000000025,
+  "meanRenderMs": 14.861104987531181,
+  "peerPolls": 43,
+  "players": 2
+}

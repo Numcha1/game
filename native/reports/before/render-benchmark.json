@@ -1,0 +1,41 @@
+{
+  "framework": ".NET 8.0.29",
+  "os": "Microsoft Windows 10.0.19045",
+  "processorCount": 12,
+  "distribution": "Self-contained compressed single-file Windows x64 EXE, same as after build",
+  "method": "Offscreen CPU render with four active players; excludes display presentation and network I/O",
+  "results": [
+    {
+      "scene": "day",
+      "width": 1280,
+      "height": 800,
+      "frames": 600,
+      "meanMs": 13.740959166666673,
+      "p95Ms": 17.1035,
+      "p99Ms": 26.2231,
+      "renderCapacityFps": 72.77512347360998,
+      "allocatedBytesPerFrame": 124979,
+      "managedDeltaBytes": 2464,
+      "privateBytes": 68087808,
+      "workingSetBytes": 184373248,
+      "gdiBefore": 15,
+      "gdiAfter": 15
+    },
+    {
+      "scene": "storm-night",
+      "width": 1280,
+      "height": 800,
+      "frames": 600,
+      "meanMs": 16.86258433333335,
+      "p95Ms": 20.1642,
+      "p99Ms": 23.6304,
+      "renderCapacityFps": 59.30289095860805,
+      "allocatedBytesPerFrame": 130208,
+      "managedDeltaBytes": -7904,
+      "privateBytes": 66158592,
+      "workingSetBytes": 183390208,
+      "gdiBefore": 15,
+      "gdiAfter": 15
+    }
+  ]
+}

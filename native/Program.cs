@@ -7,6 +7,14 @@ static class Program {
         try {
             if(args.Contains("--self-test") || args.Contains("--internet-test")) { Checks.Run(args.Contains("--internet-test")).GetAwaiter().GetResult();return; }
             ApplicationConfiguration.Initialize();
+            if(args.Contains("--benchmark")) { RenderDiagnostics.Run(Path.Combine(AppContext.BaseDirectory,"benchmark"));return; }
+            if(args.Contains("--loop-test")) { LoopDiagnostics.Run(Path.Combine(AppContext.BaseDirectory,"loop-test"));return; }
+            if(args.Contains("--visual-test")) {
+                string output=Path.Combine(AppContext.BaseDirectory,"visual-tests");Directory.CreateDirectory(output);
+                using var form=new GameForm(Path.Combine(output,"profile"));var farm=new Farm();form.TestWorld(farm);
+                string[] crops=Farm.Crops.Keys.ToArray();for(int i=0;i<24;i++){string crop=crops[i%8];farm.Plots[i]=new(){Crop=crop,Growth=Farm.Crops[crop].Days,RipeDay=1};}
+                int passed=form.VisualChecks(output);File.WriteAllText(Path.Combine(output,"visual-tests.json"),JsonSerializer.Serialize(new{passed}));Console.WriteLine($"Visual checks passed: {passed}");return;
+            }
             if(args.Contains("--render-test")) {
                 string data=Path.Combine(AppContext.BaseDirectory,"render-data");using var form=new GameForm(data);
                 using(var image=form.RenderForTest())image.Save(Path.Combine(AppContext.BaseDirectory,"menu.png"));
