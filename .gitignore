@@ -2,3 +2,13 @@ node_modules/
 *.png
 *.tar.gz
 eval_*.md
+backups/
+**/bin/
+**/obj/
+**/release/
+*.exe
+*.zip
+native/verification.json
+native/*test*.json
+*.log
+.vs/
