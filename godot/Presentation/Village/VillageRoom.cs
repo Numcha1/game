@@ -8,6 +8,7 @@ public partial class VillageRoom : InteriorRoom
 {
     FarmScene owner=null!;BuildingDefinition building=null!;
     readonly List<Sprite2D> lights=new();
+    readonly List<Polygon2D> windowPanes=new();
     public override void Initialize(GameReadModel model,BuildingDefinition def,FarmScene scene)
     {
         owner=scene;building=def;
@@ -25,8 +26,11 @@ public partial class VillageRoom : InteriorRoom
             }
         } else {
             var label=new Label {Text=def.Name,Theme=FarmTypography.Shared,Position=new Vector2(260,104),Size=new Vector2(248,25),HorizontalAlignment=HorizontalAlignment.Center};label.AddThemeFontSizeOverride("font_size",15);AddChild(label);
+            foreach(float x in new[]{321f,430f}) {
+                var pane=new Polygon2D{Name="WindowPane",Polygon=new[]{new Vector2(x,15),new Vector2(x+48,15),new Vector2(x+48,59),new Vector2(x,59)},Color=Colors.Transparent,ZIndex=-9};AddChild(pane);windowPanes.Add(pane);
+            }
             foreach(var pos in new[]{new Vector2(322,72),new Vector2(442,72)}) {
-                var light=new Sprite2D{Texture=AssetCatalog.Shared.Glow,Position=pos,Modulate=new Color(1,.75f,.4f,.22f),Scale=Vector2.One*.8f};AddChild(light);lights.Add(light);
+                var light=new Sprite2D{Texture=AssetCatalog.Shared.Glow,Position=pos,Modulate=new Color(1,.75f,.4f,.12f),Scale=Vector2.One*.4f};AddChild(light);lights.Add(light);
             }
         }
     }
@@ -35,7 +39,8 @@ public partial class VillageRoom : InteriorRoom
         if(owner==null || !Visible || building.Type=="village")return;
         var world=owner.Session.Read.World;
         float night=Math.Clamp(((float)world.Minute-1020)/180f,0,1);
-        owner.GetNode<CanvasModulate>("Ambient").Color=Colors.White.Lerp(new Color(.8f,.78f,.69f),night);
+        owner.GetNode<CanvasModulate>("Ambient").Color=RoomLight.Ambient(world.Minute,true,world.Weather);
+        foreach(var pane in windowPanes)pane.Color=new Color(.1f,.16f,.26f,night*.85f);
         foreach(var light in lights)light.Visible=world.Minute>=1020;
     }
 }

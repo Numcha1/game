@@ -33,7 +33,7 @@ public static class NpcAssets
     public static AtlasTexture Room(string id)
     {
         if(roomViews.TryGetValue(id,out var cached))return cached;
-        var atlas=id=="village.seed-shop"?CompositionRooms:Rooms;
+        var atlas=CompositionRooms;
         int cell=id switch {"village.seed-shop"=>0,"village.workshop"=>1,"village.mira-home"=>2,"village.rowan-home"=>3,_=>throw new InvalidDataException("Unknown village room")};
         return roomViews[id]=new AtlasTexture{Atlas=atlas,Region=new Rect2(cell%2*atlas.GetWidth()/2,cell/2*atlas.GetHeight()/2,atlas.GetWidth()/2,atlas.GetHeight()/2),FilterClip=true};
     }

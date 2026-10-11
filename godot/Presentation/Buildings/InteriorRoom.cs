@@ -12,7 +12,7 @@ public partial class InteriorRoom : Node2D
     Texture2D foregroundSource=null!;
     readonly List<Polygon2D> panes=new();
     readonly List<Sprite2D> lamps=new();
-    int lastMinute=-1; bool lastLights;
+    int lastMinute=-1; bool lastLights;string lastWeather="";
     FarmScene owner=null!;
     AudioStreamPlayer ambience=null!;
     public virtual void Initialize(GameReadModel model,BuildingDefinition def,FarmScene scene)
@@ -25,14 +25,12 @@ public partial class InteriorRoom : Node2D
                 throw new InvalidDataException("Interior marker does not match its building definition");
         if(GetNodeOrNull<Node2D>("Actors") is not {YSortEnabled:true})throw new InvalidDataException("Interior actors require Y sorting");
         var actors=GetNode<Node2D>("Actors");
-        // Reuse atlas regions from the original background for foreground occlusion; no extra bitmap copies.
-        AddForeground(actors,new Rect2(178,158,222,318));
-        AddForeground(actors,new Rect2(1140,188,174,146));
-        AddForeground(actors,new Rect2(606,158,312,156));
-        AddForeground(actors,new Rect2(78,534,80,132));
-        AddForeground(actors,new Rect2(1380,536,82,212));
-        AddForeground(actors,new Rect2(100,188,94,126));
-        AddForeground(actors,new Rect2(1320,90,122,210));
+        var logical=RoomPresentationAssets.Flat(def.Id,foregroundSource);
+        RoomDepth.Add(actors,logical,"BedCluster",new(92,95),new(180,82),new(199,120),new(199,236),new(93,236));
+        RoomDepth.Add(actors,logical,"StorageChest",new(570,101),new(650,97),new(655,161),new(570,167));
+        RoomDepth.Add(actors,logical,"SittingArea",new(305,116),new(333,87),new(409,81),new(458,128),new(427,161),new(338,158));
+        RoomDepth.Add(actors,logical,"PlantLeft",new(44,266),new(73,270),new(77,329),new(43,330));
+        RoomDepth.Add(actors,logical,"PlantRight",new(691,266),new(731,278),new(733,370),new(692,370));
         foreach(int start in new[]{246,485}) for(int x=0;x<2;x++) for(int y=0;y<2;y++) {
             var p=new Vector2(start+x*24,32+y*26);var size=new Vector2(x==0?17:16,y==0?21:20);
             var pane=new Polygon2D {Polygon=new[]{p,p+new Vector2(size.X,0),p+size,p+new Vector2(0,size.Y)},ZIndex=-9};AddChild(pane);panes.Add(pane);
@@ -43,20 +41,15 @@ public partial class InteriorRoom : Node2D
         var loop=(AudioStreamWav)AssetCatalog.Shared.Sound("interior-ambience").Duplicate();loop.LoopMode=AudioStreamWav.LoopModeEnum.Forward;loop.LoopBegin=0;loop.LoopEnd=loop.Data.Length/2;
         ambience=new AudioStreamPlayer {Stream=loop,Bus="Effects",VolumeDb=-80};AddChild(ambience);ambience.Play();
     }
-    void AddForeground(Node2D actors,Rect2 region)
-    {
-        var texture=new AtlasTexture {Atlas=foregroundSource,Region=region,FilterClip=true};
-        actors.AddChild(new Sprite2D {Texture=texture,Scale=Vector2.One*.5f,Position=new Vector2(region.Position.X+region.Size.X/2,region.End.Y)*.5f,Offset=new Vector2(0,-region.Size.Y/2)});
-    }
     public override void _Process(double delta)
     {
         if(read==null || !Visible)return;
         int volume=owner.Display.EffectsVolume;
         ambience.VolumeDb=owner.DiagnosticAudioMuted || volume==0 ? -80 : Mathf.LinearToDb(volume/100f)-12;
         int minute=(int)read.World.Minute;bool lights=read.InteriorLightsOn;
-        if(minute==lastMinute && lights==lastLights)return;lastMinute=minute;lastLights=lights;
+        if(minute==lastMinute && lights==lastLights && lastWeather==read.World.Weather)return;lastMinute=minute;lastLights=lights;lastWeather=read.World.Weather;
         float night=Math.Clamp((minute-1020)/180f,0,1);
-        owner.GetNode<CanvasModulate>("Ambient").Color=lights?new Color(1,.98f,.94f):Colors.White.Lerp(new Color(.55f,.62f,.76f),night);
+        owner.GetNode<CanvasModulate>("Ambient").Color=RoomLight.Ambient(read.World.Minute,lights,read.World.Weather);
         foreach(var pane in panes)pane.Color=new Color(.13f,.22f,.38f,night*.95f);
         foreach(var lamp in lamps)lamp.Visible=lights && minute>=1020;
     }
