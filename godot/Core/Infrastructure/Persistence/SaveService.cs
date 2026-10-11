@@ -19,6 +19,7 @@ public sealed class SaveService : ISaveService
     readonly SemaphoreSlim storageGate = new(1);
     readonly IGameLog log;
     readonly Task writer;
+    readonly FileStream profileLease;
     TaskCompletionSource progress = NewProgress();
     TaskCompletionSource? importFinished;
     long requested, completed;
@@ -33,9 +34,11 @@ public sealed class SaveService : ISaveService
         Directory.CreateDirectory(directory);
         SavePath = Path.Combine(Path.GetFullPath(directory), "farm.json");
         log = logger ?? NullGameLog.Instance;
-        RecoverInterruptedImport();
-        writer = Task.Run(WriteLoop);
+        profileLease = AcquireProfile(SavePath);
+        try { RecoverInterruptedImport(); writer = Task.Run(WriteLoop); }
+        catch { profileLease.Dispose(); throw; }
     }
+    static FileStream AcquireProfile(string path) => new(path + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
     static TaskCompletionSource NewProgress() => new(TaskCreationOptions.RunContinuationsAsynchronously);
     public static Farm Deserialize(ReadOnlySpan<byte> bytes)
     {
@@ -222,10 +225,11 @@ public sealed class SaveService : ISaveService
     {
         byte[] bytes = ReadBounded(savePath + ".bak");
         var farm = Deserialize(bytes);
-        if (farm.Players.Count > 0)
+        string identityPath = Path.Combine(Path.GetDirectoryName(savePath)!, "player.txt");
+        if (farm.Players.Count > 0 || File.Exists(identityPath))
         {
-            string identity = System.Text.Encoding.UTF8.GetString(ReadBounded(Path.Combine(Path.GetDirectoryName(savePath)!, "player.txt"), 128)).Trim();
-            if (!Guid.TryParseExact(identity, "N", out _) || farm.Find(identity) == null)
+            string identity = System.Text.Encoding.UTF8.GetString(ReadBounded(identityPath, 128)).Trim();
+            if (!Guid.TryParseExact(identity, "N", out _) || farm.Players.Count > 0 && farm.Find(identity) == null)
                 throw new InvalidDataException("ข้อมูลผู้เล่นไม่ตรงกับเซฟสำรอง ต้องกู้คืนไฟล์เป็นคู่");
         }
         return bytes;
@@ -234,6 +238,7 @@ public sealed class SaveService : ISaveService
     public static async Task RestoreBackupAsync(string directory)
     {
         string path = Path.Combine(Path.GetFullPath(directory), "farm.json");
+        using var recoveryLease = AcquireProfile(path);
         if (File.Exists(path + ".import-pending")) throw new InvalidDataException("ต้องกู้คืนการนำเข้าให้เสร็จก่อน");
         byte[] bytes = await Task.Run(() => ValidateBackup(path)).ConfigureAwait(false);
         string preserved = path + ".corrupt-" + Guid.NewGuid().ToString("N");
@@ -245,8 +250,7 @@ public sealed class SaveService : ISaveService
     {
         Task importingTask;
         lock (gate) { if (closing) return; closing = true; queue.Writer.TryComplete(); importingTask = importFinished?.Task ?? Task.CompletedTask; }
-        await writer.ConfigureAwait(false);
-        await importingTask.ConfigureAwait(false);
-        storageGate.Dispose();
+        try { await writer.ConfigureAwait(false); await importingTask.ConfigureAwait(false); }
+        finally { storageGate.Dispose(); profileLease.Dispose(); }
     }
 }

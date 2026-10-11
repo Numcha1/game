@@ -2,6 +2,12 @@ using SeasonsTogether.Core;
 using SuanPleng;
 using System.Text.Json;
 
+if (args.Length == 2 && args[0] == "--lock-probe") {
+    try { await using var probe = new SeasonsTogether.Core.Infrastructure.Persistence.SaveService(args[1]); }
+    catch (IOException) { Environment.ExitCode = 2; }
+    return;
+}
+
 string output=Path.GetFullPath(args.Length>0?args[0]:"reports/core-tests.json");Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 string directory=Path.Combine(Path.GetDirectoryName(output)!,"core-profile-"+Guid.NewGuid().ToString("N"));
 var passed=new List<string>();void Check(bool condition,string message){if(!condition)throw new Exception(message);passed.Add(message);}

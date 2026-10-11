@@ -10,6 +10,25 @@ internal static class RecoveryChecks
         string root = Path.Combine(reports, "recovery-profile-" + Guid.NewGuid().ToString("N"));
         var checks = new List<string>();
         void Check(bool pass, string label) { if (!pass) throw new Exception(label); checks.Add(label); }
+        async Task<int> ProbeLock(string directory)
+        {
+            var start = new System.Diagnostics.ProcessStartInfo("dotnet") { UseShellExecute = false, CreateNoWindow = true };
+            start.ArgumentList.Add(typeof(RecoveryChecks).Assembly.Location); start.ArgumentList.Add("--lock-probe"); start.ArgumentList.Add(directory);
+            using var child = System.Diagnostics.Process.Start(start)!;
+            try { await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10)); }
+            catch { if (!child.HasExited) child.Kill(true); throw; }
+            return child.ExitCode;
+        }
+        string locked = Path.Combine(root, "shared-profile");
+        await using (var save = new SaveService(locked))
+        {
+            save.RequestSave(new Farm { Coins = 777 }); await save.FlushAsync();
+            Check(await ProbeLock(locked) == 2 && save.Load().Coins == 777, "independent process cannot open or overwrite a live profile");
+            bool recoveryRefused = false;
+            try { await SaveService.RestoreBackupAsync(locked); } catch (IOException) { recoveryRefused = true; }
+            Check(recoveryRefused && save.Load().Coins == 777, "backup recovery cannot race a live profile writer");
+        }
+        Check(await ProbeLock(locked) == 0, "profile lease releases after shutdown for an independent process");
         byte[] oldFarm = JsonSerializer.SerializeToUtf8Bytes(new Farm { Coins = 333 });
         byte[] newFarm = JsonSerializer.SerializeToUtf8Bytes(new Farm { Coins = 888 });
         byte[] oldIdentity = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString("N"));
@@ -74,6 +93,9 @@ internal static class RecoveryChecks
         File.WriteAllText(recoveryPath + ".bak", "{broken"); byte[] current = File.ReadAllBytes(recoveryPath);
         bool backupRefused = false; try { await SaveService.RestoreBackupAsync(recovery); } catch (JsonException) { backupRefused = true; }
         Check(backupRefused && current.SequenceEqual(File.ReadAllBytes(recoveryPath)), "invalid backup cannot replace the live save");
+        File.WriteAllBytes(recoveryPath + ".bak", oldFarm); File.WriteAllText(Path.Combine(recovery, "player.txt"), "corrupt");
+        await using (var save = new SaveService(recovery))
+            Check(!save.CanRestoreBackup, "backup recovery is not offered when it cannot fix damaged identity");
         string target = Path.Combine(root, "import-refused");
         await using (var save = new SaveService(target))
         {

@@ -21,7 +21,7 @@ public partial class FarmScene : Node2D
     public int Quality { get; private set; } = 2;
     public string[] CropKeys { get; } = GameCatalog.Crops.Keys.ToArray();
     public bool IsBusy => operationInProgress;
-    public bool ReadyToPlay => Session != null && Farmer != null && Hud != null;
+    public bool ReadyToPlay => presentationReady && sceneActive;
     FarmWorldPresenter renderer = null!;
     WeatherLighting weather = null!;
     EffectPool effects = null!;
@@ -35,7 +35,7 @@ public partial class FarmScene : Node2D
     Task shutdown = Task.CompletedTask;
     public string DataDirectory { get; private set; } = "";
     string[] arguments = Array.Empty<string>();
-    bool sceneActive;
+    bool sceneActive, presentationReady;
     readonly CancellationTokenSource sceneLifetime = new();
     public override void _Ready()
     {
@@ -43,7 +43,8 @@ public partial class FarmScene : Node2D
         GetTree().AutoAcceptQuit = false;
         arguments = OS.GetCmdlineUserArgs();
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
-        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
+        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
+        if (arguments.Contains("--startup-checks") && DiagnosticDataDirectory != null) DataDirectory = DiagnosticDataDirectory;
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
         catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
@@ -59,6 +60,7 @@ public partial class FarmScene : Node2D
         }
         try {
         Engine.MaxFps = 60;
+        if (arguments.Contains("--startup-checks") && DiagnosticAssetFailure) throw new InvalidDataException("Injected asset initialization failure");
         Art = AssetCatalog.Shared; renderer = new FarmWorldPresenter(); AddChild(renderer); renderer.Initialize(this, Session.Read, Art);
         Farmer = GetNode<FarmerController>("Actors/Farmer"); Farmer.Initialize(Session, Art.FarmerFrames());
         weather = new WeatherLighting { Read = Session.Read, Ambient = GetNode<CanvasModulate>("Ambient") }; AddChild(weather);
@@ -67,6 +69,7 @@ public partial class FarmScene : Node2D
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
         SetQuality(settings.Load());
+        presentationReady = true;
         }
         catch (Exception e) when (e is InvalidDataException or System.Text.Json.JsonException or KeyNotFoundException) {
             finalCheckpoint = true; // Failed composition must not save a partially initialized session.
@@ -74,7 +77,8 @@ public partial class FarmScene : Node2D
             var dialog = new AcceptDialog { DialogText = "ไฟล์ภาพหรือฉากเกมไม่สมบูรณ์ โปรดติดตั้งเกมใหม่\nเซฟเดิมยังเก็บไว้" };
             AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
         }
-        if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
+        if (arguments.Contains("--startup-checks") && !startupHarnessRunning) { startupHarnessRunning = true; _ = RunStartupChecks(); }
+        else if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         if (arguments.Contains("--showcase")) PopulateShowcase();
     }
@@ -141,10 +145,15 @@ public partial class FarmScene : Node2D
     {
         sceneActive = false;
         sceneLifetime.Cancel();
-        if (Session == null) { if (saves != null) _ = saves.DisposeAsync(); if (log != null) _ = log.DisposeAsync(); return; }
+        if (Session == null) { shutdown = ReleaseStartupServices(saves, log); return; }
         Session.StateChanged -= OnStateChanged; Session.PersistenceFailed -= Notify;
         if (!operationInProgress && !finalCheckpoint) { try { _ = Session.SaveAsync(); } catch (Exception e) { log.Write("error", "save.exit", e.GetType().Name); } }
         shutdown = ReleaseServices(pendingOperation, Session, log);
+    }
+    static async Task ReleaseStartupServices(SaveService? storage, JsonGameLog? logger)
+    {
+        try { if (storage != null) await storage.DisposeAsync().ConfigureAwait(false); }
+        finally { if (logger != null) await logger.DisposeAsync().ConfigureAwait(false); }
     }
     static async Task ReleaseServices(Task pending, GameSession session, JsonGameLog logger)
     {
