@@ -62,7 +62,7 @@ public partial class FarmHud : Control
         for (int i = 0; i < Tools.Length; i++)
         {
             int index = i; var b = Button((i + 1).ToString(), () => { farm.Tool = Tools[index].Action; Refresh(); });
-            b.FocusMode = FocusModeEnum.None; b.TooltipText = Tools[i].Label + " ? " + (i + 1); b.Icon = farm.Art.Region(Tools[i].Icon); b.ExpandIcon = true; b.AddThemeConstantOverride("icon_max_width", 20); b.CustomMinimumSize = new Vector2(67, 32);
+            b.FocusMode = FocusModeEnum.None; b.TooltipText = Tools[i].Label + " · " + (i + 1); b.Icon = farm.Art.ToolIcon(Tools[i].Action); b.ExpandIcon = true; b.AddThemeConstantOverride("icon_max_width", 24); b.CustomMinimumSize = new Vector2(67, 32);
             bar.AddChild(b); tools[i] = b;
         }
         toast = new Label { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -360, OffsetRight = 360, OffsetTop = -134, OffsetBottom = -91,

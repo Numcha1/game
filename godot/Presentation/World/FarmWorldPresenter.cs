@@ -104,14 +104,11 @@ public partial class FarmWorldPresenter : Node
             ground.SetCell(new Vector2I(tile.X, tile.Y), 0, new Vector2I(plot.Moisture >= 80 ? 10 : plot.Moisture >= 35 ? 9 : 8, season));
             crops[i].Visible = plot.Crop != ""; stakes[i].Visible = plot.Stake;
             if (!crops[i].Visible) continue;
-            var texture = Art.Region(plot.Crop);
             float progress = (float)Math.Clamp(plot.Growth / GameCatalog.Crops[plot.Crop].Days, 0, 1);
-            if (progress < .33f) texture = Art.Region("sprout");
-            else if (progress < .66f) texture = Art.Region("young-" + plot.Crop);
-            crops[i].Texture = texture;
-            float width = progress < .33f ? 12 : progress < .66f ? 20 : plot.Crop == "corn" ? 31 : 30;
-            crops[i].Scale = Vector2.One * (width / texture.GetWidth());
-            crops[i].Offset = new Vector2(0, -texture.GetHeight() / 2f + 5);
+            int stage = progress >= 1 ? 3 : progress < .25f ? 0 : progress < .5f ? 1 : 2;
+            crops[i].Texture = Art.CropStage(plot.Crop,stage);
+            crops[i].Scale = Vector2.One;
+            crops[i].Offset = new Vector2(0,-23);
             crops[i].Modulate = plot.Disease ? new Color(.75f, .65f, .6f) : Colors.White;
         }
     }

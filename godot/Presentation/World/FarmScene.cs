@@ -24,6 +24,7 @@ public partial class FarmScene : Node2D
     public bool ReadyToPlay => presentationReady && sceneActive;
     FarmWorldPresenter renderer = null!;
     WeatherLighting weather = null!;
+    WeatherAccentPool accents = null!;
     EffectPool effects = null!;
     SaveService saves = null!;
     JsonGameLog log = null!;
@@ -69,6 +70,7 @@ public partial class FarmScene : Node2D
         Farmer = GetNode<FarmerController>("Actors/Farmer"); Farmer.Initialize(Session, Art.FarmerFrames());
         weather = new WeatherLighting { Read = Session.Read, Ambient = GetNode<CanvasModulate>("Ambient") }; AddChild(weather);
         weather.AddLamp(new Vector2(112, 82), Art.Glow); weather.AddLamp(new Vector2(656, 82), Art.Glow);
+        accents = new WeatherAccentPool { Read=Session.Read,ZIndex=9 }; AddChild(accents);
         effects = new EffectPool { ZIndex = 8 }; AddChild(effects);
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
@@ -140,10 +142,10 @@ public partial class FarmScene : Node2D
         if (result.Effect != null) {
             var location = Farmer.Position;
             if (plot >= 0) { var t = GameCatalog.PlotTile(plot); location = new Vector2(t.X * 32, t.Y * 32); }
-            effects.Burst(location, action); Farmer.Gesture();
+            effects.Burst(location, action,action=="harvest" && result.Effect.Crop!="" ? Art.CropStage(result.Effect.Crop,3) : null); if (!Display.ReducedMotion) Farmer.Gesture(action);
         }
     }
-    public void SetQuality(int value) { Quality = Math.Clamp(value, 0, 2); weather.Quality = Quality; effects.Quality = Quality; renderer.SetQuality(Quality); }
+    public void SetQuality(int value) { Quality = Math.Clamp(value, 0, 2); weather.Quality = Quality; effects.Quality = Quality; accents.Quality=Quality; renderer.SetQuality(Quality); }
     public void Notify(string message) { if (sceneActive) EmitSignal(SignalName.Message, message); }
     public async void SaveQuality(int value)
     {

@@ -10,17 +10,36 @@ public partial class FarmScene
         void Check(bool pass, string label) { if (!pass) throw new InvalidOperationException(label); checks.Add(label); }
         try {
             await NextFrame(SceneTree.SignalName.ProcessFrame);
+            foreach (string crop in Core.Domain.GameCatalog.CropKeys) {
+                var hashes = new HashSet<string>();
+                for (int stage=0;stage<4;stage++) {
+                    var region=Art.CropStage(crop,stage); using var image=region.GetImage();
+                    hashes.Add(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(image.GetData())));
+                    if (region.GetWidth()!=40 || region.GetHeight()!=56 || !region.FilterClip) throw new InvalidOperationException("Growth atlas dimensions or bleeding guard");
+                }
+                Check(hashes.Count==4,"four distinct anchored growth stages " + crop);
+            }
+            foreach(var tool in FarmHud.Tools) {
+                var frames=Art.ToolFrames(tool.Action);
+                Check(frames.GetFrameCount("default")==4 && ReferenceEquals(frames,Art.ToolFrames(tool.Action)) && Art.ToolIcon(tool.Action).FilterClip,"cached four-pose tool animation and icon " + tool.Action);
+            }
+            int originalEnergy=Session.Read.Player.Energy;
+            Farmer.Gesture("water");
+            Check(Farmer.ToolVisualVisible,"water action shows dedicated held tool");
+            for(int n=0;n<24;n++) await NextFrame(SceneTree.SignalName.PhysicsFrame);
+            Check(!Farmer.ToolVisualVisible && Farmer.Sprite.Animation.ToString().StartsWith("idle-") && Session.Read.Player.Energy==originalEnergy,"tool recovery returns to idle without changing gameplay or feet anchor");
             Check(Hud.Theme.DefaultFont is FontFile && Hud.Theme.DefaultFont.ResourcePath.Contains("Sarabun-Regular.ttf"), "bundled Sarabun body font without system font dependency");
             Check(Hud.Theme.GetFont("font", "Heading").ResourcePath.Contains("Mitr-Medium.ttf"), "bundled Mitr heading hierarchy");
             const string thai = "น้ำ ปุ๋ย เก็บเกี่ยว ฤดูใบไม้ผลิ ผู้เล่น กิ่กี้กึ๊กื๋";
             string supported = Hud.Theme.DefaultFont.GetSupportedChars();
             Check(thai.Where(c => !char.IsWhiteSpace(c)).All(c => supported.Contains(c)), "Thai consonants vowels and tone marks present in bundled font");
             Check(Hud.Theme.GetStylebox("focus", "Button") != null && Hud.Theme.GetStylebox("disabled", "Button") != null, "reusable focus and disabled button theme states");
+            await NextFrame(SceneTree.SignalName.ProcessFrame);
             string initialSeed = Seed;
             Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.Tab, Pressed = true });
             Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.Tab, Pressed = false });
             await NextFrame(SceneTree.SignalName.ProcessFrame);
-            Check(Seed != initialSeed, "original Tab seed shortcut preserved outside modal");
+            Check(Seed != initialSeed, "original Tab seed shortcut preserved outside modal (" + initialSeed + " -> " + Seed + ")");
             Hud.OpenShop();
             var firstFocus = GetViewport().GuiGetFocusOwner();
             Check(firstFocus is Button, "modal opens with keyboard focus");
@@ -32,6 +51,14 @@ public partial class FarmScene
             Check(GetViewport().GuiGetFocusOwner() == null && !Farmer.InputBlocked, "closing modal releases focus and gameplay input");
             SetReducedMotion(true);
             Check(weather.ReducedMotion && Display.ReducedMotion, "reduced motion disables ambient rain and foliage motion");
+            SetReducedMotion(false);
+            Session.State.Weather="พายุ";
+            await NextFrame(SceneTree.SignalName.ProcessFrame); await NextFrame(SceneTree.SignalName.ProcessFrame);
+            Check(accents.VisibleRipples==12,"high quality storm enables pooled pond ripples");
+            SetQuality(0); await NextFrame(SceneTree.SignalName.ProcessFrame); await NextFrame(SceneTree.SignalName.ProcessFrame);
+            Check(accents.VisibleRipples==0,"low quality disables pond accent overhead");
+            SetQuality(2); SetReducedMotion(true); await NextFrame(SceneTree.SignalName.ProcessFrame); await NextFrame(SceneTree.SignalName.ProcessFrame);
+            Check(accents.VisibleRipples==0 && accents.VisibleSeasonal==0,"reduced motion suppresses environmental accents");
             SetReducedMotion(false);
             if (DisplayServer.GetName() != "headless") {
                 foreach (int mode in new[] { 1, 2, 0 }) {

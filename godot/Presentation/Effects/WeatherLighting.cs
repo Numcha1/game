@@ -35,7 +35,12 @@ public partial class WeatherLighting : Node2D
         elapsed += delta;
         float night = (float)Math.Clamp((Read.World.Minute - 1000) / 240, 0, 1);
         bool wet = Read.World.Weather is "ฝนตก" or "พายุ";
-        var tint = new Color(1 - night * .45f, 1 - night * .42f, 1 - night * .23f);
+        float minute=(float)Read.World.Minute;
+        var tint=minute<480 ? new Color("ffe7c4").Lerp(Colors.White,Mathf.Clamp((minute-360)/120,0,1))
+            : minute<960 ? Colors.White
+            : minute<1100 ? Colors.White.Lerp(new Color("ffd0a3"),(minute-960)/140)
+            : new Color("ffd0a3").Lerp(new Color("8995bb"),Mathf.Clamp((minute-1100)/160,0,1));
+        if(Read.World.Season==3 && minute<960)tint*=new Color(.96f,.98f,1);
         if (wet) tint *= new Color(.83f, .89f, .96f);
         Ambient.Color = Ambient.Color.Lerp(tint, (float)(1 - Math.Exp(-delta * 2)));
         foreach (var lamp in lamps) lamp.Energy = Quality == 0 ? 0 : night * 0.65f;
@@ -44,6 +49,7 @@ public partial class WeatherLighting : Node2D
         {
             var sprite = drops[i]; sprite.Visible = wet && i < count && !ReducedMotion;
             if (!sprite.Visible) continue;
+            sprite.Modulate = new Color(1,1,1,i%3==0?.45f:i%3==1?.7f:1);
             var p = sprite.Position; p.Y += (float)delta * (110 + i % 3 * 60); p.X -= (float)delta * 25;
             if (p.Y > 590) p.Y -= 605; if (p.X < -8) p.X += 816; sprite.Position = p;
         }

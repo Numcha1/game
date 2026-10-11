@@ -40,7 +40,7 @@ public partial class FarmScene
     }
     void ApplyMotion()
     {
-        weather.ReducedMotion = Display.ReducedMotion; renderer.SetReducedMotion(Display.ReducedMotion);
+        weather.ReducedMotion = Display.ReducedMotion; accents.ReducedMotion = Display.ReducedMotion; effects.ReducedMotion=Display.ReducedMotion; renderer.SetReducedMotion(Display.ReducedMotion);
     }
     void QueueDisplaySave() => pendingDisplay = SaveDisplay();
     async Task SaveDisplay()
