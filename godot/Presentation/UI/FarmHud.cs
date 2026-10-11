@@ -1,10 +1,12 @@
 using Godot;
-using SuanPleng;
+using SeasonsTogether.Core.Application;
+using SeasonsTogether.Core.Domain;
 
 namespace SeasonsTogether;
 
 public partial class FarmHud : Control
 {
+    static SystemFont? sharedFont;
     public static readonly (string Action, string Label, string Icon)[] Tools = {
         ("plant", "เมล็ด", "seeds"), ("water", "รดน้ำ", "water"), ("harvest", "เก็บเกี่ยว", "carrot"),
         ("treat", "รักษา", "flowers"), ("fertilize", "ปุ๋ย", "seeds"), ("stake", "ไม้ค้ำ", "hoe"), ("clear", "ถอนต้น", "hoe") };
@@ -12,10 +14,21 @@ public partial class FarmHud : Control
     FarmScene farm = null!;
     Label status = null!, seed = null!, toast = null!, coins = null!;
     ProgressBar energy = null!;
+    Label plotInfo = null!;
+    PanelContainer inspector = null!;
+    public string PlotInformation => plotInfo.Text;
+    public bool PlotInspectorVisible => inspector.Visible;
     VBoxContainer modalContent = null!;
     Control modal = null!;
     Button[] tools = Array.Empty<Button>();
-    double toastTime;
+    double toastTime, refreshElapsed;
+    bool dirty;
+    void OnStateChanged(GameChange change)
+    {
+        if (change != GameChange.Position) dirty = true;
+        if (change == GameChange.Position && farm.SelectedPlot >= 0) farm.InspectPlot(-1);
+        if ((change & GameChange.Plots) != 0) RefreshInspector();
+    }
     string lastStatus = "", lastCoins = "", lastSeed = "";
     StyleBoxFlat PanelStyle(string color, string border = "69553b") => new() {
         BgColor = new Color(color), BorderColor = new Color(border), BorderWidthLeft = 3, BorderWidthRight = 3, BorderWidthTop = 3, BorderWidthBottom = 3,
@@ -29,8 +42,9 @@ public partial class FarmHud : Control
     }
     public void Initialize(FarmScene scene)
     {
+        if (farm != null) throw new InvalidOperationException("HUD already initialized");
         farm = scene;
-        var theme = new Theme { DefaultFont = new SystemFont { FontNames = new string[] { "Tahoma", "Noto Sans Thai", "sans-serif" } }, DefaultFontSize = 14 };
+        var theme = new Theme { DefaultFont = sharedFont ??= new SystemFont { FontNames = new string[] { "Tahoma", "Noto Sans Thai", "sans-serif" } }, DefaultFontSize = 14 };
         theme.SetColor("font_color", "Label", new Color("443d2f"));
         theme.SetColor("font_color", "Button", new Color("443d2f")); theme.SetColor("font_hover_color", "Button", new Color("443d2f"));
         theme.SetStylebox("normal", "Button", PanelStyle("eee0b8")); theme.SetStylebox("hover", "Button", PanelStyle("f8eccd"));
@@ -40,6 +54,10 @@ public partial class FarmHud : Control
         var stats = new HBoxContainer(); topRows.AddChild(stats); coins = new Label { CustomMinimumSize = new Vector2(120, 22) }; stats.AddChild(coins);
         energy = new ProgressBar { CustomMinimumSize = new Vector2(135, 15), MaxValue = 100, ShowPercentage = false }; stats.AddChild(energy);
         energy.AddThemeStyleboxOverride("background", PanelStyle("bba985")); energy.AddThemeStyleboxOverride("fill", PanelStyle("729552", "729552"));
+        inspector = new PanelContainer { Position = new Vector2(14, 84), CustomMinimumSize = new Vector2(218, 126), MouseFilter = MouseFilterEnum.Ignore, Visible = false };
+        inspector.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); AddChild(inspector);
+        plotInfo = new Label { CustomMinimumSize = new Vector2(190, 110), AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
+        plotInfo.AddThemeFontSizeOverride("font_size", 12); inspector.AddChild(plotInfo);
         var topRight = new HBoxContainer { AnchorLeft = 1, AnchorRight = 1, OffsetLeft = -246, OffsetRight = -14, OffsetTop = 12, OffsetBottom = 44 }; AddChild(topRight);
         topRight.AddChild(Button("กระเป๋า B", OpenBag)); topRight.AddChild(Button("ร้านค้า O", OpenShop)); topRight.AddChild(Button("☰", OpenSettings));
         var bottom = new PanelContainer { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -286, OffsetRight = 286, OffsetTop = -82, OffsetBottom = -12 };
@@ -61,19 +79,57 @@ public partial class FarmHud : Control
         var panel = new PanelContainer { CustomMinimumSize = new Vector2(500, 350) }; panel.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); center.AddChild(panel);
         var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(470, 340) }; panel.AddChild(scroll);
         modalContent = new VBoxContainer { CustomMinimumSize = new Vector2(465, 320) }; scroll.AddChild(modalContent);
-        scene.Message += message => { toast.Text = message; toast.Visible = true; toastTime = 5; };
-        scene.FarmChanged += Refresh; Refresh();
+        scene.Message += OnMessage;
+        scene.Session.StateChanged += OnStateChanged; Refresh();
+    }
+    void OnMessage(string message) { toast.Text = message; toast.Visible = true; toastTime = 5; }
+    public override void _ExitTree()
+    {
+        if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.Session.StateChanged -= OnStateChanged; }
     }
     public void Refresh()
     {
-        var state = farm.Session.State;
-        string s = $"{Farm.SeasonNames[state.Season]} · วันที่ {state.SeasonDay} · {(int)state.Minute / 60:00}:{(int)state.Minute % 60:00} · {state.Weather}";
+        var state = farm.Session.Read.World;
+        string s = $"{GameCatalog.SeasonNames[state.Season]} · วันที่ {state.SeasonDay} · {(int)state.Minute / 60:00}:{(int)state.Minute % 60:00} · {state.Weather}";
         if (s != lastStatus) { status.Text = s; lastStatus = s; }
         string c = $"● {state.Coins:N0} เหรียญ   แรง"; if (c != lastCoins) { coins.Text = c; lastCoins = c; }
-        energy.Value = farm.Session.Player.Energy;
-        string chosen = $"{Farm.Crops[farm.Seed].Name} · Tab เปลี่ยนเมล็ด · {Tools.First(t => t.Action == farm.Tool).Label}";
+        energy.Value = farm.Session.Read.Player.Energy;
+        string chosen = $"{GameCatalog.Crops[farm.Seed].Name} · Tab เปลี่ยนเมล็ด · F1 วิธีเล่น · {Tools.First(t => t.Action == farm.Tool).Label}";
         if (chosen != lastSeed) { seed.Text = chosen; lastSeed = chosen; }
         for (int i = 0; i < tools.Length; i++) tools[i].Modulate = Tools[i].Action == farm.Tool ? new Color("ffd484") : Colors.White;
+        RefreshInspector();
+    }
+    void RefreshInspector()
+    {
+        var read = farm.Session.Read;
+        string next = "พรุ่งนี้ · " + read.TomorrowWeather;
+        inspector.Visible = farm.SelectedPlot >= 0;
+        if (farm.SelectedPlot < 0) {
+            plotInfo.Text = "เริ่มฟาร์มของคุณ\n1 เลือกเมล็ด · คลิกแปลงใกล้ตัว\n2 รดน้ำ · 3 เก็บเกี่ยวเมื่อโต\nE ขายที่ลัง · Space นอนหน้าบ้าน\n" + next; return;
+        }
+        var plot = read.Plot(farm.SelectedPlot);
+        string name = plot.Crop == "" ? "แปลงว่าง" : GameCatalog.Crops[plot.Crop].Name;
+        string growth = plot.Crop == "" ? "เลือกเมล็ดแล้วคลิกเพื่อปลูก" : plot.RipeDay >= 0
+            ? $"เก็บได้แล้ว · วันสุดท้าย {plot.RipeDay + GameCatalog.Crops[plot.Crop].HarvestWindow} (วันฟาร์ม)"
+            : $"เติบโต {plot.Growth:0.#}/{GameCatalog.Crops[plot.Crop].Days} วัน";
+        string hint = plot.Disease ? "ป่วย · ใช้ 4 รักษา ก่อนลาม" : plot.Crop != "" ? "คุณภาพ " + plot.Quality + "% · " + (plot.Stake ? "มีไม้ค้ำ" : "ไม่มีไม้ค้ำ")
+            : plot.LastCrop != "" ? "พืชก่อนหน้า · " + GameCatalog.Crops.GetValueOrDefault(plot.LastCrop)?.Name : "ปลูกพืชสลับชนิดเพื่อรักษาดิน";
+        plotInfo.Text = $"แปลง {farm.SelectedPlot + 1} · {name}\n{growth}\nน้ำ {plot.Moisture}% · ดิน {plot.Fertility}%\n{hint}\n{next}";
+    }
+    public void RequestPlotAction(string action, int plot)
+    {
+        if (action != "clear" || farm.Session.Read.Plot(plot).Crop == "") { farm.Perform(action, plot); return; }
+        Open("ยืนยันถอนต้น");
+        modalContent.AddChild(new Label { Text = "ต้นนี้จะถูกถอนโดยไม่ได้ผลผลิต และใช้แรงตามกฎเดิม" });
+        modalContent.AddChild(Button("ยืนยันถอนต้น", () => { CloseModal(); farm.Perform(action, plot); }));
+    }
+    public void RequestSleep()
+    {
+        if (farm.Session.Read.Player.Sleeping) { farm.Perform("wake"); return; }
+        if (farm.Session.Read.Inventory().Count == 0) { farm.Perform("sleep"); return; }
+        Open("เข้านอนพร้อมผลผลิต?");
+        modalContent.AddChild(new Label { Text = "เมื่อเริ่มวันใหม่ ผลผลิตในกระเป๋าลด 25%\nขายที่ลังก่อนนอนเพื่อรับเงินเต็มจำนวน" });
+        modalContent.AddChild(Button("ยืนยันเข้านอน", () => { CloseModal(); farm.Perform("sleep"); }));
     }
     void Open(string title)
     {
@@ -81,12 +137,13 @@ public partial class FarmHud : Control
         modalContent.AddChild(new Label { Text = title, HorizontalAlignment = HorizontalAlignment.Center });
         modalContent.AddChild(Button("ปิด · Esc", CloseModal)); modal.Visible = true; farm.Farmer.InputBlocked = true;
     }
-    public void CloseModal() { modal.Visible = false; farm.Farmer.InputBlocked = false; }
+    public void CloseModal() { modal.Visible = false; farm.Farmer.InputBlocked = farm.IsBusy; }
     public void OpenBag()
     {
         Open("กระเป๋าผลผลิต");
-        if (farm.Session.Player.Bag.Count == 0) modalContent.AddChild(new Label { Text = "ยังไม่มีผลผลิตในกระเป๋า" });
-        foreach (var pair in farm.Session.Player.Bag) modalContent.AddChild(new Label { Text = $"{Farm.Crops[pair.Key].Name} × {pair.Value} · ราคาวันนี้ {farm.Session.State.SalePrice(pair.Key)} เหรียญ" });
+        var inventory = farm.Session.Read.Inventory();
+        if (inventory.Count == 0) modalContent.AddChild(new Label { Text = "ยังไม่มีผลผลิตในกระเป๋า" });
+        foreach (var pair in inventory) modalContent.AddChild(new Label { Text = $"{pair.Name} × {pair.Quantity} · ราคาวันนี้ {pair.UnitPrice} เหรียญ" });
         modalContent.AddChild(Button("ขายทั้งหมด · ต้องยืนใกล้ลังขาย", () => { CloseModal(); farm.Perform("sell"); }));
         modalContent.AddChild(new Label { Text = "ผลผลิตลด 25% เมื่อข้ามคืน ควรขายก่อนเข้านอน" });
     }
@@ -95,12 +152,13 @@ public partial class FarmHud : Control
         Open("เมล็ดและอุปกรณ์");
         foreach (var key in farm.CropKeys)
         {
-            string cropKey = key; var crop = Farm.Crops[key];
-            var row = Button($"{crop.Name} · {crop.Cost} เหรียญ · {crop.Days} วัน" + (crop.Seasons.Contains(farm.Session.State.Season) ? " · ฤดูนี้" : ""), () => { farm.Seed = cropKey; CloseModal(); Refresh(); });
+            string cropKey = key; var crop = GameCatalog.Crops[key];
+            var row = Button($"{crop.Name} · {crop.Cost} เหรียญ · {crop.Days} วัน" + (farm.Session.Read.World.Greenhouse || crop.Seasons.Contains(farm.Session.Read.World.Season) ? " · ปลูกได้ฤดูนี้" : " · นอกฤดู"), () => { farm.Seed = cropKey; CloseModal(); Refresh(); });
             row.Icon = farm.Art.Region(key); row.ExpandIcon = true; row.AddThemeConstantOverride("icon_max_width", 24); modalContent.AddChild(row);
         }
         modalContent.AddChild(Button("หลังคาเรือนกระจก · 300 เหรียญ · ใกล้ร้านค้า", () => { CloseModal(); farm.Perform("greenhouse"); }));
         modalContent.AddChild(Button("ทุนฉุกเฉิน · เงินต่ำกว่า 6 เหรียญ", () => { CloseModal(); farm.Perform("rescue"); }));
+        modalContent.AddChild(new Label { Text = "เลือกเมล็ดที่นี่ แล้วปลูกในแปลงเพื่อจ่ายเงิน\nเรือนกระจกช่วยให้ปลูกได้ทุกฤดูและกันพายุ" });
     }
     public void OpenSettings()
     {
@@ -108,15 +166,22 @@ public partial class FarmHud : Control
         for (int i = 0; i < 3; i++) { int q = i; modalContent.AddChild(Button(new[] { "ต่ำ", "กลาง", "สูง" }[i], () => { farm.SaveQuality(q); farm.Notify("ตั้งค่าคุณภาพภาพแล้ว"); })); }
         modalContent.AddChild(Button("วิทยุ YouTube · เปิดในเบราว์เซอร์", OpenMusic));
         modalContent.AddChild(Button("วิธีเล่น", OpenHelp));
+        modalContent.AddChild(Button("บันทึกเหตุการณ์ฟาร์ม", OpenJournal));
         modalContent.AddChild(Button("นำเข้าเซฟเกมเดิม (คัดลอก)", () => {
             var dialog = new ConfirmationDialog { DialogText = "แทนฟาร์ม Godot ด้วยสำเนาเซฟเดิม?\nเซฟเกมเดิมจะไม่ถูกแก้ไข และสำรองฟาร์ม Godot ปัจจุบันไว้ก่อน" };
             AddChild(dialog); dialog.Confirmed += () => { farm.ImportLegacySave(); dialog.QueueFree(); }; dialog.Canceled += () => dialog.QueueFree(); dialog.PopupCentered(); }));
-        modalContent.AddChild(Button("บันทึกฟาร์ม", () => { try { farm.Session.Save(); farm.Notify("บันทึกแล้ว"); } catch (IOException e) { farm.Notify(e.Message); } }));
+        modalContent.AddChild(Button("บันทึกฟาร์ม", farm.SaveNow));
     }
     public void OpenHelp()
     {
         Open("สวนเพลง · วิธีเล่น");
-        modalContent.AddChild(new Label { Text = "WASD / ลูกศร เดิน · 1–7 เครื่องมือ · Tab เมล็ด\nคลิกแปลงใกล้ตัวเพื่อปลูก รดน้ำ เก็บเกี่ยว\nE ขายใกล้ลังด้านขวา · Space นอนหน้าบ้าน\nEsc หยุดเวลา · B กระเป๋า · O ร้าน · F3 ตั้งค่า\nฤดูละ 14 วัน รดน้ำทุกวัน ระวังโรคและพายุ\nฟาร์มฉากนี้เป็นโหมดคนเดียว ยังไม่เปิดห้องออนไลน์\nเซฟทดสอบแยกจากเกม Windows เดิม" });
+        modalContent.AddChild(new Label { Text = "WASD / ลูกศร เดิน · 1–7 เครื่องมือ · Tab เมล็ด\nคลิกแปลงใกล้ตัวเพื่อปลูก รดน้ำ เก็บเกี่ยว\nชี้แปลงเพื่อดูน้ำ ดิน โรค และวันเก็บเกี่ยว\nE ขายใกล้ลังด้านขวา · Space นอนหน้าบ้าน\nEsc หยุดเวลา · B กระเป๋า · O ร้าน · F3 ตั้งค่า\nฤดูละ 14 วัน แรงฟื้น 100 เมื่อเริ่มวันใหม่\nพืชขาดน้ำหยุดโต ดินอ่อนทำให้โตช้า\nพายุทำร้ายพืช ใช้ไม้ค้ำหรือเรือนกระจก\nระวังเก็บช้า พ้นฤดู และผลผลิตเสีย 25% ข้ามคืน\nฟาร์มฉากนี้เป็นโหมดคนเดียว ยังไม่เปิดห้องออนไลน์\nใช้โปรไฟล์ Godot แยกจากเกม Windows เดิม" });
+    }
+    public void OpenJournal()
+    {
+        Open("เหตุการณ์ล่าสุด");
+        foreach (string message in farm.Session.Read.Journal()) modalContent.AddChild(new Label {
+            Text = message, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(445, 24) });
     }
     void OpenMusic()
     {
@@ -124,13 +189,13 @@ public partial class FarmHud : Control
         modalContent.AddChild(new Label { Text = "วางลิงก์ HTTPS ของ YouTube เพื่อฟังในเบราว์เซอร์" });
         var input = new LineEdit { PlaceholderText = "https://www.youtube.com/watch?v=…", MaxLength = 512 }; modalContent.AddChild(input);
         modalContent.AddChild(Button("เปิดเพลง", () => {
-            if (!Uri.TryCreate(input.Text.Trim(), UriKind.Absolute, out var uri) || uri.Scheme != "https" || uri.UserInfo != "" || !uri.IsDefaultPort || !new[] { "youtube.com", "www.youtube.com", "music.youtube.com", "m.youtube.com", "youtu.be" }.Contains(uri.Host)) { farm.Notify("ใส่ลิงก์ HTTPS ของ YouTube เท่านั้น"); return; }
-            if (OS.ShellOpen(uri.AbsoluteUri) != Error.Ok) farm.Notify("เปิดเบราว์เซอร์ไม่ได้"); else CloseModal();
+            if (!MusicLink.TryParse(input.Text, out var uri)) { farm.Notify("ใส่ลิงก์ HTTPS ของ YouTube เท่านั้น"); return; }
+            if (OS.ShellOpen(uri!.AbsoluteUri) != Error.Ok) farm.Notify("เปิดเบราว์เซอร์ไม่ได้"); else CloseModal();
         }));
     }
     public override void _Input(InputEvent ev)
     {
         if (ModalVisible && ev is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Escape }) { CloseModal(); GetViewport().SetInputAsHandled(); }
     }
-    public override void _Process(double delta) { if (toastTime > 0) { toastTime -= delta; if (toastTime <= 0) toast.Visible = false; } }
+    public override void _Process(double delta) { refreshElapsed += delta; if (dirty && refreshElapsed >= .25) { dirty = false; refreshElapsed = 0; Refresh(); } if (toastTime > 0) { toastTime -= delta; if (toastTime <= 0) toast.Visible = false; } }
 }

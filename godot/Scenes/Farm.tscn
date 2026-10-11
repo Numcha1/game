@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://Scripts/FarmScene.cs" id="1"]
-[ext_resource type="Script" path="res://Scripts/FarmerController.cs" id="2"]
-[ext_resource type="Script" path="res://Scripts/FarmHud.cs" id="3"]
+[ext_resource type="Script" path="res://Presentation/World/FarmScene.cs" id="1"]
+[ext_resource type="Script" path="res://Presentation/Player/FarmerController.cs" id="2"]
+[ext_resource type="Script" path="res://Presentation/UI/FarmHud.cs" id="3"]
 [ext_resource type="PackedScene" path="res://Scenes/DayTransition.tscn" id="4"]
 
 [node name="Farm" type="Node2D"]

@@ -1,0 +1,380 @@
+{
+  "scope": "Tracked Godot/native source, scenes, shaders and assets; diagnostic captures excluded",
+  "files": [
+    {
+      "path": "godot/ArtSource/character-source.png",
+      "bytes": 1276816,
+      "sha256": "4f4ba06fb84a8fe2432351a56ce371194b9e3a5daa99b830a29238bdae15524a"
+    },
+    {
+      "path": "godot/ArtSource/environment-source.png",
+      "bytes": 2947046,
+      "sha256": "18ed0a2035f13c5c35e3ccc653fc6b230cf58dbda836461bb80ec0c5ffaf5bd0"
+    },
+    {
+      "path": "godot/Assets/characters.png",
+      "bytes": 58908,
+      "sha256": "0c8c5eee204948cc879cabb9fed2decc5bd0c7290ffd5574b082fdd23cbb303b"
+    },
+    {
+      "path": "godot/Assets/glow.png",
+      "bytes": 7529,
+      "sha256": "f34933f77c9aa1df46f1ec675ec3f15d6b5dfb5085f0ad3debaf93b729d72694"
+    },
+    {
+      "path": "godot/Assets/pond.png",
+      "bytes": 2567,
+      "sha256": "2efc06668a41724c457d8358a5d67b4829044adadcd54818a642c8b0502df498"
+    },
+    {
+      "path": "godot/Assets/props.png",
+      "bytes": 400225,
+      "sha256": "a5b49ca04a78347e715290c22957eb6edc4b69621dec6122a253724ae038cb1a"
+    },
+    {
+      "path": "godot/Assets/shadow.png",
+      "bytes": 432,
+      "sha256": "38ab647e6898f448595251c886bdb2dc9d9fe60d90355039119239e14160900b"
+    },
+    {
+      "path": "godot/Assets/stake.png",
+      "bytes": 131,
+      "sha256": "5886537e995c31c17d9ba9cac563272e40f728ed73c979e20e4919b6a199197d"
+    },
+    {
+      "path": "godot/Assets/terrain.png",
+      "bytes": 19643,
+      "sha256": "3c22702731a598ed43d91189b927cf06ac8d1321e7c4f32b1e16ec0289d60a57"
+    },
+    {
+      "path": "godot/Core/Application/GameReadModel.cs",
+      "bytes": 1363,
+      "sha256": "f0617a4ec3055ec0901a909e92e27479531bf82e77244cf39bff6940791da3c2"
+    },
+    {
+      "path": "godot/Core/Application/GameSession.cs",
+      "bytes": 6049,
+      "sha256": "d561973aea93b05441330b1a32e18f9c3973e5ad6fde35c2d72a6fb51a8aa90c"
+    },
+    {
+      "path": "godot/Core/Application/MusicLink.cs",
+      "bytes": 515,
+      "sha256": "dc48e0258fdf2ad86c520d2a38b28578eac74dbdcc3d81f60cc06d0afee1880c"
+    },
+    {
+      "path": "godot/Core/Application/NetworkService.cs",
+      "bytes": 5360,
+      "sha256": "88f03905c501411ae1d64cb881e911e74cb575542d37c74fa319dcdbc2b51ff4"
+    },
+    {
+      "path": "godot/Core/Application/Services.cs",
+      "bytes": 655,
+      "sha256": "b227be1684c5f90b48a628a64b55cffe8844b33f151daf7eb2de85bba034bbfa"
+    },
+    {
+      "path": "godot/Core/Domain/FarmInvariants.cs",
+      "bytes": 2535,
+      "sha256": "6ca80c465122c15ce56694d6a8cf6b3076846bd5f6718ab6c048c9a11920cbb6"
+    },
+    {
+      "path": "godot/Core/Domain/GameViews.cs",
+      "bytes": 1474,
+      "sha256": "a5272e12c664a9a703eaed5ff7f5d1ccb25c4fac62ccb9c5f68c91439f5fdbe6"
+    },
+    {
+      "path": "godot/Core/Infrastructure/Configuration/GraphicsSettings.cs",
+      "bytes": 1101,
+      "sha256": "f546141377e9622e623b0f45cbb424a65e2bd39d7ec379c407bb03bcd3ef0e18"
+    },
+    {
+      "path": "godot/Core/Infrastructure/Logging/JsonGameLog.cs",
+      "bytes": 1741,
+      "sha256": "02ec95b6ab38cf95928a3c68ffac567c8a903d38c52aa7863aa6221f45704857"
+    },
+    {
+      "path": "godot/Core/Infrastructure/Network/HttpRoomTransport.cs",
+      "bytes": 3267,
+      "sha256": "6b26cb8d6762f734080d18694e49dc60321f404c86bbf78736416aa8ed332f72"
+    },
+    {
+      "path": "godot/Core/Infrastructure/Persistence/SaveService.cs",
+      "bytes": 16451,
+      "sha256": "a9391276778b3892de67872f1b7d9bb7fa9a2358d01535b81abb2fcb9fa6661e"
+    },
+    {
+      "path": "godot/Core/LegacyRoomAdapter.cs",
+      "bytes": 1123,
+      "sha256": "56b72844683a2117514584a9c8254a15768ecf595945d48be3deb764cb9f168d"
+    },
+    {
+      "path": "godot/Core/LocalFarmSession.cs",
+      "bytes": 1199,
+      "sha256": "bfb0e148c976619352036af4f88c76ec32e597d530fa5ceb1967d1ee6cccbdb4"
+    },
+    {
+      "path": "godot/Core/Properties/AssemblyInfo.cs",
+      "bytes": 254,
+      "sha256": "739097b5d8f1b7601fedfc305ad4d13b03ca1f1fd0c28ef876fab74416ece02a"
+    },
+    {
+      "path": "godot/Core/SeasonsTogether.Core.csproj",
+      "bytes": 380,
+      "sha256": "104d66a876f5419ec7f711a045dc30cf2eabfd33b4433abf4f0803766a857775"
+    },
+    {
+      "path": "godot/Diagnostics/FarmScene.Diagnostics.cs",
+      "bytes": 10908,
+      "sha256": "d1c6444b64d0df7db91b02b5be4bf0f026eb6f5c3126bb8de521c6cfb53adbdb"
+    },
+    {
+      "path": "godot/Diagnostics/FarmScene.Lifecycle.cs",
+      "bytes": 4147,
+      "sha256": "a2590531ab8eaf443148a4d678675514d3f3855f5cb1669c153ad1e4a0eb53bb"
+    },
+    {
+      "path": "godot/Diagnostics/FarmScene.Startup.cs",
+      "bytes": 8396,
+      "sha256": "1f4420c759f2e049ca6a2575cc68a4c324044b9fce6799a8769dcdf7752fd788"
+    },
+    {
+      "path": "godot/Diagnostics/FrameTimeMonitor.cs",
+      "bytes": 500,
+      "sha256": "835c7e8d83ecf2b50d16ff0c128b3de92f56a0cf0e5b9b0f18f31c162f684454"
+    },
+    {
+      "path": "godot/Infrastructure/Assets/AssetCatalog.cs",
+      "bytes": 3902,
+      "sha256": "2c82d4b4d5af4c9447706b9e42982de8b0b52addd270036f38836933211a2a6a"
+    },
+    {
+      "path": "godot/Presentation/Camera/PixelCameraFollower.cs",
+      "bytes": 652,
+      "sha256": "28c0ebcedadf9c5a3f12608e17b944f9d3e598475772c17594cc80f86e75163d"
+    },
+    {
+      "path": "godot/Presentation/Effects/EffectPool.cs",
+      "bytes": 1878,
+      "sha256": "209158336b4862ec66ee6d123f1815424f26408e63f2332db6ea8a92a333d768"
+    },
+    {
+      "path": "godot/Presentation/Effects/WeatherLighting.cs",
+      "bytes": 2384,
+      "sha256": "6feadae3c0773f1dde2920552a876b9bbec54d1dde0831305ab73615d5793f4a"
+    },
+    {
+      "path": "godot/Presentation/Input/FarmInputRouter.cs",
+      "bytes": 2097,
+      "sha256": "00d4992c84cc8482ced4d6f654a2ded5d905ba7e7fc57d9c5920a08ad4b6094b"
+    },
+    {
+      "path": "godot/Presentation/Player/FarmerController.cs",
+      "bytes": 2530,
+      "sha256": "849b68d9113bb790c562313c42ad4aa1835ebe0d8719361f7af21f3861f9ef00"
+    },
+    {
+      "path": "godot/Presentation/UI/FarmHud.cs",
+      "bytes": 18665,
+      "sha256": "8c584b580f8ecc42aa4e8a7267d926679a0d644892debad0fec65aeb5705b923"
+    },
+    {
+      "path": "godot/Presentation/World/FarmScene.cs",
+      "bytes": 12864,
+      "sha256": "69207f5dd603a7a52f6fa671e126fe4428c895598d825fff11f4058b78c616dd"
+    },
+    {
+      "path": "godot/Presentation/World/FarmWorldPresenter.cs",
+      "bytes": 6418,
+      "sha256": "86c675b4f214edf58ee1302fabf49e26caf6432645f7b4031fc16af562cbed39"
+    },
+    {
+      "path": "godot/Scenes/DayTransition.tscn",
+      "bytes": 1121,
+      "sha256": "c167f0991b0a66f056959c93aca07ed2def7b4b077445cfb2a79010779b704dc"
+    },
+    {
+      "path": "godot/Scenes/Farm.tscn",
+      "bytes": 1432,
+      "sha256": "ff18c5c532b1f3442d29965f99f513ac41a79a4b12c8fa11d047ca7ccd3fde30"
+    },
+    {
+      "path": "godot/SeasonsTogether.csproj",
+      "bytes": 423,
+      "sha256": "3ce41462b8f2a5bacf7911fb617a187dee81720658e1e55ec683894efe0c1e49"
+    },
+    {
+      "path": "godot/Shaders/Water.gdshader",
+      "bytes": 318,
+      "sha256": "925e9276eb0d87521a0805bc4355e1ad90533616406e4646a9e14beef3065e98"
+    },
+    {
+      "path": "godot/Shaders/Wind.gdshader",
+      "bytes": 174,
+      "sha256": "cde7d2c5e2559eea60d5a377fa9ac8bd85460e351917072b9c9ac5e7a7d0d947"
+    },
+    {
+      "path": "godot/Tests/ApplicationChecks.cs",
+      "bytes": 3493,
+      "sha256": "500b1ab55f35c0b5ddafbccae3dc8c1ab8298dd3d9246a615ed92ae128539444"
+    },
+    {
+      "path": "godot/Tests/ArchitectureChecks.cs",
+      "bytes": 3598,
+      "sha256": "c46dbe2d6413d98b064ffd0f36edac313b7d1af232547dbf5a4dd9aacd0c7875"
+    },
+    {
+      "path": "godot/Tests/GameplayMatrixChecks.cs",
+      "bytes": 4581,
+      "sha256": "6812c1686f809e82640471ed16e902ac8bd80ecff8562396c5cf2a0ccda0a6bc"
+    },
+    {
+      "path": "godot/Tests/NetworkChecks.cs",
+      "bytes": 5365,
+      "sha256": "207860fc036b94d3e7e26e448cc90b5d81f752e7e4a482c0f479148158bb37dc"
+    },
+    {
+      "path": "godot/Tests/PersistenceChecks.cs",
+      "bytes": 5804,
+      "sha256": "cf104b8af202cf3ba62caa99a6ce66953263f08124eb7d32821761699a591787"
+    },
+    {
+      "path": "godot/Tests/Program.cs",
+      "bytes": 6563,
+      "sha256": "6188adadafc0d8c656031b5d8b817310af493f377f029896575473ee65a2cb52"
+    },
+    {
+      "path": "godot/Tests/RecoveryChecks.cs",
+      "bytes": 10416,
+      "sha256": "84218529a980cac93f3b8ac6ebece8a315c3ca24833c7663a3f760161dbfeef5"
+    },
+    {
+      "path": "godot/Tests/SeasonsTogether.Tests.csproj",
+      "bytes": 298,
+      "sha256": "7aae8ff3e6d4802d7aa394c419437291833bb79c004d1012a0e99f39355ea345"
+    },
+    {
+      "path": "godot/Tools/ArtBake/ArtBake.csproj",
+      "bytes": 230,
+      "sha256": "dd337e67bbe27a9ee59d6a73143f47bb2bde4409c8cacf0576fa900bb040a7b9"
+    },
+    {
+      "path": "godot/Tools/ArtBake/Program.cs",
+      "bytes": 6812,
+      "sha256": "4856851769f4b225c6ea20a91e892eec43012381c8b85331a503089f866a4cae"
+    },
+    {
+      "path": "godot/project.godot",
+      "bytes": 749,
+      "sha256": "de20d7d3e6b9882c5e03201cbc17540fa51aa0cfdb996417b550db7fe55a2209"
+    },
+    {
+      "path": "native/Diagnostics.cs",
+      "bytes": 7587,
+      "sha256": "a162011a0ce3b3c4a8271f8e1c2fb7aac97364b40ab825ddd3f644cad754d733"
+    },
+    {
+      "path": "native/FarmArt.cs",
+      "bytes": 23973,
+      "sha256": "777ee683e89232eff31816687852441fb81c6228b2eabc0804c68736d941068b"
+    },
+    {
+      "path": "native/FrameClock.cs",
+      "bytes": 465,
+      "sha256": "280e8bf89fe1b433176509cb237ece859f7109c0f3062098e802c1d41e6d48d2"
+    },
+    {
+      "path": "native/FramePulse.cs",
+      "bytes": 1745,
+      "sha256": "2671fdd263bffae771147310eb436e2ac651c9b28b365e825741c96445f27df5"
+    },
+    {
+      "path": "native/GameForm.cs",
+      "bytes": 17747,
+      "sha256": "febe53276e4ba3af5fb75b88dd39ecbfa5f2b77663dd753004d61c8fda0ce27b"
+    },
+    {
+      "path": "native/GameUi.cs",
+      "bytes": 19379,
+      "sha256": "1095c41b7a74fe4d977a595d852057ab2b96fd35e306ffeab50ad607b6139ee8"
+    },
+    {
+      "path": "native/HudCache.cs",
+      "bytes": 2809,
+      "sha256": "8ce4a7a3f88bc8542d67919bd5f27766bf117f05bcc59d23f85cc4d42dc6330a"
+    },
+    {
+      "path": "native/LoopDiagnostics.cs",
+      "bytes": 3811,
+      "sha256": "deb505a5ed6abe1e79e37b69cc27418e06b5f780c4cd2a75ea3d4debdb8dfc5f"
+    },
+    {
+      "path": "native/Network.cs",
+      "bytes": 12241,
+      "sha256": "e3617a1038b262c31773e44bd03ea3a463117f95d7183a628143879253c96d8b"
+    },
+    {
+      "path": "native/PremiumScene.cs",
+      "bytes": 16900,
+      "sha256": "e71a4c8de23cc8fdc947d41b65e766b3745c74bc32cb3fda60e130f873515a98"
+    },
+    {
+      "path": "native/Program.cs",
+      "bytes": 11057,
+      "sha256": "f8ee38357e2e5982df275c075b3db3ae0ee4cd1082882bf8786e4d40de3bee79"
+    },
+    {
+      "path": "native/Scene.cs",
+      "bytes": 8889,
+      "sha256": "24ea2e73728f689698d884ad984feef65e28c3fc7429f4763045020a4d415003"
+    },
+    {
+      "path": "native/SuanPleng.csproj",
+      "bytes": 948,
+      "sha256": "3117c799cafff087d58ca63b76df0842ba89ce0fe19a8afe9ef72f39fb16df90"
+    },
+    {
+      "path": "native/World.cs",
+      "bytes": 17229,
+      "sha256": "f21875fe49b274ae598a466968e4b64c593675c365838323459d292f17154444"
+    },
+    {
+      "path": "native/preview/bag.png",
+      "bytes": 122387,
+      "sha256": "4699abcc48fd7d6a7e7e7b972d9e5aa1cad6d7f18d652361ae648aae731a9725"
+    },
+    {
+      "path": "native/preview/before.png",
+      "bytes": 147251,
+      "sha256": "c42046cb0323380a14ad7b525231940f4306370d81d80a86c249b598258fe212"
+    },
+    {
+      "path": "native/preview/farm.png",
+      "bytes": 186807,
+      "sha256": "232bf0e9da661792fe7c89d6032e65f92d9bf02d2c7553ef76c3fa5798e9e952"
+    },
+    {
+      "path": "native/preview/menu.png",
+      "bytes": 156895,
+      "sha256": "5957be93902f1e8732b12cc3aa438a1339583f43c8d76ed065f797f563937834"
+    },
+    {
+      "path": "native/preview/night.png",
+      "bytes": 195111,
+      "sha256": "7317a10e52ee46f508d7edc03843a78ff2665a78f5dd70f127bbceb464d9e1fd"
+    },
+    {
+      "path": "native/preview/responsive-960.png",
+      "bytes": 148067,
+      "sha256": "125bd4df55f5561dcacdf019b97dfbdf3e398c34bd7f0bdc2a535cd31b3e8eab"
+    },
+    {
+      "path": "native/preview/seeds.png",
+      "bytes": 128268,
+      "sha256": "67dbb9d445cf6b8a386bde669d71f3e6df077176110f2c89a390b6ea7a697d34"
+    },
+    {
+      "path": "native/preview/sprite-atlas.png",
+      "bytes": 106190,
+      "sha256": "af6a6b04a0b2d9ffe9a5e5fe3df50c69604f20730c7a610d8dd3c47fb73bc3a7"
+    }
+  ]
+}

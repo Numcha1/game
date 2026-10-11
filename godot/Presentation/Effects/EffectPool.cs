@@ -10,11 +10,12 @@ public partial class EffectPool : Node2D
     readonly float[] lives = new float[Capacity];
     readonly Random random = new(99);
     int cursor;
+    ImageTexture texture = null!;
     public int Quality { get; set; } = 2;
     public override void _Ready()
     {
-        var image = Image.CreateEmpty(3, 3, false, Image.Format.Rgba8); image.Fill(Colors.White);
-        var texture = ImageTexture.CreateFromImage(image);
+        using var image = Image.CreateEmpty(3, 3, false, Image.Format.Rgba8); image.Fill(Colors.White);
+        texture = ImageTexture.CreateFromImage(image);
         for (int i = 0; i < Capacity; i++) { sprites[i] = new Sprite2D { Texture = texture, Visible = false }; AddChild(sprites[i]); }
     }
     public void Burst(Vector2 position, string kind)
@@ -38,4 +39,5 @@ public partial class EffectPool : Node2D
             if (lives[i] <= 0) sprites[i].Visible = false;
         }
     }
+    public override void _ExitTree() => texture?.Dispose();
 }
