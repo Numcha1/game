@@ -63,6 +63,8 @@ public sealed partial class GameSession : IAsyncDisposable
         if (plotAction && (command.Plot < 0 || command.Plot >= State.Plots.Count)) return new("เลือกแปลงผักก่อน", false);
         if (command.Action == "plant" && (command.Seed == null || !GameCatalog.Crops.ContainsKey(command.Seed))) return new("เลือกเมล็ดก่อน", false);
         int energy = Player.Energy, coins = State.Coins, day = State.Day;
+        if(command.Action=="sell" && (Read.QuoteSale().Total+coins>int.MaxValue || Player.Bag.Keys.Any(key=>ItemCatalog.Find(key)?.Sellable!=true)))
+            return new("ขายไม่ได้ ยอดเหรียญเกินขอบเขตหรือมีสินค้าที่ไม่รองรับ",false);
         bool sleeping = Player.Sleeping, paused = State.Paused, greenhouse = State.Greenhouse;
         string oldCrop = command.Plot >= 0 && command.Plot < State.Plots.Count ? State.Plots[command.Plot].Crop : "";
         string message = command.Action == "rescue" ? State.Rescue(Player) : ApplyFarmCommand(command);

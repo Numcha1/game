@@ -38,11 +38,11 @@
   ],
   "measurement": {
     "frames": 300,
-    "meanMs": 16.665395333333333,
-    "p95Ms": 16.6869,
-    "fps": 60.004577149144936,
-    "privateBytes": 322162688,
-    "managedBytes": 11724624
+    "meanMs": 16.665414333333345,
+    "p95Ms": 16.6887,
+    "fps": 60.00450873878659,
+    "privateBytes": 319569920,
+    "managedBytes": 11945960
   },
   "scope": "Actual isolated Godot NPC schedules doors dialogue shop carpenter homes and frame tests; no internet certification"
 }

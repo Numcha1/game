@@ -15,6 +15,12 @@ public sealed class GameReadModel
     public string BuildingId => buildings.Locations.GetValueOrDefault(player.Id)?.BuildingId ?? "";
     public IReadOnlyDictionary<string, ItemDefinition> ItemDefinitions => ItemCatalog.All;
     public IReadOnlyList<FurnitureDefinition> FurnitureDefinitions => FurnitureCatalog.ForBuilding(BuildingId);
+    public IReadOnlyList<ItemShopOffer> ShopOffers(string npcId) => npcId=="mira"
+        ? Array.AsReadOnly(ItemCatalog.All.Values.Where(i=>i.Category==ItemCategory.Seed).Select(i=>new ItemShopOffer(i.ItemId,i.BaseBuyPrice!.Value,99)).ToArray())
+        : Array.Empty<ItemShopOffer>();
+    public IReadOnlyList<ItemStackView> ItemStacks() => Array.AsReadOnly(
+        player.Bag.Where(p=>p.Value>0).Select(p=>new ItemStackView(p.Key,p.Value))
+        .Concat(buildings.Village.Seeds.Select(p=>new ItemStackView(ItemCatalog.SeedId(p.Key),p.Value))).ToArray());
     public bool InteriorLightsOn => buildings.Interiors.GetValueOrDefault(BuildingId)?.LightsOn ?? true;
     public IReadOnlyList<InventoryItem> Storage() => buildings.Interiors.TryGetValue(BuildingId,out var interior)
         ? Array.AsReadOnly(interior.Storage.OrderBy(pair=>pair.Key,StringComparer.Ordinal).Select(pair=>new InventoryItem(pair.Key,ItemCatalog.All[pair.Key].Name,pair.Value,farm.SalePrice(pair.Key))).ToArray())

@@ -65,8 +65,8 @@ public sealed partial class GameSession
         CheckThread();if(id==Guid.Empty || SeenVillageCommand(id))return new("คำสั่งซื้อไม่ถูกต้องหรือดำเนินการแล้ว",false);
         string error=ServiceError("mira");if(error!="")return new(error,false);
         if(crop==null || !Farm.Crops.TryGetValue(crop,out var seed) || quantity<1 || quantity>99)return new("เลือกเมล็ดและจำนวน 1–99",false);
-        long cost=(long)seed.Cost*quantity;int count=SeedCount(crop);
-        if(cost>State.Coins || count+quantity>1000000)return new("เหรียญไม่พอหรือเมล็ดเต็ม",false);
+        int count=SeedCount(crop);var purchaseError=ItemTransactions.BuySeed(ItemCatalog.SeedId(crop),quantity,count,State.Coins,out long cost);
+        if(purchaseError!=ItemTransactionError.None)return new("เหรียญไม่พอหรือเมล็ดเต็ม",false);
         State.Coins-=(int)cost;Buildings.Village.Seeds[crop]=count+quantity;RecordVillageCommand(id);BuildingChanged();
         return new("ซื้อเมล็ด"+seed.Name+" "+quantity+" ถุงแล้ว",true);
     }

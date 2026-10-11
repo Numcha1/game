@@ -71,7 +71,7 @@ public sealed partial class GameSession
             var chest=Buildings.Interiors[ActiveBuildingId].Storage;
             var source=deposit?Player.Bag:chest;var target=deposit?chest:Player.Bag;
             int available=source.GetValueOrDefault(crop),existing=target.GetValueOrDefault(crop);
-            if(available<amount || (long)existing+amount>(deposit?InteriorState.MaximumStorageStack:int.MaxValue))return new("ของไม่พอหรือช่องเก็บของเต็ม",false);
+            if(ItemTransactions.Transfer(crop,amount,available,existing,deposit?InteriorState.MaximumStorageStack:int.MaxValue)!=ItemTransactionError.None)return new("ของไม่พอหรือช่องเก็บของเต็ม",false);
             int remaining=available-amount;if(remaining==0)source.Remove(crop);else source[crop]=remaining;
             target[crop]=existing+amount;
             BuildingChanged();log.Write("info",deposit?"storage.deposit":"storage.withdraw");

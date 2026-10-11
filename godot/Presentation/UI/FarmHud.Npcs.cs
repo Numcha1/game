@@ -32,9 +32,9 @@ public partial class FarmHud
             if(work && id=="mira") {
                 modalContent.AddChild(new Label {Text="ซื้อเก็บไว้ก่อนปลูก · ใช้เมล็ดที่ซื้อไว้ก่อนเงินสด\nเลือกได้ทุกฤดู ตรวจฤดูที่ปลูกได้ก่อนซื้อ",AutowrapMode=TextServer.AutowrapMode.WordSmart});
                 var quantity=new SpinBox {Name="SeedQuantity",MinValue=1,MaxValue=99,Value=1,Step=1,CustomMinimumSize=new Vector2(150,32)};modalContent.AddChild(quantity);
-                foreach(string key in GameCatalog.CropKeys) {
-                    string crop=key;var info=GameCatalog.Crops[crop];Guid command=Guid.NewGuid();
-                    var button=Button($"ซื้อ {info.Name} · {info.Cost} เหรียญ/ถุง · มี {farm.Session.SeedCount(crop)}",()=> {
+                foreach(var offer in farm.Session.Read.ShopOffers(id)) {
+                    string crop=farm.Session.Read.ItemDefinitions[offer.ItemId].CropId!;var info=GameCatalog.Crops[crop];Guid command=Guid.NewGuid();
+                    var button=Button($"ซื้อ {info.Name} · {offer.UnitBuyPrice} เหรียญ/ถุง · มี {farm.Session.SeedCount(crop)}",()=> {
                         var result=farm.Session.BuySeeds(crop,(int)quantity.Value,command);farm.Notify(result.Message);
                         if(result.Changed)OpenNpc(id);
                     });button.Name="BuySeed-"+crop;modalContent.AddChild(button);

@@ -60,6 +60,7 @@ public sealed class AssetCatalog
     readonly Dictionary<string, AtlasTexture> furnitureIcons = new(StringComparer.Ordinal);
     public Texture2D ItemIcon(ItemIconReference icon)
     {
+        if (icon.Source == ItemIconSource.ToolAction) return ToolIcon(icon.Key);
         if (icon.Source == ItemIconSource.CropStage) return CropStage(icon.Key, 3);
         if (icon.Source != ItemIconSource.FarmhouseRegion) throw new ArgumentException("Unknown icon source", nameof(icon));
         if (furnitureIcons.TryGetValue(icon.Key, out var cached)) return cached;
