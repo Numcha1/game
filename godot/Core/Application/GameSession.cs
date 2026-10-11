@@ -55,7 +55,9 @@ public sealed partial class GameSession : IAsyncDisposable
         CheckThread();
         if (command.Id != Guid.Empty && recentCommands.TryGetValue(command.Id, out var existing)) return existing with { Changed = false, Effect = null };
         if (!ValidAction(command.Action)) return new("เลือกเครื่องมือก่อน", false);
-        if (InsideBuilding && command.Action is not ("pause" or "wake")) return new("ออกไปฟาร์มก่อนใช้เครื่องมือ", false);
+        if (InsideBuilding && command.Action is not ("pause" or "wake" or "sleep")) return new("ออกไปฟาร์มก่อนใช้เครื่องมือ", false);
+        if (InsideBuilding && command.Action=="sleep" && (BuildingRegistry.Find(ActiveBuildingId) is not { } home || Position.Distance(home.Bed)>1.6))
+            return new("เดินเข้าใกล้เตียงก่อนเข้านอน",false);
         bool plotAction = command.Action is "plant" or "water" or "harvest" or "treat" or "fertilize" or "stake" or "clear";
         if (plotAction && (command.Plot < 0 || command.Plot >= State.Plots.Count)) return new("เลือกแปลงผักก่อน", false);
         if (command.Action == "plant" && (command.Seed == null || !GameCatalog.Crops.ContainsKey(command.Seed))) return new("เลือกเมล็ดก่อน", false);
@@ -63,6 +65,7 @@ public sealed partial class GameSession : IAsyncDisposable
         bool sleeping = Player.Sleeping, paused = State.Paused, greenhouse = State.Greenhouse;
         string oldCrop = command.Plot >= 0 && command.Plot < State.Plots.Count ? State.Plots[command.Plot].Crop : "";
         string message = command.Action == "rescue" ? State.Rescue(Player) : State.Action(Player, command.Action, command.Plot, command.Seed);
+        if(InsideBuilding && command.Action=="sleep" && State.Day>day)message="ตื่นแล้ว · เริ่มวันใหม่ในบ้าน";
         ActionEffect? effect = null;
         if (Player.Energy < energy || State.Coins != coins)
         {

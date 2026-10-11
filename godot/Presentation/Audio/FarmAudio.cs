@@ -15,7 +15,7 @@ public partial class FarmAudio : Node
     }
     public void Play(string action,bool success=true)
     {
-        var key=!success?"error":action=="water"?"water":action=="harvest"?"harvest":action=="sell"?"coin":"click";
+        var key=!success?"error":action=="door"?"door":action=="water"?"water":action=="harvest"?"harvest":action=="sell"?"coin":"click";
         var voice=voices[cursor++%voices.Length];voice.Stop();voice.Stream=AssetCatalog.Shared.Sound(key);
         voice.VolumeDb=DiagnosticMuted || Volume==0 ? -80 : Mathf.LinearToDb(Math.Clamp(Volume,0,100)/100f);
         voice.Play();

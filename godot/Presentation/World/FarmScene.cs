@@ -40,6 +40,7 @@ public partial class FarmScene : Node2D
     Task pendingOperation = Task.CompletedTask;
     Task shutdown = Task.CompletedTask;
     public string DataDirectory { get; private set; } = "";
+    internal string? BuildingDiagnosticDirectory { get; set; }
     string[] arguments = Array.Empty<string>();
     bool sceneActive, presentationReady;
     readonly CancellationTokenSource sceneLifetime = new();
@@ -51,6 +52,7 @@ public partial class FarmScene : Node2D
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
         if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks") || arguments.Contains("--premium-checks") || arguments.Contains("--building-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         if (arguments.Contains("--startup-checks") && DiagnosticDataDirectory != null) DataDirectory = DiagnosticDataDirectory;
+        if(arguments.Contains("--building-checks") && BuildingDiagnosticDirectory!=null)DataDirectory=BuildingDiagnosticDirectory;
         if (arguments.Contains("--recovery-check")) DataDirectory = PrepareRecoveryDiagnostic();
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
         catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)

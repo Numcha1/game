@@ -17,7 +17,7 @@ internal sealed class BuildingSaveDocument
         using var reader=new StreamReader(new MemoryStream(bytes.ToArray()),Encoding.UTF8,true);
         byte[] utf8=Encoding.UTF8.GetBytes(reader.ReadToEnd());
         using var json=JsonDocument.Parse(utf8);
-        if(json.RootElement.ValueKind==JsonValueKind.Object && json.RootElement.TryGetProperty("Version",out var version) && version.TryGetInt32(out int number) && number==2) {
+        if(json.RootElement.ValueKind==JsonValueKind.Object && json.RootElement.TryGetProperty("Version",out var version) && version.ValueKind==JsonValueKind.Number && version.TryGetInt32(out int number) && number==2) {
             var document=SaveJsonContract.Read<BuildingSaveDocument>(utf8,"Version","Farm","Buildings");
             var farm=SaveJsonContract.Read<Farm>(Encoding.UTF8.GetBytes(document.Farm.GetRawText()));
             FarmInvariants.Validate(farm);

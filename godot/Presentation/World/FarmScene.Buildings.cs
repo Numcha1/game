@@ -10,6 +10,8 @@ public partial class FarmScene
     InteriorRoom? interior;
     ColorRect doorFade=null!;
     Label doorPrompt=null!;
+    Sprite2D doorPulse=null!;
+    public bool DiagnosticAudioMuted=>IsDiagnosticSession;
     bool transitioning;
     Task pendingTransition=Task.CompletedTask;
     internal string? DiagnosticInteriorSceneOverride;
@@ -23,10 +25,14 @@ public partial class FarmScene
         doorPrompt=new Label {AnchorLeft=.5f,AnchorRight=.5f,AnchorTop=1,AnchorBottom=1,OffsetLeft=-300,OffsetRight=300,OffsetTop=-175,OffsetBottom=-140,
             HorizontalAlignment=HorizontalAlignment.Center,Theme=FarmTypography.Shared,AutowrapMode=TextServer.AutowrapMode.WordSmart};
         doorPrompt.AddThemeColorOverride("font_shadow_color",new Color(.1f,.15f,.1f));doorPrompt.AddThemeConstantOverride("shadow_offset_x",2);doorPrompt.AddThemeConstantOverride("shadow_offset_y",2);layer.AddChild(doorPrompt);
+        doorPrompt.AddThemeColorOverride("font_color",new Color("fff2cc"));
+        doorPulse=new Sprite2D {Texture=Art.Glow,ZIndex=6,Visible=false,Scale=Vector2.One*.22f};AddChild(doorPulse);
         if(Session.InsideBuilding)pendingTransition=TransitionBuilding(Session.ActiveBuildingId,false,true);
     }
     void UpdateDoorPrompt()
     {
+        doorPulse.Visible=transitioning && !Session.InsideBuilding && !Display.ReducedMotion;
+        if(doorPulse.Visible)doorPulse.Modulate=new Color(1,.8f,.45f,.35f+.15f*Mathf.Sin(Time.GetTicksMsec()/60f));
         if(transitioning || TitleActive || Hud.ModalVisible){doorPrompt.Text="";return;}
         var point=Session.Position;
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } inside) {
@@ -41,6 +47,8 @@ public partial class FarmScene
         if(!ReadyToPlay || IsBusy || Hud.ModalVisible || TitleActive)return;
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } def) {
             if(Session.Position.Distance(def.Exit)<=1.4)RequestBuildingExit();
+            else if(Session.Position.Distance(def.Bed)<=1.6)Hud.RequestSleep();
+            else if(Session.Position.Distance(def.Chest)<=1.6)Hud.OpenStorage();
             else Notify("เดินใกล้จุดโต้ตอบก่อน");
         } else {
             var building=BuildingRegistry.All.FirstOrDefault(b=>Session.Position.Distance(b.Entrance)<=1.8);
@@ -52,6 +60,7 @@ public partial class FarmScene
         if(!ReadyToPlay || IsBusy || Hud.ModalVisible || TitleActive)return;
         if(BuildingRegistry.Find(id) is not { } building){Notify("ไม่พบอาคารนี้");return;}
         string error=Session.EntryError(building);if(error!=""){Notify(error);return;}
+        doorPulse.Position=new Vector2((float)building.Entrance.X*32,(float)building.Entrance.Y*32-15);
         pendingTransition=TransitionBuilding(id,false,false);
     }
     public void RequestBuildingExit(bool emergency=false)
@@ -76,9 +85,9 @@ public partial class FarmScene
             var def=BuildingRegistry.Find(id) ?? throw new InvalidDataException("อาคารไม่รองรับ");
             if(!exit) {
                 var scene=await interiorLoader.Load(IsDiagnosticSession && DiagnosticInteriorSceneOverride!=null ? DiagnosticInteriorSceneOverride : def.Scene,()=>NextFrame(SceneTree.SignalName.ProcessFrame),sceneLifetime.Token);
-                candidate=scene.Instantiate<InteriorRoom>();AddChild(candidate);candidate.Visible=false;candidate.Initialize(Session.Read,def);
+                candidate=scene.Instantiate<InteriorRoom>();AddChild(candidate);candidate.Visible=false;candidate.Initialize(Session.Read,def,this);
             }
-            audio.Play("click");await FadeDoor(1);
+            audio.Play("door");await FadeDoor(1);
             var result=exit?Session.ExitBuilding(restoreOrEmergency):restoreOrEmergency?new Core.Application.CommandResult("กลับเข้าบ้านที่บันทึกไว้",true):Session.EnterBuilding(id);
             if(!result.Changed) {Notify(result.Message);await FadeDoor(0);return;}
             committed=true;
@@ -103,6 +112,7 @@ public partial class FarmScene
     void ShowInterior(InteriorRoom room)
     {
         interior=room;
+        doorPulse.Visible=false;
         Farmer.Reparent(room.GetNode<Node2D>("Actors"));
         foreach(var node in GetChildren())if(node is CanvasItem visual && visual!=room && node.Name!="Ambient") {
             hiddenExterior.Add((visual,visual.Visible));visual.Visible=false;

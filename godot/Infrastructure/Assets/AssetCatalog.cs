@@ -11,7 +11,7 @@ public sealed class AssetCatalog
     public AssetCatalog()
     {
         if(ItemCardScene==null)throw new InvalidDataException("Required item card scene missing");
-        foreach(string key in new[]{"click","water","harvest","coin","error"})
+        foreach(string key in new[]{"click","water","harvest","coin","error","door","interior-ambience"})
             sounds[key]=GD.Load<AudioStream>("res://Assets/Audio/"+key+".wav") ?? throw new InvalidDataException("Missing action sound " + key);
         if (Growth == null || ToolIcons == null || ToolPoses == null || polishDefinitions == null || polishDefinitions.Count != 40)
             throw new InvalidDataException("Required growth/tool atlas missing");

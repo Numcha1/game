@@ -27,13 +27,15 @@ public partial class FarmHud : Control
     bool dirty;
     int currentMenu, menuDay;
     bool pauseMenuActive;
+    Control toolPanel=null!;
+    Button shopButton=null!;
     void OnStateChanged(GameChange change)
     {
         if (change != GameChange.Position) dirty = true;
         if (change == GameChange.Position && farm.SelectedPlot >= 0) farm.InspectPlot(-1);
         if ((change & GameChange.Plots) != 0) RefreshInspector();
         if(ModalVisible && currentMenu>0 && (change & GameChange.Inventory)!=0) {
-            if(currentMenu==1)OpenBag();else if(menuDay!=farm.Session.Read.World.Day)OpenShop();
+            if(currentMenu==1)OpenBag();else if(currentMenu==3)OpenStorage();else if(currentMenu==2 && menuDay!=farm.Session.Read.World.Day)OpenShop();
         }
     }
     string lastStatus = "", lastCoins = "", lastSeed = "";
@@ -58,9 +60,10 @@ public partial class FarmHud : Control
         plotInfo.ThemeTypeVariation = "Compact"; inspector.AddChild(plotInfo);
         top.Resized += () => inspector.Position = new Vector2(14,top.GetRect().End.Y+8);
         var topRight = new HBoxContainer { AnchorLeft = 1, AnchorRight = 1, OffsetLeft = -310, OffsetRight = -14, OffsetTop = 12, OffsetBottom = 44 }; AddChild(topRight);
-        topRight.AddChild(Button("กระเป๋า B", OpenBag,110)); topRight.AddChild(Button("ร้านค้า O", OpenShop,110)); topRight.AddChild(Button("☰", OpenSettings));
+        topRight.AddChild(Button("กระเป๋า B", OpenBag,110)); shopButton=Button("ร้านค้า O", OpenShop,110);topRight.AddChild(shopButton); topRight.AddChild(Button("☰", OpenSettings));
         var bottom = new PanelContainer { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -286, OffsetRight = 286, OffsetTop = -82, OffsetBottom = -12, GrowVertical = GrowDirection.Begin };
         bottom.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","ToolPanel")); AddChild(bottom);
+        toolPanel=bottom;
         var rows = new VBoxContainer(); bottom.AddChild(rows); seed = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, HorizontalAlignment = HorizontalAlignment.Center }; rows.AddChild(seed);
         var bar = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center }; rows.AddChild(bar); tools = new Button[Tools.Length];
         for (int i = 0; i < Tools.Length; i++)
@@ -98,6 +101,8 @@ public partial class FarmHud : Control
     }
     public void Refresh()
     {
+        toolPanel.Visible=!farm.Session.InsideBuilding;shopButton.Disabled=farm.Session.InsideBuilding;
+        if(farm.Session.InsideBuilding)guide.Visible=false;
         var state = farm.Session.Read.World;
         string s = $"{GameCatalog.SeasonNames[state.Season]} · วันที่ {state.SeasonDay} · {(int)state.Minute / 60:00}:{(int)state.Minute % 60:00} · {state.Weather}";
         if (s != lastStatus) { status.Text = s; lastStatus = s; }
@@ -138,7 +143,7 @@ public partial class FarmHud : Control
         if (farm.Session.Read.Inventory().Count == 0) { farm.Perform("sleep"); return; }
         Open("เข้านอนพร้อมผลผลิต?");
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "เมื่อเริ่มวันใหม่ ผลผลิตในกระเป๋าลด 25%\nขายที่ลังก่อนนอนเพื่อรับเงินเต็มจำนวน" });
-        modalContent.AddChild(Button("ยืนยันเข้านอน", () => { CloseModal(); farm.Perform("sleep"); }));
+        var confirm=Button("ยืนยันเข้านอน", () => { CloseModal(); farm.Perform("sleep"); });confirm.Name="ConfirmSleep";modalContent.AddChild(confirm);
     }
     void Open(string title)
     {

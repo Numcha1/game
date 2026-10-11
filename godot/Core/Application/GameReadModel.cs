@@ -14,6 +14,9 @@ public sealed class GameReadModel
     public PlayerView Player => buildings.Locations.TryGetValue(player.Id,out var indoor) ? new(indoor.X,indoor.Y,player.Energy,player.Sleeping) : new(player.X, player.Y, player.Energy, player.Sleeping);
     public string BuildingId => buildings.Locations.GetValueOrDefault(player.Id)?.BuildingId ?? "";
     public bool InteriorLightsOn => buildings.Interiors.GetValueOrDefault(BuildingId)?.LightsOn ?? true;
+    public IReadOnlyList<InventoryItem> Storage() => buildings.Interiors.TryGetValue(BuildingId,out var interior)
+        ? Array.AsReadOnly(interior.Storage.OrderBy(pair=>pair.Key,StringComparer.Ordinal).Select(pair=>new InventoryItem(pair.Key,Farm.Crops[pair.Key].Name,pair.Value,farm.SalePrice(pair.Key))).ToArray())
+        : Array.Empty<InventoryItem>();
     public int PlotCount => farm.Plots.Count;
     public string TomorrowWeather => farm.Forecast(farm.Day + 1);
     public SaleQuote QuoteSale() => new(farm.Day, Array.AsReadOnly(Inventory().OrderBy(item => item.Crop, StringComparer.Ordinal).ToArray()));

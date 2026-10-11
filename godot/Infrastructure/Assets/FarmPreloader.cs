@@ -10,7 +10,8 @@ public sealed class FarmPreloader
         "res://Assets/pond.png","res://Assets/shadow.png","res://Assets/stake.png","res://Assets/glow.png",
         "res://Assets/crop-growth.png","res://Assets/tool-icons.png","res://Assets/tool-poses.png",
         "res://Shaders/Wind.gdshader","res://Shaders/Water.gdshader",
-        "res://Assets/Audio/click.wav","res://Assets/Audio/water.wav","res://Assets/Audio/harvest.wav","res://Assets/Audio/coin.wav","res://Assets/Audio/error.wav"
+        "res://Assets/Audio/click.wav","res://Assets/Audio/water.wav","res://Assets/Audio/harvest.wav","res://Assets/Audio/coin.wav","res://Assets/Audio/error.wav",
+        "res://Assets/Audio/door.wav","res://Assets/Audio/interior-ambience.wav"
     };
     readonly Dictionary<string,Resource> loaded=new();
     public int Total=>Paths.Length;

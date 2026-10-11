@@ -130,7 +130,7 @@ public sealed class SaveService : ISaveService
                 }
                 await ReplaceAsync(SavePath, snapshot.Bytes, SavePath + ".bak").ConfigureAwait(false);
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException or JsonException)
             {
                 error = e;
                 if (failures.Count < 8) failures.Enqueue("บันทึกไม่ได้ ตรวจพื้นที่ว่างและสิทธิ์โฟลเดอร์เซฟ");

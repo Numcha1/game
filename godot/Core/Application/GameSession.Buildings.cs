@@ -5,6 +5,7 @@ namespace SeasonsTogether.Core.Application;
 public sealed partial class GameSession
 {
     internal BuildingState Buildings { get; }
+    readonly Dictionary<Guid,CommandResult> recentStorageCommands=new();
     public string ActiveBuildingId => Buildings.Locations.GetValueOrDefault(Player.Id)?.BuildingId ?? "";
     public WorldPoint Position => Buildings.Locations.TryGetValue(Player.Id,out var indoor) ? new(indoor.X,indoor.Y) : new(Player.X,Player.Y);
     public bool InsideBuilding => ActiveBuildingId != "";
@@ -43,5 +44,40 @@ public sealed partial class GameSession
     {
         saves.RequestSave(State,Buildings);
         StateChanged?.Invoke(GameChange.World | GameChange.Position | GameChange.Inventory);
+    }
+    public string StorageAccessError()
+    {
+        CheckThread();
+        if(State.Paused || Player.Sleeping)return "กลับเข้าเกมก่อนเปิดกล่อง";
+        if(BuildingRegistry.Find(ActiveBuildingId) is not { } building || Position.Distance(building.Chest)>1.6)return "เดินเข้าใกล้กล่องเก็บของในบ้านก่อน";
+        return "";
+    }
+    public CommandResult TransferStorage(string crop,int amount,bool deposit,Guid id)
+    {
+        CheckThread();
+        if(id==Guid.Empty)return new("คำสั่งโอนของไม่มีรหัส",false);
+        if(recentStorageCommands.TryGetValue(id,out var previous))return previous with{Changed=false};
+        CommandResult Apply() {
+            string error=StorageAccessError();if(error!="")return new(error,false);
+            if(crop==null || !GameCatalog.Crops.ContainsKey(crop) || amount<=0)return new("เลือกผลผลิตและจำนวนให้ถูกต้อง",false);
+            var chest=Buildings.Interiors[ActiveBuildingId].Storage;
+            var source=deposit?Player.Bag:chest;var target=deposit?chest:Player.Bag;
+            int available=source.GetValueOrDefault(crop),existing=target.GetValueOrDefault(crop);
+            if(available<amount || (long)existing+amount>(deposit?InteriorState.MaximumStorageStack:int.MaxValue))return new("ของไม่พอหรือช่องเก็บของเต็ม",false);
+            int remaining=available-amount;if(remaining==0)source.Remove(crop);else source[crop]=remaining;
+            target[crop]=existing+amount;
+            BuildingChanged();log.Write("info",deposit?"storage.deposit":"storage.withdraw");
+            return new((deposit?"เก็บ":"นำออก")+" "+GameCatalog.Crops[crop].Name+" "+amount+" ชิ้น",true);
+        }
+        var result=Apply();recentStorageCommands[id]=result;
+        if(recentStorageCommands.Count>512)recentStorageCommands.Remove(recentStorageCommands.Keys.First());
+        return result;
+    }
+    public CommandResult ToggleInteriorLights()
+    {
+        CheckThread();
+        if(!InsideBuilding || State.Paused || Player.Sleeping)return new("กลับเข้าเกมในบ้านก่อนปรับไฟ",false);
+        var state=Buildings.Interiors[ActiveBuildingId];state.LightsOn=!state.LightsOn;BuildingChanged();
+        return new(state.LightsOn?"เปิดไฟในบ้าน":"ปิดไฟในบ้าน",true);
     }
 }

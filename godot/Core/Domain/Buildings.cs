@@ -32,6 +32,7 @@ public static class BuildingRegistry
 }
 public sealed class InteriorState
 {
+    public const int MaximumStorageStack = 1000000;
     [JsonRequired] public int Level { get; set; } = 1;
     [JsonRequired] public Dictionary<string,int> Storage { get; set; } = new();
     [JsonRequired] public bool LightsOn { get; set; } = true;
@@ -52,7 +53,7 @@ public sealed class BuildingState
             throw new InvalidDataException("ข้อมูลอาคารไม่สมบูรณ์");
         foreach(var pair in Interiors)
             if(BuildingRegistry.Find(pair.Key)==null || pair.Value==null || pair.Value.Level!=1 || pair.Value.Storage==null ||
-                pair.Value.Storage.Any(i=>!Farm.Crops.ContainsKey(i.Key) || i.Value<=0 || i.Value>1000000))
+                pair.Value.Storage.Any(i=>!Farm.Crops.ContainsKey(i.Key) || i.Value<=0 || i.Value>InteriorState.MaximumStorageStack))
                 throw new InvalidDataException("อาคารหรือของในกล่องไม่รองรับ ไม่มีการทิ้งข้อมูลเดิม");
         foreach(var pair in Locations) {
             var p=pair.Value;

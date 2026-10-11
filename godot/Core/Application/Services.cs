@@ -10,7 +10,10 @@ public interface ISaveService : IAsyncDisposable
     BuildingState LoadBuildings() => new();
     string LoadPlayerSession();
     void RequestSave(Farm state);
-    void RequestSave(Farm state, BuildingState buildings) => RequestSave(state);
+    void RequestSave(Farm state, BuildingState buildings) {
+        if(buildings.Interiors.Count!=0)throw new NotSupportedException("Persistence adapter does not support buildings");
+        RequestSave(state);
+    }
     Task FlushAsync(CancellationToken cancellationToken = default);
     bool TryReadFailure(out string error);
 }

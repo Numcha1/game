@@ -19,10 +19,10 @@ public static class FarmInputRouter
             {
                 case Key.F: farm.InteractBuilding(); break;
                 case Key.Tab: farm.Seed = farm.CropKeys[(Array.IndexOf(farm.CropKeys, farm.Seed) + 1) % 8]; farm.Hud.Refresh(); break;
-                case Key.E: farm.Hud.RequestSale(); break;
+                case Key.E: if(farm.Session.InsideBuilding)farm.InteractBuilding();else farm.Hud.RequestSale(); break;
                 case Key.Space: farm.Hud.RequestSleep(); break;
                 case Key.B: case Key.I: farm.Hud.OpenBag(); break;
-                case Key.O: farm.Hud.OpenShop(); break;
+                case Key.O: if(!farm.Session.InsideBuilding)farm.Hud.OpenShop(); break;
                 case Key.F3: farm.Hud.OpenSettings(); break;
                 case Key.Escape: farm.Hud.OpenPause(); break;
                 case Key.F1: farm.Hud.OpenHelp(); break;
