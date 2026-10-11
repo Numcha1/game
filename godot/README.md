@@ -1,3 +1,9 @@
+# Indoor scale and compact HUD
+
+Enclosed rooms now use 1.25x camera zoom and 1.05x visual character scale, with a compact top bar and one contextual bottom prompt. The farm/village outdoor profile and gameplay rules remain unchanged. [Audit, design tokens and before/after captures](docs/INDOOR_PRESENTATION.md) | [Executed validation and limits](docs/INDOOR_VALIDATION.md).
+
+---
+
 # Living village: NPC Milestones 1-2
 
 From the farm, walk to the village sign on the right near `(23, 8)` and press **F**. Press **F** near Mira/Rowan or a registered door. Mira sells the original eight crop seeds; bought seeds appear in the bag and are consumed before cash when planting. Rowan installs the existing greenhouse through the original game rules. Both walk between workplaces, square and visitable homes; NPCs, seeds and daily conversations persist.

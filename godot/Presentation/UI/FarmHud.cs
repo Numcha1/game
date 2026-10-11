@@ -9,6 +9,8 @@ public partial class FarmHud : Control
     public static readonly (string Action, string Label, string Icon)[] Tools = {
         ("plant", "เมล็ด", "seeds"), ("water", "รดน้ำ", "water"), ("harvest", "เก็บเกี่ยว", "carrot"),
         ("treat", "รักษา", "flowers"), ("fertilize", "ปุ๋ย", "seeds"), ("stake", "ไม้ค้ำ", "hoe"), ("clear", "ถอนต้น", "hoe") };
+    internal void ClearFeedback(){toast.Visible=false;toastTime=0;}
+    internal bool FeedbackVisible=>toast.Visible;
     public bool ModalVisible => modal?.Visible == true;
     FarmScene farm = null!;
     Label status = null!, seed = null!, toast = null!, coins = null!;
@@ -20,6 +22,8 @@ public partial class FarmHud : Control
     VBoxContainer modalContent = null!;
     Control modal = null!;
     PanelContainer guide = null!;
+    PanelContainer topStatus=null!;
+    readonly List<Button> topButtons=new();
     public bool TutorialVisible=>guide.Visible;
     public void ShowTutorial()=>guide.Visible=true;
     Button[] tools = Array.Empty<Button>();
@@ -49,8 +53,9 @@ public partial class FarmHud : Control
         if (farm != null) throw new InvalidOperationException("HUD already initialized");
         farm = scene;
         Theme = FarmTypography.Shared;
-        var top = new PanelContainer { Position = new Vector2(14, 12), Size = new Vector2(280,54), CustomMinimumSize = new Vector2(280, 54) }; top.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","PanelContainer")); AddChild(top);
-        var topRows = new VBoxContainer(); top.AddChild(topRows); status = new Label { AutowrapMode=TextServer.AutowrapMode.WordSmart }; topRows.AddChild(status);
+        var top = new PanelContainer { Name="TopStatus", Position = new Vector2(PresentationScale.SafeMargin, PresentationScale.SafeMargin), Size = new Vector2(272,PresentationScale.HudHeight), CustomMinimumSize = new Vector2(272, PresentationScale.HudHeight) }; top.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","PanelContainer")); AddChild(top);
+        topStatus=top;var compact=(StyleBoxFlat)Theme.GetStylebox("panel","PanelContainer").Duplicate();compact.ContentMarginLeft=compact.ContentMarginRight=PresentationScale.Padding;compact.ContentMarginTop=compact.ContentMarginBottom=4;compact.ShadowSize=2;top.AddThemeStyleboxOverride("panel",compact);
+        var topRows = new VBoxContainer();topRows.AddThemeConstantOverride("separation",2); top.AddChild(topRows); status = new Label { AutowrapMode=TextServer.AutowrapMode.WordSmart }; topRows.AddChild(status);
         var stats = new HBoxContainer(); topRows.AddChild(stats); coins = new Label { CustomMinimumSize = new Vector2(120, 22) }; stats.AddChild(coins);
         energy = new ProgressBar { CustomMinimumSize = new Vector2(90, 15), MaxValue = 100, ShowPercentage = false }; stats.AddChild(energy);
         energy.AddThemeStyleboxOverride("background", Theme.GetStylebox("background","ProgressBar")); energy.AddThemeStyleboxOverride("fill", Theme.GetStylebox("fill","ProgressBar"));
@@ -59,8 +64,16 @@ public partial class FarmHud : Control
         plotInfo = new Label { CustomMinimumSize = new Vector2(190, 110), AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
         plotInfo.ThemeTypeVariation = "Compact"; inspector.AddChild(plotInfo);
         top.Resized += () => inspector.Position = new Vector2(14,top.GetRect().End.Y+8);
-        var topRight = new HBoxContainer { AnchorLeft = 1, AnchorRight = 1, OffsetLeft = -310, OffsetRight = -14, OffsetTop = 12, OffsetBottom = 44 }; AddChild(topRight);
-        topRight.AddChild(Button("กระเป๋า B", OpenBag,110)); shopButton=Button("ร้านค้า O", OpenShop,110);topRight.AddChild(shopButton); topRight.AddChild(Button("☰", OpenSettings));
+        var topRight = new HBoxContainer { AnchorLeft = 1, AnchorRight = 1, Name="TopActions", OffsetLeft = -320, OffsetRight = -PresentationScale.SafeMargin, OffsetTop = PresentationScale.SafeMargin, OffsetBottom = PresentationScale.SafeMargin+PresentationScale.ButtonHeight }; AddChild(topRight);
+        topRight.AddChild(Button("กระเป๋า B", OpenBag,96)); shopButton=Button("ร้านค้า O", OpenShop,96);topRight.AddChild(shopButton); topRight.AddChild(Button("เมนู Esc", OpenSettings,96));
+        topRight.AddThemeConstantOverride("separation",PresentationScale.Gap);
+        foreach(var b in topRight.GetChildren().OfType<Button>()) {
+            topButtons.Add(b);b.CustomMinimumSize=new Vector2(PresentationScale.ButtonWidth,PresentationScale.ButtonHeight);
+            foreach(string key in new[]{"normal","hover","pressed","disabled"}) {
+                var style=(StyleBoxFlat)Theme.GetStylebox(key,"Button").Duplicate();style.ContentMarginLeft=style.ContentMarginRight=PresentationScale.Padding;style.ContentMarginTop=style.ContentMarginBottom=4;b.AddThemeStyleboxOverride(key,style);
+            }
+        }
+        ApplyCompactText(0);
         var bottom = new PanelContainer { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -286, OffsetRight = 286, OffsetTop = -82, OffsetBottom = -12, GrowVertical = GrowDirection.Begin };
         bottom.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","ToolPanel")); AddChild(bottom);
         toolPanel=bottom;
@@ -94,13 +107,18 @@ public partial class FarmHud : Control
     {
         if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.Session.StateChanged -= OnStateChanged; }
     }
-    public void SetTextScale(int index) { Theme = FarmTypography.AtScale(index); }
+    void ApplyCompactText(int index) {
+        foreach(var label in new[]{status,coins})label.AddThemeFontSizeOverride("font_size",PresentationScale.HudFont+Math.Clamp(index,0,2)*2);
+        foreach(var button in topButtons)button.AddThemeFontSizeOverride("font_size",PresentationScale.HudFont+Math.Clamp(index,0,2)*2);
+    }
+    public void SetTextScale(int index) { Theme = FarmTypography.AtScale(index);ApplyCompactText(index); }
     public void SetUiScale(int index) {
         float zoom=1+Math.Clamp(index,0,2)*.1f;
         SetAnchorsPreset(LayoutPreset.TopLeft);Position=Vector2.Zero;Size=GetViewport().GetVisibleRect().Size/zoom;Scale=Vector2.One*zoom;
     }
     public void Refresh()
     {
+        toast.OffsetTop=farm.Session.InsideBuilding?-44:-134;toast.OffsetBottom=farm.Session.InsideBuilding?-16:-91;toast.AddThemeFontSizeOverride("font_size",PresentationScale.PromptFont+farm.Display.TextScale);
         toolPanel.Visible=!farm.Session.InsideBuilding;shopButton.Disabled=farm.Session.InsideBuilding;
         if(farm.Session.InsideBuilding)guide.Visible=false;
         var state = farm.Session.Read.World;
@@ -147,6 +165,7 @@ public partial class FarmHud : Control
     }
     void Open(string title)
     {
+        farm.ClearContextPrompt();ClearFeedback();
         currentMenu=0;
         foreach (Node child in modalContent.GetChildren()) { modalContent.RemoveChild(child); child.QueueFree(); }
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = title, ThemeTypeVariation = "Heading", HorizontalAlignment = HorizontalAlignment.Center });

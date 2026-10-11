@@ -1,0 +1,79 @@
+{
+  "passed": 46,
+  "checks": [
+    "actual seed shop entry",
+    "actual window resolution (1280, 720)",
+    "three top controls (1280, 720)",
+    "top panels do not overlap (1280, 720)",
+    "indoor zoom and visual-only scale (1280, 720)",
+    "consistent top button height (1280, 720)",
+    "single contextual Thai NPC prompt (1280, 720)",
+    "camera covers viewport without room edge gaps (1280, 720)",
+    "pixel snapped actor (1280, 720)",
+    "original player foot anchor retained (1280, 720)",
+    "NPC visual scale and unchanged actor transform (1280, 720)",
+    "standing camera is stable (1280, 720)",
+    "fresh feedback replaces prompt at same target (1280, 720)",
+    "new interaction target replaces stale feedback (1280, 720)",
+    "real Mira interaction (1280, 720)",
+    "prompt hidden behind modal (1280, 720)",
+    "no prompt without target (1280, 720)",
+    "original room collision retained (1280, 720)",
+    "real indoor walking input and animation (1280, 720)",
+    "player visible across room WorldPoint { X = 1.5, Y = 10 } (1280, 720)",
+    "player visible across room WorldPoint { X = 22, Y = 10 } (1280, 720)",
+    "player visible across room WorldPoint { X = 12, Y = 14 } (1280, 720)",
+    "large Thai text and UI stay inside safe layout (1280, 720)",
+    "actual window resolution (1920, 1080)",
+    "three top controls (1920, 1080)",
+    "top panels do not overlap (1920, 1080)",
+    "indoor zoom and visual-only scale (1920, 1080)",
+    "consistent top button height (1920, 1080)",
+    "single contextual Thai NPC prompt (1920, 1080)",
+    "camera covers viewport without room edge gaps (1920, 1080)",
+    "pixel snapped actor (1920, 1080)",
+    "original player foot anchor retained (1920, 1080)",
+    "NPC visual scale and unchanged actor transform (1920, 1080)",
+    "standing camera is stable (1920, 1080)",
+    "fresh feedback replaces prompt at same target (1920, 1080)",
+    "new interaction target replaces stale feedback (1920, 1080)",
+    "real Mira interaction (1920, 1080)",
+    "prompt hidden behind modal (1920, 1080)",
+    "no prompt without target (1920, 1080)",
+    "original room collision retained (1920, 1080)",
+    "real indoor walking input and animation (1920, 1080)",
+    "player visible across room WorldPoint { X = 1.5, Y = 10 } (1920, 1080)",
+    "player visible across room WorldPoint { X = 22, Y = 10 } (1920, 1080)",
+    "player visible across room WorldPoint { X = 12, Y = 14 } (1920, 1080)",
+    "large Thai text and UI stay inside safe layout (1920, 1080)",
+    "outdoor camera and character restored"
+  ],
+  "measurements": [
+    {
+      "resolution": "(1280, 720)",
+      "viewport": "(800, 450)",
+      "cameraZoom": 1.25,
+      "playerScale": 1.05,
+      "topHeight": 48,
+      "buttonHeights": [
+        28,
+        28,
+        28
+      ],
+      "prompt": "F \u00B7 \u0E04\u0E38\u0E22\u0E01\u0E31\u0E1A\u0E21\u0E34\u0E23\u0E32"
+    },
+    {
+      "resolution": "(1920, 1080)",
+      "viewport": "(800, 450)",
+      "cameraZoom": 1.25,
+      "playerScale": 1.05,
+      "topHeight": 48,
+      "buttonHeights": [
+        28,
+        28,
+        28
+      ],
+      "prompt": "F \u00B7 \u0E04\u0E38\u0E22\u0E01\u0E31\u0E1A\u0E21\u0E34\u0E23\u0E32"
+    }
+  ]
+}

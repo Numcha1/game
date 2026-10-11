@@ -1,0 +1,39 @@
+{
+  "passed": 6,
+  "checks": [
+    "actual seed shop entry",
+    "three top controls (1280, 720)",
+    "top panels do not overlap (1280, 720)",
+    "three top controls (1920, 1080)",
+    "top panels do not overlap (1920, 1080)",
+    "outdoor camera and character restored"
+  ],
+  "measurements": [
+    {
+      "resolution": "(1280, 720)",
+      "viewport": "(800, 450)",
+      "cameraZoom": 1,
+      "playerScale": 1,
+      "topHeight": 63,
+      "buttonHeights": [
+        32,
+        32,
+        32
+      ],
+      "prompt": "F \u00B7 \u0E04\u0E38\u0E22\u0E01\u0E31\u0E1A\u0E21\u0E34\u0E23\u0E32"
+    },
+    {
+      "resolution": "(1920, 1080)",
+      "viewport": "(800, 450)",
+      "cameraZoom": 1,
+      "playerScale": 1,
+      "topHeight": 63,
+      "buttonHeights": [
+        32,
+        32,
+        32
+      ],
+      "prompt": "F \u00B7 \u0E04\u0E38\u0E22\u0E01\u0E31\u0E1A\u0E21\u0E34\u0E23\u0E32"
+    }
+  ]
+}

@@ -50,6 +50,7 @@ try {
     Invoke-Diagnostic @('--premium-checks') "premium-$renderer.json" $(if ($Rendered) { 180 } else { 52 })
     Invoke-Diagnostic @('--building-checks') "buildings-$renderer.json" $(if ($Rendered) { 49 } else { 48 })
     Invoke-Diagnostic @('--npc-checks') "npcs-$renderer.json" $(if ($Rendered) { 34 } else { 33 })
+    if ($Rendered) { Invoke-Diagnostic @('--npc-checks', '--indoor-layout-checks') 'indoor-layout-after.json' 46 }
     if ($ExtendedLifecycle) { Invoke-Diagnostic @('--lifecycle', '--lifecycle-extended') "lifecycle-extended-$renderer.json" 350 }
     else { Invoke-Diagnostic @('--lifecycle') "lifecycle-$renderer.json" 70 }
     Write-Host 'Verified local builds, isolated core/native regressions and Godot diagnostics. Internet, player playtest and export gates remain separate.'

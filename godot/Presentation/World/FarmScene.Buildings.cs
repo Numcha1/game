@@ -16,15 +16,18 @@ public partial class FarmScene
     Task pendingTransition=Task.CompletedTask;
     internal string? DiagnosticInteriorSceneOverride;
     public bool InteriorVisible=>interior!=null;
+    string contextTarget="";
     public string DoorPrompt=>doorPrompt.Text;
+    internal void ClearContextPrompt(){if(doorPrompt!=null)SetContextPrompt("");}
     public Task TransitionCompletion=>pendingTransition;
     void InitializeBuildings()
     {
         var layer=new CanvasLayer {Layer=8};AddChild(layer);
         doorFade=new ColorRect {AnchorRight=1,AnchorBottom=1,Color=new Color(.08f,.10f,.08f,0),MouseFilter=Control.MouseFilterEnum.Ignore};layer.AddChild(doorFade);
-        doorPrompt=new Label {AnchorLeft=.5f,AnchorRight=.5f,AnchorTop=1,AnchorBottom=1,OffsetLeft=-300,OffsetRight=300,OffsetTop=-175,OffsetBottom=-140,
+        doorPrompt=new Label {AnchorLeft=.5f,AnchorRight=.5f,AnchorTop=1,AnchorBottom=1,OffsetLeft=-300,OffsetRight=300,OffsetTop=-44,OffsetBottom=-16,
             HorizontalAlignment=HorizontalAlignment.Center,Theme=FarmTypography.Shared,AutowrapMode=TextServer.AutowrapMode.WordSmart};
         doorPrompt.AddThemeColorOverride("font_shadow_color",new Color(.1f,.15f,.1f));doorPrompt.AddThemeConstantOverride("shadow_offset_x",2);doorPrompt.AddThemeConstantOverride("shadow_offset_y",2);layer.AddChild(doorPrompt);
+        doorPrompt.AddThemeFontSizeOverride("font_size",PresentationScale.PromptFont);
         doorPrompt.AddThemeColorOverride("font_color",new Color("fff2cc"));
         doorPulse=new Sprite2D {Texture=Art.Glow,ZIndex=6,Visible=false,Scale=Vector2.One*.22f};AddChild(doorPulse);
         AddChild(new Sprite2D {Name="VillageRouteSign",Texture=Art.Region("sign"),Position=new Vector2(726,236)});
@@ -32,21 +35,23 @@ public partial class FarmScene
         route.AddThemeFontSizeOverride("font_size",13);route.AddThemeColorOverride("font_color",new Color("fff0ca"));route.AddThemeColorOverride("font_shadow_color",new Color("24392b"));route.AddThemeConstantOverride("shadow_offset_x",1);route.AddThemeConstantOverride("shadow_offset_y",1);AddChild(route);
         if(Session.InsideBuilding)pendingTransition=TransitionBuilding(Session.ActiveBuildingId,false,true);
     }
+    void SetContextPrompt(string text){if(text!="" && text!=contextTarget)Hud.ClearFeedback();contextTarget=text;doorPrompt.Text=Hud.FeedbackVisible?"":text;}
     void UpdateDoorPrompt()
     {
         doorPulse.Visible=transitioning && !Session.InsideBuilding && !Display.ReducedMotion;
         if(doorPulse.Visible)doorPulse.Modulate=new Color(1,.8f,.45f,.35f+.15f*Mathf.Sin(Time.GetTicksMsec()/60f));
-        if(transitioning || TitleActive || Hud.ModalVisible){doorPrompt.Text="";return;}
+        if(transitioning || TitleActive || Hud.ModalVisible){SetContextPrompt("");return;}
+        doorPrompt.OffsetTop=Session.InsideBuilding?-44:-124;doorPrompt.OffsetBottom=Session.InsideBuilding?-16:-96;
         var point=Session.Position;
         string npc=Session.NearestNpc();
-        if(npc!=""){Session.TryNpc(npc,out var view);doorPrompt.Text="F · คุยกับ"+view.Name;return;}
+        if(npc!=""){Session.TryNpc(npc,out var view);SetContextPrompt("F · คุยกับ"+view.Name);return;}
         var nearby=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId==Session.ActiveBuildingId && point.Distance(b.Entrance)<=1.3);
-        if(nearby!=null){doorPrompt.Text="F · เข้า"+nearby.Name;return;}
+        if(nearby!=null){SetContextPrompt("F · เข้า"+nearby.Name);return;}
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } inside) {
-            doorPrompt.Text=point.Distance(inside.Exit)<=1.4 ? inside.ParentId==""?"F · กลับฟาร์ม":"F · กลับหมู่บ้าน" : point.Distance(inside.Bed)<=1.6 ? "F / Space · เข้านอน" : point.Distance(inside.Chest)<=1.6 ? "F · เปิดกล่องเก็บของ" : inside.Name+" · F โต้ตอบ · Esc เมนู";
+            SetContextPrompt(point.Distance(inside.Exit)<=1.4 ? inside.ParentId==""?"F · กลับฟาร์ม":"F · กลับหมู่บ้าน" : point.Distance(inside.Bed)<=1.6 ? "F / Space · เข้านอน" : point.Distance(inside.Chest)<=1.6 ? "F · เปิดกล่องเก็บของ" : "");
         } else {
             var building=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId=="" && point.Distance(b.Entrance)<=1.8);
-            doorPrompt.Text=building==null?"":"F · เข้า"+building.Name;
+            SetContextPrompt(building==null?"":"F · เข้า"+building.Name);
         }
     }
     public void InteractBuilding()
@@ -142,6 +147,6 @@ public partial class FarmScene
     }
     void ResetBuildingCamera(bool indoor)
     {
-        var p=Session.Read.Player;Farmer.ResetCamera(new Vector2((float)p.X*32,(float)p.Y*32),indoor?768:800,indoor?512:576);
+        var p=Session.Read.Player;Farmer.ResetCamera(new Vector2((float)p.X*32,(float)p.Y*32),indoor?768:800,indoor?512:576,indoor && BuildingRegistry.Find(Session.ActiveBuildingId)?.Type!="village");
     }
 }

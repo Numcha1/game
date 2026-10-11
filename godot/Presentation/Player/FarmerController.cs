@@ -11,6 +11,7 @@ public partial class FarmerController : Node2D
     public Camera2D Camera { get; private set; } = null!;
     PixelCameraFollower cameraFollower = null!;
     double gesture;
+    float presentationScale=1;
     AnimatedSprite2D toolSprite = null!;
     readonly Dictionary<string,SpriteFrames> toolFrames = new();
     string facing = "south";
@@ -34,7 +35,7 @@ public partial class FarmerController : Node2D
         cameraFollower.Initialize(Position);
     }
     static bool Down(Key a, Key b) => Input.IsPhysicalKeyPressed(a) || Input.IsPhysicalKeyPressed(b);
-    public void ResetCamera(Vector2 position,int width,int height) { Position=position.Round();cameraFollower.Initialize(Position,width,height); }
+    public void ResetCamera(Vector2 position,int width,int height,bool indoor=false) { presentationScale=indoor?PresentationScale.IndoorCharacter:1;Sprite.Scale=Vector2.One*presentationScale;toolSprite.Scale=Vector2.One*presentationScale;Position=position.Round();cameraFollower.Initialize(Position,width,height,indoor); }
     public override void _PhysicsProcess(double delta)
     {
         if (Session == null || Sprite == null || Camera == null || cameraFollower == null) return;
@@ -57,11 +58,11 @@ public partial class FarmerController : Node2D
         else { Sprite.Animation="idle-" + facing; Sprite.Play(); }
         gesture = Math.Max(0, gesture - delta);
         int pose = Math.Clamp((int)((.28-gesture)/.07),0,3);
-        Sprite.Position = new Vector2(0,-22 + (gesture>0 && pose is 1 or 2 ? 1 : 0));
+        Sprite.Position = new Vector2(0,-22 + (gesture>0 && pose is 1 or 2 ? 1 : 0))*presentationScale;
         if (toolSprite.SpriteFrames != null) {
             toolSprite.Visible = gesture > 0; toolSprite.Frame = pose;
             toolSprite.FlipH = facing == "west"; toolSprite.ZIndex = facing == "north" ? -1 : 1;
-            toolSprite.Position = new Vector2(facing == "west" ? -10 : 10,-14 + (pose is 1 or 2 ? 1 : 0));
+            toolSprite.Position = new Vector2(facing == "west" ? -10 : 10,-14 + (pose is 1 or 2 ? 1 : 0))*presentationScale;
         }
         cameraFollower.Follow(Position,delta);
     }
