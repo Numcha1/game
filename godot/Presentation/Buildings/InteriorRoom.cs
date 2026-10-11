@@ -26,6 +26,10 @@ public partial class InteriorRoom : Node2D
         AddForeground(actors,new Rect2(178,158,222,318));
         AddForeground(actors,new Rect2(1140,188,174,146));
         AddForeground(actors,new Rect2(606,158,312,156));
+        AddForeground(actors,new Rect2(78,534,80,132));
+        AddForeground(actors,new Rect2(1380,536,82,212));
+        AddForeground(actors,new Rect2(100,188,94,126));
+        AddForeground(actors,new Rect2(1320,90,122,210));
         foreach(int start in new[]{246,485}) for(int x=0;x<2;x++) for(int y=0;y<2;y++) {
             var p=new Vector2(start+x*24,32+y*26);var size=new Vector2(x==0?17:16,y==0?21:20);
             var pane=new Polygon2D {Polygon=new[]{p,p+new Vector2(size.X,0),p+size,p+new Vector2(0,size.Y)},ZIndex=-9};AddChild(pane);panes.Add(pane);

@@ -17,7 +17,7 @@ public sealed record BuildingDefinition(string Id, string Name, string Type, str
     bool OwnerOnly = false, int Opens = 0, int Closes = 1440)
 {
     public bool Walkable(WorldPoint p) => double.IsFinite(p.X) && double.IsFinite(p.Y) &&
-        p.X >= 1.3 && p.X <= 22.7 && p.Y >= 3 && p.Y <= 14.4 && !Obstacles.Any(o=>o.Contains(p));
+        p.X >= 1.3 && p.X <= 22.7 && p.Y >= 3.8 && p.Y <= 14.4 && !Obstacles.Any(o=>o.Contains(p));
 }
 public static class BuildingRegistry
 {

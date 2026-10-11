@@ -19,7 +19,7 @@ static class BuildingChecks
             Check(session.EntryError(def with {Opens=900})!="" && session.EntryError(def with {Spawn=new(-1,2)})!="","closed door and invalid spawn explain rejection");
             Check(session.EnterBuilding(def.Id).Changed && session.InsideBuilding && session.Position==def.Spawn,"entry uses reusable definition spawn");
             Check(!session.EnterBuilding(def.Id).Changed,"duplicate entry does not change state");
-            Check(!session.Move(4.5,5) && !session.Move(double.NaN,8) && !session.Move(25,8),"indoor collision and invalid coordinates rejected");
+            Check(!session.Move(4.5,5) && !session.Move(7,3) && !session.Move(double.NaN,8) && !session.Move(25,8),"bed back-wall collision and invalid coordinates rejected");
             Check(!session.Execute(new("water",0)).Changed,"farming commands rejected inside without spending energy");
             session.Move(12,10);Check(!session.ExitBuilding().Changed,"remote indoor exit rejected");
             session.SaveAsync().GetAwaiter().GetResult();

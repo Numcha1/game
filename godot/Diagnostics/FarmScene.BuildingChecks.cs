@@ -34,7 +34,7 @@ public partial class FarmScene
                 Check(Session.InsideBuilding && InteriorVisible && Session.Position.Distance(spawn)<.05 && Farmer.GetParent()==interior!.GetNode<Node2D>("Actors"),"correct interior spawn and retained actor "+round);
                 Check(!weather.Visible && !weather.IsProcessing() && !GetNode<TileMapLayer>("Ground").Visible,"outside weather and ground hidden indoors "+round);
                 Check(Session.Read.World.Minute>=minute && Session.Read.Player.Energy==energy && Session.Read.World.Coins==coins,"time inventory and energy preserved "+round);
-                Check(!Session.Move(4.5,5) && !Session.Move(-1,8) && !Session.Execute(new("plant",0,"carrot")).Changed,"bed wall collision and outdoor action isolation "+round);
+                Check(!Session.Move(4.5,5) && !Session.Move(7,3) && !Session.Move(-1,8) && !Session.Execute(new("plant",0,"carrot")).Changed,"bed back-wall collision and outdoor action isolation "+round);
                 if(round==0 && DisplayServer.GetName()!="headless") {
                     await NextDraw();using var shot=GetViewport().GetTexture().GetImage();shot.SavePng(Path.Combine(ProjectSettings.GlobalizePath("res://reports"),"farmhouse-interior.png"));
                 }
