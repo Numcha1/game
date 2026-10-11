@@ -77,7 +77,8 @@ public partial class FarmHud : Control
         var bottom = new PanelContainer { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -286, OffsetRight = 286, OffsetTop = -82, OffsetBottom = -12, GrowVertical = GrowDirection.Begin };
         bottom.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","ToolPanel")); AddChild(bottom);
         toolPanel=bottom;
-        var rows = new VBoxContainer(); bottom.AddChild(rows); seed = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, HorizontalAlignment = HorizontalAlignment.Center }; rows.AddChild(seed);
+        var compactTools=(StyleBoxFlat)Theme.GetStylebox("panel","ToolPanel").Duplicate();compactTools.ContentMarginTop=compactTools.ContentMarginBottom=4;bottom.AddThemeStyleboxOverride("panel",compactTools);
+        var rows = new VBoxContainer();rows.AddThemeConstantOverride("separation",4); bottom.AddChild(rows); seed = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, HorizontalAlignment = HorizontalAlignment.Center }; rows.AddChild(seed);seed.AddThemeFontSizeOverride("font_size",12);
         var bar = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center }; rows.AddChild(bar); tools = new Button[Tools.Length];
         for (int i = 0; i < Tools.Length; i++)
         {
@@ -108,6 +109,7 @@ public partial class FarmHud : Control
         if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.Session.StateChanged -= OnStateChanged; }
     }
     void ApplyCompactText(int index) {
+        if(seed!=null)seed.AddThemeFontSizeOverride("font_size",12+Math.Clamp(index,0,2)*2);
         foreach(var label in new[]{status,coins})label.AddThemeFontSizeOverride("font_size",PresentationScale.HudFont+Math.Clamp(index,0,2)*2);
         foreach(var button in topButtons)button.AddThemeFontSizeOverride("font_size",PresentationScale.HudFont+Math.Clamp(index,0,2)*2);
     }

@@ -20,6 +20,9 @@ public partial class VillageRoom : InteriorRoom
             var actor=NpcAssets.CreateActor();GetNode<Node2D>("Actors").AddChild(actor);actor.Initialize(scene.Session,npc.Id,def.Id);
         }
         if(def.Type=="village") {
+            var flat=RoomPresentationAssets.Flat(def.Id,texture);
+            RoomDepth.Add(GetNode<Node2D>("Actors"),flat,"LeftFoliage",new(0,178),new(28,178),new(58,228),new(42,290),new(60,361),new(44,451),new(0,480));
+            RoomDepth.Add(GetNode<Node2D>("Actors"),flat,"RightFoliage",new(768,178),new(740,178),new(710,228),new(726,290),new(708,361),new(724,451),new(768,480));
             foreach(var door in BuildingRegistry.All.Where(b=>b.ParentId==def.Id)) {
                 var label=new Label {Text=door.Name,Theme=FarmTypography.Shared,Position=new Vector2((float)door.Entrance.X*32-70,163),Size=new Vector2(140,22),HorizontalAlignment=HorizontalAlignment.Center};
                 label.AddThemeFontSizeOverride("font_size",12);label.AddThemeColorOverride("font_color",new Color("fff0c6"));label.AddThemeColorOverride("font_shadow_color",new Color("29382b"));label.AddThemeConstantOverride("shadow_offset_x",1);label.AddThemeConstantOverride("shadow_offset_y",1);AddChild(label);

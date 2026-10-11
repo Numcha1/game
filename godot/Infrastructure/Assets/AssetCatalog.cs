@@ -71,6 +71,14 @@ public sealed class AssetCatalog
     public readonly TileSet TileSet = GD.Load<TileSet>("res://Assets/FarmTiles.tres");
     SpriteFrames? farmerFrames;
     readonly Dictionary<string, AtlasTexture> regions = new();
+    readonly Dictionary<(string,int),Texture2D> logicalProps=new();
+    public Texture2D LogicalProp(string name,int width)
+    {
+        if(logicalProps.TryGetValue((name,width),out var cached))return cached;
+        var texture=Region(name);using var image=texture.GetImage();
+        image.Resize(width,Math.Max(1,(int)Math.Round(texture.GetHeight()*width/(double)texture.GetWidth())),Image.Interpolation.Nearest);
+        return logicalProps[(name,width)]=ImageTexture.CreateFromImage(image);
+    }
     readonly Dictionary<string, int[]> definitions = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int[]>>(Godot.FileAccess.GetFileAsString("res://Assets/regions.json"))!;
     public AtlasTexture Region(string name)
     {

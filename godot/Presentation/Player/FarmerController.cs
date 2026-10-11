@@ -30,7 +30,7 @@ public partial class FarmerController : Node2D
         foreach (string action in new[] { "plant","water","harvest","treat","fertilize","stake","clear" }) toolFrames[action] = art.ToolFrames(action);
         toolSprite = new AnimatedSprite2D { Position=new Vector2(10,-14),Visible=false };
         AddChild(toolSprite);
-        AddChild(new Sprite2D { Texture=art.Shadow,Position=new Vector2(2,4),Scale=new Vector2(.45f,.18f),ZIndex=-2 });
+        AddChild(new Sprite2D { Texture=art.Shadow,Position=new Vector2(2,4),Scale=new Vector2(26f/art.Shadow.GetWidth(),8f/art.Shadow.GetHeight()),ZIndex=-2 });
         Position = new Vector2((float)session.Read.Player.X * 32, (float)session.Read.Player.Y * 32);
         cameraFollower.Initialize(Position);
     }

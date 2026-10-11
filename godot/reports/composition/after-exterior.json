@@ -1,0 +1,143 @@
+{
+  "passed": 34,
+  "checks": [
+    "actual resolution farm (1280, 720)",
+    "HUD separation farm (1280, 720)",
+    "player visible farm (1280, 720)",
+    "stable camera farm (1280, 720)",
+    "uniform pixel scale farm (1280, 720)",
+    "actual resolution farm (1600, 900)",
+    "HUD separation farm (1600, 900)",
+    "player visible farm (1600, 900)",
+    "stable camera farm (1600, 900)",
+    "uniform pixel scale farm (1600, 900)",
+    "actual resolution farm (1920, 1080)",
+    "HUD separation farm (1920, 1080)",
+    "player visible farm (1920, 1080)",
+    "stable camera farm (1920, 1080)",
+    "uniform pixel scale farm (1920, 1080)",
+    "actual entry moonroot.village",
+    "actual resolution moonroot.village (1280, 720)",
+    "HUD separation moonroot.village (1280, 720)",
+    "player visible moonroot.village (1280, 720)",
+    "stable camera moonroot.village (1280, 720)",
+    "uniform pixel scale moonroot.village (1280, 720)",
+    "opaque prepared room floor moonroot.village (1280, 720)",
+    "actual resolution moonroot.village (1600, 900)",
+    "HUD separation moonroot.village (1600, 900)",
+    "player visible moonroot.village (1600, 900)",
+    "stable camera moonroot.village (1600, 900)",
+    "uniform pixel scale moonroot.village (1600, 900)",
+    "opaque prepared room floor moonroot.village (1600, 900)",
+    "actual resolution moonroot.village (1920, 1080)",
+    "HUD separation moonroot.village (1920, 1080)",
+    "player visible moonroot.village (1920, 1080)",
+    "stable camera moonroot.village (1920, 1080)",
+    "uniform pixel scale moonroot.village (1920, 1080)",
+    "opaque prepared room floor moonroot.village (1920, 1080)"
+  ],
+  "frames": [
+    {
+      "scene": "farm",
+      "window": "(1280, 720)",
+      "position": {
+        "X": 12,
+        "Y": 8
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 256)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 800,
+      "shotHeight": 450,
+      "screenshot": "after-farm-1280x720.png"
+    },
+    {
+      "scene": "farm",
+      "window": "(1600, 900)",
+      "position": {
+        "X": 12,
+        "Y": 8
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 256)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 1600,
+      "shotHeight": 900,
+      "screenshot": "after-farm-1600x900.png"
+    },
+    {
+      "scene": "farm",
+      "window": "(1920, 1080)",
+      "position": {
+        "X": 12,
+        "Y": 8
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 256)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 1600,
+      "shotHeight": 900,
+      "screenshot": "after-farm-1920x1080.png"
+    },
+    {
+      "scene": "moonroot.village",
+      "window": "(1280, 720)",
+      "position": {
+        "X": 12,
+        "Y": 10
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 320)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 800,
+      "shotHeight": 450,
+      "screenshot": "after-moonroot.village-1280x720.png"
+    },
+    {
+      "scene": "moonroot.village",
+      "window": "(1600, 900)",
+      "position": {
+        "X": 12,
+        "Y": 10
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 320)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 1600,
+      "shotHeight": 900,
+      "screenshot": "after-moonroot.village-1600x900.png"
+    },
+    {
+      "scene": "moonroot.village",
+      "window": "(1920, 1080)",
+      "position": {
+        "X": 12,
+        "Y": 10
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 320)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 1600,
+      "shotHeight": 900,
+      "screenshot": "after-moonroot.village-1920x1080.png"
+    }
+  ]
+}
