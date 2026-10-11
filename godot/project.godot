@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="Seasons Together · สวนเพลง"
-run/main_scene="res://Scenes/Farm.tscn"
+run/main_scene="res://Scenes/Boot.tscn"
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 
 [display]
