@@ -1,5 +1,5 @@
 {
-  "passed": 49,
+  "passed": 51,
   "checks": [
     "initial farm has no interior",
     "unknown building rejected before transition",
@@ -7,6 +7,8 @@
     "nearby Thai door prompt",
     "missing resource returns to interactive farm",
     "duplicate door request blocked 0",
+    "furniture definition scene node resolves moonroot.bed",
+    "furniture definition scene node resolves moonroot.chest",
     "correct interior spawn and retained actor 0",
     "outside weather and ground hidden indoors 0",
     "time inventory and energy preserved 0",
@@ -54,11 +56,11 @@
   "indoorMeasurement": {
     "frames": 300,
     "quality": 2,
-    "meanMs": 16.556787999999997,
-    "p95Ms": 16.7604,
-    "fps": 60.39818834426099,
-    "privateBytes": 295948288,
-    "managedBytes": 8872904,
+    "meanMs": 16.555665,
+    "p95Ms": 16.6922,
+    "fps": 60.40228526006052,
+    "privateBytes": 313204736,
+    "managedBytes": 8969248,
     "scope": "300 actual rendered night/storm farmhouse frames after settling, not a long-session guarantee"
   },
   "scope": "Real Godot farmhouse entrance/exit/resource failure/actor/collision/storage/bed/restart tests in isolated profile"

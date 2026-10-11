@@ -13,9 +13,11 @@ public sealed class GameReadModel
     public WorldView World => new(farm.Day, farm.Minute, farm.Coins, farm.Weather, farm.Greenhouse, farm.Paused, farm.Season, farm.SeasonDay);
     public PlayerView Player => buildings.Locations.TryGetValue(player.Id,out var indoor) ? new(indoor.X,indoor.Y,player.Energy,player.Sleeping) : new(player.X, player.Y, player.Energy, player.Sleeping);
     public string BuildingId => buildings.Locations.GetValueOrDefault(player.Id)?.BuildingId ?? "";
+    public IReadOnlyDictionary<string, ItemDefinition> ItemDefinitions => ItemCatalog.All;
+    public IReadOnlyList<FurnitureDefinition> FurnitureDefinitions => FurnitureCatalog.ForBuilding(BuildingId);
     public bool InteriorLightsOn => buildings.Interiors.GetValueOrDefault(BuildingId)?.LightsOn ?? true;
     public IReadOnlyList<InventoryItem> Storage() => buildings.Interiors.TryGetValue(BuildingId,out var interior)
-        ? Array.AsReadOnly(interior.Storage.OrderBy(pair=>pair.Key,StringComparer.Ordinal).Select(pair=>new InventoryItem(pair.Key,Farm.Crops[pair.Key].Name,pair.Value,farm.SalePrice(pair.Key))).ToArray())
+        ? Array.AsReadOnly(interior.Storage.OrderBy(pair=>pair.Key,StringComparer.Ordinal).Select(pair=>new InventoryItem(pair.Key,ItemCatalog.All[pair.Key].Name,pair.Value,farm.SalePrice(pair.Key))).ToArray())
         : Array.Empty<InventoryItem>();
     public int PlotCount => farm.Plots.Count;
     public string TomorrowWeather => farm.Forecast(farm.Day + 1);
@@ -29,7 +31,7 @@ public sealed class GameReadModel
     public IReadOnlyList<InventoryItem> Inventory()
     {
         var items = new InventoryItem[player.Bag.Count]; int index = 0;
-        foreach (var pair in player.Bag) items[index++] = new(pair.Key, Farm.Crops[pair.Key].Name, pair.Value, farm.SalePrice(pair.Key));
+        foreach (var pair in player.Bag) items[index++] = new(pair.Key, ItemCatalog.All[pair.Key].Name, pair.Value, farm.SalePrice(pair.Key));
         return Array.AsReadOnly(items);
     }
 }

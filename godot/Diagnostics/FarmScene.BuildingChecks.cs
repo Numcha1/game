@@ -30,6 +30,8 @@ public partial class FarmScene
                 var pending=TransitionCompletion;RequestBuildingEntry(BuildingRegistry.Farmhouse.Id);
                 Check(ReferenceEquals(pending,TransitionCompletion) && Farmer.InputBlocked,"duplicate door request blocked "+round);
                 await pending;
+                if(round==0)foreach(var furniture in Session.Read.FurnitureDefinitions)
+                    Check(interior!.GetNodeOrNull<Node2D>(furniture.Scene.NodePath)!=null,"furniture definition scene node resolves "+furniture.FurnitureId);
                 var spawn=BuildingRegistry.Farmhouse.Spawn;
                 Check(Session.InsideBuilding && InteriorVisible && Session.Position.Distance(spawn)<.05 && Farmer.GetParent()==interior!.GetNode<Node2D>("Actors"),"correct interior spawn and retained actor "+round);
                 Check(!weather.Visible && !weather.IsProcessing() && !GetNode<TileMapLayer>("Ground").Visible,"outside weather and ground hidden indoors "+round);

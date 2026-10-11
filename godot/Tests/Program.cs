@@ -68,5 +68,6 @@ passed.AddRange(await GameplayMatrixChecks.Run());
 passed.AddRange(await DisplayChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await NetworkChecks.Run());
 passed.AddRange(await LocalRoomProcessChecks.Run());
+passed.AddRange(DefinitionChecks.Run());
 passed.AddRange(await ArchitectureChecks.Run(Path.GetDirectoryName(output)!));
 File.WriteAllText(output,JsonSerializer.Serialize(new{passed=passed.Count,checks=passed,scope="Core/save regressions and legacy local protocol. Godot online UI and internet co-op not migrated."},new JsonSerializerOptions{WriteIndented=true}));Console.WriteLine("CORE PASS "+passed.Count);

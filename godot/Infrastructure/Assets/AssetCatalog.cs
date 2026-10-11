@@ -1,4 +1,5 @@
 using Godot;
+using SeasonsTogether.Core.Domain;
 
 namespace SeasonsTogether;
 
@@ -34,6 +35,9 @@ public sealed class AssetCatalog
             if (!definitions.ContainsKey(crop) || !definitions.ContainsKey("young-" + crop)) throw new InvalidDataException("Missing crop atlas region: " + crop);
         foreach (string key in new[] { "spring", "summer", "autumn", "winter", "sprout", "house", "shop", "crate", "well", "barrel", "sign", "rocks", "flowers", "seeds", "water", "hoe" })
             if (!definitions.ContainsKey(key)) throw new InvalidDataException("Missing prop atlas region: " + key);
+        foreach (var item in ItemCatalog.All.Values)
+            if (ItemIcon(item.Icon) is not { } icon || icon.GetWidth() <= 0 || icon.GetHeight() <= 0)
+                throw new InvalidDataException("Missing definition icon: " + item.ItemId);
     }
     public readonly Texture2D Tiles = GD.Load<Texture2D>("res://Assets/terrain.png");
     public readonly Texture2D Props = GD.Load<Texture2D>("res://Assets/props.png");
@@ -52,6 +56,23 @@ public sealed class AssetCatalog
     readonly Dictionary<string,AudioStream> sounds = new();
     public AudioStream Sound(string key) => sounds[key];
     public AtlasTexture CropStage(string crop, int stage) => PolishRegion(crop + "-" + Math.Clamp(stage,0,3), Growth);
+    Texture2D? furnitureIconSource;
+    readonly Dictionary<string, AtlasTexture> furnitureIcons = new(StringComparer.Ordinal);
+    public Texture2D ItemIcon(ItemIconReference icon)
+    {
+        if (icon.Source == ItemIconSource.CropStage) return CropStage(icon.Key, 3);
+        if (icon.Source != ItemIconSource.FarmhouseRegion) throw new ArgumentException("Unknown icon source", nameof(icon));
+        if (furnitureIcons.TryGetValue(icon.Key, out var cached)) return cached;
+        var region = icon.Key switch {
+            "bed" => new Rect2(178,158,222,318),
+            "chest" => new Rect2(1140,188,174,146),
+            _ => throw new ArgumentException("Unknown furniture icon", nameof(icon))
+        };
+        var source = furnitureIconSource ??= GD.Load<Texture2D>("res://Assets/Interiors/farmhouse-composition.png")
+            ?? throw new InvalidDataException("Furniture icon source missing");
+        if (region.End.X > source.GetWidth() || region.End.Y > source.GetHeight()) throw new InvalidDataException("Furniture icon outside source");
+        return furnitureIcons[icon.Key] = new AtlasTexture { Atlas=source, Region=region, FilterClip=true };
+    }
     public AtlasTexture ToolIcon(string action) => PolishRegion("tool-" + action, ToolIcons);
     AtlasTexture PolishRegion(string key, Texture2D atlas) {
         if (polishRegions.TryGetValue(key,out var cached)) return cached;

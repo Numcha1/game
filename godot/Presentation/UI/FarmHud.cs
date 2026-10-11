@@ -233,7 +233,7 @@ public partial class FarmHud : Control
     }
     void AddItemCard(GridContainer grid,string key,string title,string description,Action action,bool selected=false) {
         var card=farm.Art.ItemCardScene.Instantiate<FarmItemCard>();card.Name="Item-"+key;grid.AddChild(card);
-        card.Configure(title,description,farm.Art.CropStage(key,3),()=>{farm.PlayUiClick();action();},selected);
+        card.Configure(title,description,farm.Art.ItemIcon(farm.Session.Read.ItemDefinitions[key].Icon),()=>{farm.PlayUiClick();action();},selected);
     }
     void OpenItem(InventoryItem item) {
         Open(item.Name);modalContent.AddChild(new Label { Text=$"มี {item.Quantity} ชิ้น · ราคาที่แสดงสำหรับวันนี้ {item.UnitPrice} เหรียญ\nขายใกล้ลังเพื่อรับราคาจริง ณ เวลาขาย",AutowrapMode=TextServer.AutowrapMode.WordSmart });
