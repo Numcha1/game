@@ -2,6 +2,12 @@ using SeasonsTogether.Core;
 using SuanPleng;
 using System.Text.Json;
 
+if (args.Length == 2 && args[0] == "--lock-probe") {
+    try { await using var probe = new SeasonsTogether.Core.Infrastructure.Persistence.SaveService(args[1]); }
+    catch (IOException) { Environment.ExitCode = 2; }
+    return;
+}
+
 string output=Path.GetFullPath(args.Length>0?args[0]:"reports/core-tests.json");Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 string directory=Path.Combine(Path.GetDirectoryName(output)!,"core-profile-"+Guid.NewGuid().ToString("N"));
 var passed=new List<string>();void Check(bool condition,string message){if(!condition)throw new Exception(message);passed.Add(message);}
@@ -49,4 +55,11 @@ using(var server=new RoomServer(new Farm())){
         var sync=await clients[0].Send(new Request{Session=secrets[0],Action="sync"});Check(sync.Farm?.Players.Count==4,"authoritative state has all players");
     }finally{foreach(var client in clients)client.Dispose();}
 }
+passed.AddRange(await PersistenceChecks.Run(Path.GetDirectoryName(output)!));
+passed.AddRange(await RecoveryChecks.Run(Path.GetDirectoryName(output)!));
+passed.AddRange(await ApplicationChecks.Run());
+passed.AddRange(await GameplayMatrixChecks.Run());
+passed.AddRange(await DisplayChecks.Run(Path.GetDirectoryName(output)!));
+passed.AddRange(await NetworkChecks.Run());
+passed.AddRange(await ArchitectureChecks.Run(Path.GetDirectoryName(output)!));
 File.WriteAllText(output,JsonSerializer.Serialize(new{passed=passed.Count,checks=passed,scope="Core/save regressions and legacy local protocol. Godot online UI and internet co-op not migrated."},new JsonSerializerOptions{WriteIndented=true}));Console.WriteLine("CORE PASS "+passed.Count);

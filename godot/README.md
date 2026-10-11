@@ -1,3 +1,31 @@
+# Premium presentation verification (2026-10-11)
+
+Current branch: `feature/premium-polish`. Read [implementation and remaining acceptance](docs/PREMIUM_POLISH.md), [prioritized audit](docs/PREMIUM_AUDIT.md) and [measured evidence](docs/PREMIUM_MEASUREMENTS.md). Open `Run-Seasons-Together.cmd`, then choose **เข้าฟาร์ม**. The Godot launcher requires the installed .NET engine/SDK; it is not a standalone export.
+
+Bundled Thai typography, integer canvas scaling, original four-stage crops/tool icons, shared item cards, title/pause/loading menus, tutorial overlay and action audio are implemented. Native rules, Save v1 and the existing network protocol remain unchanged. The older sections below are historical evidence; current counts and limitations are in the premium report.
+
+---
+
+# Production core verification (2026-10-11)
+
+Current branch: `feature/production-core`. Read [progress](docs/PRODUCTION_PROGRESS.md), [focused audit](docs/PRODUCTION_AUDIT.md), [feature matrix](FEATURE_MATRIX.md) and [quality gates](QUALITY_GATES.md) for current evidence. The older vertical-slice numbers below remain historical.
+
+Open `Run-Seasons-Together.cmd` in this Godot directory to play on the current configured machine. It requires Godot .NET and the .NET SDK; it is not a standalone exported game. For editing, import `project.godot` in Godot .NET and build before F5.
+
+From the repository root:
+
+```powershell
+.\godot\verify.ps1 -Rendered -ExtendedLifecycle
+# Faster logic/lifecycle run without GPU metrics:
+.\godot\verify.ps1
+```
+
+Pass `-GodotPath <absolute-path-to-Mono-console.exe>` if discovery fails. Diagnostics use isolated GUID profiles. Startup fault injection deliberately logs errors; exit code, fresh reports and check counts determine success. No test overwrites the real Native/Godot player profile. Reports contain no raw player credentials; fixture/profile directories are excluded from Git.
+
+Core CI runs only the engine-independent regression suite. Godot rendering, export, Internet co-op and real-player acceptance remain separate gates.
+
+---
+
 # Seasons Together · Godot single-player vertical slice
 
 ฉากเล่นได้จริงใน Godot 4.7.2 .NET/C# สร้างแยกจาก native release เดิม ใช้กติกาเดิมผ่าน Core project ไม่ใช้ WinForms renderer
@@ -26,3 +54,13 @@ Smoke mode ใช้ test profile UUID ในreports ไม่ใช้ฟาร
 งานที่ยังไม่ครบ: Godot online host/join และ remote players; growth-stage sprites ที่วาดเฉพาะทุกชนิด, tool/action animationเต็มชุด, UI/weather iconsบางส่วน, shoreline/ripple polish และsoundpack. ต้นฉบับภาพใหม่และpromptบันทึกในArtSource และ ART.md ไม่ใช้assetจากเกมอ้างอิง
 
 ยังไม่ส่ง Godot Windows standalone export ในรอบนี้ ไม่พบ Godot Mono export templates ติดตั้งในเครื่อง โปรเจกต์และ launcher รันทดสอบได้ด้วย editor ที่มีอยู่ `SuanPleng.exe` v0.3 ของ native เดิมเก็บไว้เหมือนเดิม ไม่มีการนำ editor executable มาตั้งชื่อเป็นgame export
+
+## Modular architecture refactor
+
+Branch `godot/modular-architecture` แยก Domain / Application / Infrastructure / Presentation โดยยังใช้กฎใน World.cs ชุดเดิม เพิ่ม asynchronous SaveService, readonly read model, command validation, network recovery seam, asset caching และ scene cancellation
+
+ผลตรวจใน checkout จริง: Build 0 warning/error, Core 82 ข้อ, scene headless 16 / rendered 91 ข้อ, lifecycle 60 ข้อทั้ง headless และ rendered, Native Release build และ self-test 35 ข้อ ผ่านทั้งหมด ผล rendered ใกล้ 60 FPS ทั้งสามระดับคุณภาพ
+
+อ่าน [Audit](docs/AUDIT.md), [Dependency diagram และ responsibility matrix](docs/ARCHITECTURE.md), [รายงานทุก Phase และความเสี่ยงที่เหลือ](docs/PHASES.md), [Performance ก่อน/หลัง](docs/PERFORMANCE.md), [รายการไฟล์ที่เปลี่ยน](docs/CHANGED_FILES.md). หลักฐาน raw อยู่ใน reports/architecture-before.json, architecture-after.json, final-core-tests.json, lifecycle-*.json และ preservation.json
+
+ทดสอบ lifecycle เพิ่มด้วย `& $env:GODOT_MONO --headless --path . -- --lifecycle` หรือรันแบบมีภาพโดยเอา --headless ออก ทุก diagnostics ใช้โปรไฟล์ทดสอบ UUID เท่านั้น NetworkService ยังไม่เปิด multiplayer UI ใน Godot; Native Game และโปรโตคอลเดิมคงไว้

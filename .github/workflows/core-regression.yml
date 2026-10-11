@@ -1,0 +1,33 @@
+name: Core regression
+on:
+  push:
+    branches: ["feature/production-core", "feature/premium-polish", "godot/vertical-slice"]
+    paths: ["godot/**", "native/World.cs", "native/Network.cs", ".github/workflows/core-regression.yml"]
+  pull_request:
+    paths: ["godot/**", "native/World.cs", "native/Network.cs", ".github/workflows/core-regression.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: godot/global.json
+      - name: Build and run isolated core regressions
+        shell: pwsh
+        run: |
+          dotnet run --project godot/Tests/SeasonsTogether.Tests.csproj -- godot/reports/ci-core-tests.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: core-test-evidence
+          path: godot/reports/ci-core-tests.json
+          if-no-files-found: warn
+          retention-days: 14

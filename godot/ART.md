@@ -1,23 +1,27 @@
-# ภาพต้นฉบับและสถานะ art pipeline
+# Original art pipeline and current acceptance status
 
-ใช้ built-in image_gen ตาม [imagegen skill](C:/Users/NUM/.codex/skills/.system/imagegen/SKILL.md) สร้างภาพเฉพาะโครงการนี้ ไม่ใช้พิกเซล/ตัวละคร/แผนที่จากภาพอ้างอิง และไม่ใช้ CLI/API key ต้นฉบับ environment และ character PNG เก็บใน `ArtSource/` รวมไว้เพื่อทำ atlas ใหม่ซ้ำได้ ไม่ถูก import/export เป็นเกมresource
+Current presentation work is on `feature/premium-polish`. See [polish implementation](docs/PREMIUM_POLISH.md), [audit](docs/PREMIUM_AUDIT.md), [measurements](docs/PREMIUM_MEASUREMENTS.md) and real renderer screenshots in `reports/`.
 
-PNG runtime: `Assets/props.png`, `characters.png`, `terrain.png`, `pond.png`, `shadow.png`, `glow.png`, `stake.png`; regions ใน JSON และ `FarmTiles.tres`. PNG import ใช้lossless/no mipmaps และ nearest canvasfilter. Build-time tooling `Tools/ArtBake` ใช้ System.Drawing เฉพาะ crop/pack/nearest resizingและสร้าง terrain32px ไม่อยู่ใน game loop
+## Runtime assets
 
-Environment sheet ต้องปรับ extraction boundaries หลังตรวจจริง เพราะภาพที่สร้างไม่ได้วางequal256cellsตรงตามprompt การตัดเป็นgridอัตโนมัติเดิมมีเพื่อนบ้านติดมา ได้แก้ด้วย curated boundaries. ตรวจatlasและภาพจากgame viewportอีกครั้งหลังแก้
+Existing original environment/character assets remain: `Assets/props.png`, `characters.png`, `terrain.png`, `pond.png`, `shadow.png`, `glow.png`, `stake.png`, regions JSON and `FarmTiles.tres`. PNG textures use lossless imports, no mipmaps and nearest filtering. Scene and camera coordinates are pixel-snapped; UI fonts use the higher-resolution canvas.
 
-ภาพใหม่ที่ใช้งาน: บ้าน/ร้านที่มีroof shingles, ผนังไม้/หน้าต่าง/ดอกไม้, ต้นไม้สี่ฤดูใบไม่สมมาตร, well/barrel/crate/sign/flowers/rocks, พืช8ชนิด และตัวละครเดิน4ทิศ×4frames สีsage/honey/cream/copper, แสงจากซ้ายบน กำหนดspritefoot anchorเดียวกันและdepthตามY
+New original growth/tool assets: `Assets/crop-growth.png`, `tool-icons.png`, `tool-poses.png`, `polish-regions.json`. Eight crop species each have four distinct anchored stages; seven recognizable tool icons and four cached held-tool poses replace generic hotbar/gesture visuals. `FarmWorldPresenter` uses the new species-specific stages, not the unused legacy `sprout`/`young-*` regions. Those old regions remain for compatibility only.
 
-**ส่วนที่ยังเป็นงานชั่วคราวและต้องเปลี่ยนก่อนประกาศ art เสร็จ:** ต้นอ่อน generic spriteและyoung cropsที่ตัดจากupper foliageของภาพโตเต็มวัย (ยังไม่ใช่growth sheetเฉพาะ4stages), tool iconsบางช่องใช้ภาพเดิมซ้ำ, idle/tool gestureยังไม่ใช่animationที่วาดทุกframe, terrain/path/fence/pondเป็นภาพpixelที่สร้างด้วยtoolingและยังต้องartist polish โดยเฉพาะpond shorelineและrain ripple, HUDเป็นnativeControlธีมcream woodยังไม่มีornateUI atlasเต็มชุด. Character sheetจากimage generationมีรายละเอียดการก้าวบางframeซ้ำ ต้องreviewและเติมin-betweenโดยartist ไม่เรียกทั้งชุดว่าfinalpremium artwork
+## Creation and reproducibility
 
-Windows ใช้ SystemFont/Tahoma จากเครื่อง ไม่แจกไฟล์fontที่มีลิขสิทธิ์ fallbackNoto Sans Thai/sans-serif เป็นfontที่ติดตั้งเอง ถ้ารันแพลตฟอร์มอื่นต้องมีfontไทย
+The imagegen skill used the built-in `image_gen` tool, transparent-background mode, without CLI/API keys or reference-game pixels. Original environment/character sources and exact prompts remain in `ArtSource/` and `ArtSource/prompts.json`. New source sheets: `ArtSource/crop-growth-source.png`, `tool-icons-source.png`; exact full prompts and tool mode are in `ArtSource/premium-prompts.json`.
 
-## Prompt set ที่ใช้กับ built-in tool
+`Tools/ArtBake` crops/packs the older sheet using curated extraction boundaries (generated objects did not align perfectly to an equal grid). `Tools/PolishBake` validates and packs the new equal-cell source sheets into fixed runtime dimensions and pre-bakes tool rotations. Both use System.Drawing only at build time; neither runs in the game loop. `ArtSource/.gdignore` keeps full source images out of Godot import/export.
 
-Environment: original production PNG sprite atlas for top-down 2D cozy farming RPG; 1536×1024, six columns/four rows, transparent, detailed crisp pixel clusters, 32px tile direction, upper-left light, restrained umber outlines, sage/honey/cream/copper palette. Row1 farmhouse sage roof, seed shop terracotta roof, spring/summer/autumn/winter oak; row2 crate/well/barrel/sign/flowers/rocks; row3 carrot/turnip/potato/tomato/corn/strawberry; row4 pumpkin/cabbage/watering can/hoe/seed bag/farmer. Isolated cells withpadding, no text/grids/overlap, no copyrighted designs.
+Palette: olive/sage foliage, honey highlights, cream UI, copper/russet accents, umber outlines and upper-left illumination. Shared shadows, rain layers, pond rings/splashes, seasonal accents and cached harvest/coin feedback provide depth without full-screen blur. Low/Medium/High and reduced motion bound these effects.
 
-Character: original precise pixelart sprite sheet, four columns/four rows transparent; same brown-haired straw-hat farmer cream shirt green overalls russet boots; rows south/west/east/north; columns leftfoot/neutral/rightfoot/neutral; same scale/feetbaseline, approximately32×48native pixels enlarged, upper-left light, no text/grids/floor/background.
+## Fonts and audio
 
-Background extraction edit: remove colored backdrop from environment sheet only; preserve1536×1024 canvas and24objects' existinglocations/designs; keepobjects, leaves/trunks/crop root soil, remove smoothbetween-objectbackdrop, realtransparentPNG. Actual output dimensions/alpha inspected andimage reprocessed intoatlas throughcuratedcrop tool.
+Mitr Medium headings and Sarabun Regular/SemiBold body/control fonts are bundled. No system-installed Tahoma dependency remains. Upstream unmodified OFL licenses, source URLs and SHA256 hashes live in `Assets/Fonts/`. The diagnostic verifies Thai vowel/tone-mark glyph availability; Thai-reader shaping acceptance remains separate.
 
-These prompts are normalized production specifications; exact original prompt text is preserved in `ArtSource/prompts.json`.
+Five short original synthesized WAV cues in `Assets/Audio/` are reproducible with `Tools/synthesize_audio.py`; no third-party recorded samples. Eight reusable audio voices use the Effects bus and saved volume. These are action cues, not a complete ambient/music soundtrack.
+
+## Remaining artist acceptance
+
+Existing walking frames still need artist inspection and any necessary in-between/arm redraw; held-tool overlays and anticipation/recovery are implemented, not newly hand-drawn full-body action sheets. Terrain/path/fence/pond edges and older fractionally scaled props need a consistent pixel-density/shoreline pass. The native Control theme is cohesive and reusable, but an ornate nine-slice UI atlas is not claimed. Sound mixing and native Thai reading require player review. No unused legacy atlas region is represented as a finished new growth asset; no commercial-quality signoff is implied by automated hashes/layout checks.
