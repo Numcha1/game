@@ -1,7 +1,7 @@
 name: Core regression
 on:
   push:
-    branches: ["feature/production-core", "feature/premium-polish", "godot/vertical-slice"]
+    branches: ["feature/production-core", "feature/premium-polish", "feature/premium-game-systems", "godot/vertical-slice"]
     paths: ["godot/**", "native/World.cs", "native/Network.cs", ".github/workflows/core-regression.yml"]
   pull_request:
     paths: ["godot/**", "native/World.cs", "native/Network.cs", ".github/workflows/core-regression.yml"]

@@ -1,5 +1,7 @@
 # Quality Gates
 
+Current systems statuses: [SYSTEMS_ROADMAP](docs/SYSTEMS_ROADMAP.md); tested persistence changes: [Milestone 1](docs/SYSTEMS_MILESTONE1.md). RELEASE READY remains unassigned.
+
 Current presentation evidence: [premium report](docs/PREMIUM_POLISH.md).
 
 VERIFIED means named checks actually passed. IN PROGRESS means partial evidence. PENDING means required evidence is absent. No production stage is COMPLETE based on code presence alone.

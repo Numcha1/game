@@ -1,3 +1,13 @@
+# Premium systems development (2026-10-11)
+
+Current branch: `feature/premium-game-systems`. [Milestone 1 implementation/audit](docs/SYSTEMS_MILESTONE1.md), [feature status and roadmap](docs/SYSTEMS_ROADMAP.md), and [actual performance comparison](docs/SYSTEMS_MEASUREMENTS.md) are the current records. Earlier sections below retain historical results from the integrated presentation work.
+
+Milestone 1 is TESTED: strict save/undo validation, tracked pending persistence and 2/4-process loopback protocol tests. Core 234, Native 35, startup 60, recovery 10, rendered gameplay 101, premium 175 and lifecycle 350 passed in their documented scopes. No feature is marked RELEASE READY. The playable Godot scene remains single-player while room/remote-actor binding is developed; the user selected local multiple-instance testing before Internet acceptance.
+
+Open `Run-Seasons-Together.cmd` and choose **เข้าฟาร์ม**. From the repository root, run `dotnet run --project godot/Tests -- godot/reports/systems-m1-core.json` for Core including real peer processes, or `.\godot\verify.ps1 -Rendered -ExtendedLifecycle` for builds/rendered regressions. All tests use isolated profiles. Unsupported/incomplete future save data is refused while retaining original bytes; complete original v1/BOM/pre-animation saves remain readable.
+
+---
+
 # Premium presentation verification (2026-10-11)
 
 Current branch: `feature/premium-polish`. Read [implementation and remaining acceptance](docs/PREMIUM_POLISH.md), [prioritized audit](docs/PREMIUM_AUDIT.md) and [measured evidence](docs/PREMIUM_MEASUREMENTS.md). Open `Run-Seasons-Together.cmd`, then choose **เข้าฟาร์ม**. The Godot launcher requires the installed .NET engine/SDK; it is not a standalone export.

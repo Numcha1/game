@@ -1,5 +1,7 @@
 # Feature Matrix
 
+Current systems statuses: [SYSTEMS_ROADMAP](docs/SYSTEMS_ROADMAP.md); tested persistence changes: [Milestone 1](docs/SYSTEMS_MILESTONE1.md). RELEASE READY remains unassigned.
+
 Current presentation evidence: [premium report](docs/PREMIUM_POLISH.md).
 
 Implemented means callable in the current Godot scene; it does not mean release-accepted.
