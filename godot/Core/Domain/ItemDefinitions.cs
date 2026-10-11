@@ -4,7 +4,7 @@ using SuanPleng;
 namespace SeasonsTogether.Core.Domain;
 
 public enum ItemCategory { Produce, Seed, Furniture, Tool, Material, Mineral, Fish, AnimalProduct, Food, MagicalMaterial, Equipment, CraftingStation, QuestItem, Decoration }
-public enum ItemIconSource { CropStage, FarmhouseRegion, ToolAction }
+public enum ItemIconSource { CropStage, FarmhouseRegion, ToolAction, FurnitureAtlas }
 public enum ItemQualityRules { None, LegacyPlotQualityAffectsYield }
 public enum ItemUsableBehavior { None, PlantCrop, FurnitureInteraction, FarmTool }
 public enum EquipmentSlot { None, Headwear, Outfit, Footwear, Accessory, Charm }
@@ -19,10 +19,10 @@ public sealed record ItemDefinition(string ItemId, string Name, string Descripti
 {
     public string DisplayNameKey => "item." + ItemId + ".name";
     public string DescriptionKey => "item." + ItemId + ".description";
-    public int? BaseBuyPrice => Category == ItemCategory.Seed ? BasePrice : null;
+    public int? BaseBuyPrice => Category is ItemCategory.Seed or ItemCategory.Material || Placeable ? BasePrice : null;
     public int? BaseSellPrice => Sellable ? BasePrice : null;
     public bool Tradeable => false; // No peer inventory transfers implemented yet.
-    public bool Placeable => false; // Current furnishings are fixed scene content.
+    public bool Placeable => Category==ItemCategory.Furniture && Icon.Source==ItemIconSource.FurnitureAtlas;
     public bool Consumable => UsableBehavior == ItemUsableBehavior.PlantCrop;
     public EquipmentSlot EquipmentSlot => EquipmentSlot.None;
     public bool QualitySupport => false; // Plot quality affects yield; stack quality was never saved.
@@ -65,6 +65,8 @@ public static class ItemCatalog
             items.Add("tool:"+action, new("tool:"+action,name,"เครื่องมือฟาร์มเดิม ใช้ผ่านคำสั่งที่ตรวจสอบแล้ว",
                 ItemCategory.Tool,new(ItemIconSource.ToolAction,action),1,0,false,ItemQualityRules.None,
                 ItemUsableBehavior.FarmTool) {ActionId=action});
+        foreach(var d in PlaceableFurnitureCatalog.All)items.Add(d.ItemId,new(d.ItemId,d.Name,"วางในบ้าน · F เพื่อใช้งาน",ItemCategory.Furniture,new(ItemIconSource.FurnitureAtlas,d.Id),FurnitureState.CarryLimit,d.Price,false,ItemQualityRules.None,ItemUsableBehavior.FurnitureInteraction));
+        items.Add(PlaceableFurnitureCatalog.WoodId,new(PlaceableFurnitureCatalog.WoodId,"ไม้แปรรูป","ซื้อจากโรวาน · ใช้สร้างเฟอร์นิเจอร์ที่โต๊ะงานช่าง",ItemCategory.Material,new(ItemIconSource.FurnitureAtlas,"wood"),FurnitureState.CarryLimit,5,false,ItemQualityRules.None,ItemUsableBehavior.None));
         return new ReadOnlyDictionary<string, ItemDefinition>(items);
     }
 }

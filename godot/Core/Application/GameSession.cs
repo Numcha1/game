@@ -94,9 +94,10 @@ public sealed partial class GameSession : IAsyncDisposable
     public bool Move(double x, double y)
     {
         CheckThread();
-        if (State.Paused || Player.Sleeping) return false;
+        if (State.Paused || Player.Sleeping || SeatedFurnitureId!="") return false;
         if (Buildings.Locations.TryGetValue(Player.Id,out var indoor)) {
             if(BuildingRegistry.Find(indoor.BuildingId) is not { } building || !building.Walkable(new(x,y)))return false;
+            if(Buildings.Furniture?.Placed.Values.Any(p=>p.BuildingId==indoor.BuildingId && p.Bounds.Contains(new(x,y)))==true)return false;
             if(indoor.X==x && indoor.Y==y)return true;
             indoor.X=x;indoor.Y=y;StateChanged?.Invoke(GameChange.Position);return true;
         }

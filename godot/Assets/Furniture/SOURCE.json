@@ -1,0 +1,13 @@
+{
+  "asset": "Original Seasons Together indoor furniture",
+  "created": "2026-10-12",
+  "generator": "OpenAI imagegen",
+  "sourceGeneration": "exec-885fb367-aa51-4b22-932d-1c6835d3f05c",
+  "transparentCutout": "exec-b80cbbd0-63e0-4791-b544-4f219edf6cae",
+  "referenceUse": "User references informed style only; no reference-game sprites were copied.",
+  "content": ["horizontal wooden table", "front wooden chair", "wooden box", "storage chest", "empty bookshelf", "crafting workbench", "vertical wooden table", "back wooden chair"],
+  "preparation": "FurnitureAssetBake uses authored source rectangles, alpha bounds, nearest resize and feet anchors. Material wood icon derives from this original tabletop artwork.",
+  "runtimeAtlas": {"width":400,"height":192,"cellWidth":80,"cellHeight":96,"columns":5,"footY":90},
+  "sourceDimensions": {"width":1536,"height":1024},
+  "cutoutPrompt": "Exact background removal of this original game furniture sheet. Preserve these same eight furniture objects, their pixel-art details, shapes, positions and exact 1536x1024 canvas. Remove ALL brown/black gradient/background and halos to full alpha transparency. Also remove background through open chair backs, below table legs, and behind the open bookshelf shelves while retaining all wood boards. No floor or shadows outside objects. Do not add, move, redraw or rescale the objects. Crisp transparent cutouts ready for actual game atlas cropping. Output transparent RGBA PNG."
+}

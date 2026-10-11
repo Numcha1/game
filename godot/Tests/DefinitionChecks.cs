@@ -8,7 +8,7 @@ static class DefinitionChecks
     {
         var checks = new List<string>();
         void Check(bool ok, string message) { if (!ok) throw new Exception(message); checks.Add(message); }
-        Check(ItemCatalog.All.Count == 25, "definitions cover eight produce, eight seeds, seven tools and two existing furnishings");
+        Check(ItemCatalog.All.Count == 32 && PlaceableFurnitureCatalog.All.Count==6, "definitions retain legacy items and add six furniture types and wood");
         foreach (var (key, crop) in Farm.Crops)
         {
             var produce = ItemCatalog.Find(key)!;

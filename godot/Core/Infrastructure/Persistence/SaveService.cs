@@ -12,7 +12,7 @@ public sealed class SaveService : ISaveService
 {
     const int MaximumSaveBytes = 2 * 1024 * 1024;
     const int MaximumIdentityBytes = 256;
-    readonly record struct Snapshot(long Revision, byte[] Bytes, bool Extended);
+    readonly record struct Snapshot(long Revision, byte[] Bytes, bool Extended, bool HasFurniture);
     BuildingState loadedBuildings = new();
     public BuildingState LoadBuildings() => loadedBuildings;
     readonly Channel<Snapshot> queue = Channel.CreateBounded<Snapshot>(new BoundedChannelOptions(1) {
@@ -93,7 +93,7 @@ public sealed class SaveService : ISaveService
         {
             ObjectDisposedException.ThrowIf(closing, this);
             if (importing) throw new InvalidOperationException("กำลังนำเข้าเซฟ");
-            if (!queue.Writer.TryWrite(new Snapshot(++requested, bytes, buildings.Interiors.Count>0))) throw new IOException("ช่องบันทึกปิดแล้ว");
+            if (!queue.Writer.TryWrite(new Snapshot(++requested, bytes, buildings.Interiors.Count>0,buildings.Furniture!=null))) throw new IOException("ช่องบันทึกปิดแล้ว");
         }
     }
     public async Task FlushAsync(CancellationToken cancellationToken = default)
@@ -127,6 +127,11 @@ public sealed class SaveService : ISaveService
                     byte[] previous=ReadBounded(SavePath);
                     if(BuildingSaveDocument.Decode(previous).Buildings.Interiors.Count==0)
                         await ReplaceAsync(original,previous).ConfigureAwait(false);
+                }
+                string beforeFurniture=SavePath+".before-furniture-v3";
+                if(snapshot.HasFurniture && File.Exists(SavePath) && !File.Exists(beforeFurniture)) {
+                    byte[] previous=ReadBounded(SavePath);
+                    if(BuildingSaveDocument.Decode(previous).Buildings.Furniture==null)await ReplaceAsync(beforeFurniture,previous).ConfigureAwait(false);
                 }
                 await ReplaceAsync(SavePath, snapshot.Bytes, SavePath + ".bak").ConfigureAwait(false);
             }

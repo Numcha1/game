@@ -17,11 +17,12 @@ internal sealed class BuildingSaveDocument
         using var reader=new StreamReader(new MemoryStream(bytes.ToArray()),Encoding.UTF8,true);
         byte[] utf8=Encoding.UTF8.GetBytes(reader.ReadToEnd());
         using var json=JsonDocument.Parse(utf8);
-        if(json.RootElement.ValueKind==JsonValueKind.Object && json.RootElement.TryGetProperty("Version",out var version) && version.ValueKind==JsonValueKind.Number && version.TryGetInt32(out int number) && number==2) {
+        if(json.RootElement.ValueKind==JsonValueKind.Object && json.RootElement.TryGetProperty("Version",out var version) && version.ValueKind==JsonValueKind.Number && version.TryGetInt32(out int number) && (number==2 || number==3)) {
             var document=SaveJsonContract.Read<BuildingSaveDocument>(utf8,"Version","Farm","Buildings");
             var farm=SaveJsonContract.Read<Farm>(Encoding.UTF8.GetBytes(document.Farm.GetRawText()));
             FarmInvariants.Validate(farm);
             if(document.Buildings==null)throw new InvalidDataException("ไม่มีข้อมูลอาคารในเซฟ");
+            if((number==2 && document.Buildings.Furniture!=null) || (number==3 && document.Buildings.Furniture==null))throw new InvalidDataException("Furniture requires explicit save version 3");
             document.Buildings.Validate(farm);
             return (farm,document.Buildings);
         }
@@ -31,7 +32,7 @@ internal sealed class BuildingSaveDocument
     public static byte[] Encode(Farm farm, BuildingState buildings)
     {
         buildings.Validate(farm);
-        if(buildings.Interiors.Count==0 && buildings.Village.Npcs.Count==0 && buildings.Village.Seeds.Count==0 && buildings.Village.AppliedCommands.Count==0)return JsonSerializer.SerializeToUtf8Bytes(farm);
-        return JsonSerializer.SerializeToUtf8Bytes(new BuildingSaveDocument { Farm=JsonSerializer.SerializeToElement(farm),Buildings=buildings });
+        if(buildings.Furniture==null && buildings.Interiors.Count==0 && buildings.Village.Npcs.Count==0 && buildings.Village.Seeds.Count==0 && buildings.Village.AppliedCommands.Count==0)return JsonSerializer.SerializeToUtf8Bytes(farm);
+        return JsonSerializer.SerializeToUtf8Bytes(new BuildingSaveDocument { Version=buildings.Furniture==null?2:3, Farm=JsonSerializer.SerializeToElement(farm),Buildings=buildings });
     }
 }

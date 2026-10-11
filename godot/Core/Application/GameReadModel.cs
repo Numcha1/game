@@ -17,10 +17,11 @@ public sealed class GameReadModel
     public IReadOnlyList<FurnitureDefinition> FurnitureDefinitions => FurnitureCatalog.ForBuilding(BuildingId);
     public IReadOnlyList<ItemShopOffer> ShopOffers(string npcId) => npcId=="mira"
         ? Array.AsReadOnly(ItemCatalog.All.Values.Where(i=>i.Category==ItemCategory.Seed).Select(i=>new ItemShopOffer(i.ItemId,i.BaseBuyPrice!.Value,99)).ToArray())
-        : Array.Empty<ItemShopOffer>();
+        : npcId=="rowan" ? Array.AsReadOnly(ItemCatalog.All.Values.Where(i=>i.Placeable || i.ItemId==PlaceableFurnitureCatalog.WoodId).Select(i=>new ItemShopOffer(i.ItemId,i.BaseBuyPrice!.Value,99)).ToArray()) : Array.Empty<ItemShopOffer>();
     public IReadOnlyList<ItemStackView> ItemStacks() => Array.AsReadOnly(
         player.Bag.Where(p=>p.Value>0).Select(p=>new ItemStackView(p.Key,p.Value))
-        .Concat(buildings.Village.Seeds.Select(p=>new ItemStackView(ItemCatalog.SeedId(p.Key),p.Value))).ToArray());
+        .Concat(buildings.Village.Seeds.Select(p=>new ItemStackView(ItemCatalog.SeedId(p.Key),p.Value)))
+        .Concat((buildings.Furniture?.Carried.GetValueOrDefault(player.Id)??new Dictionary<string,int>()).Select(p=>new ItemStackView(p.Key,p.Value))).ToArray());
     // Presentation slots only. Legacy aggregate inventory is not re-capped or split on load.
     public IReadOnlyList<ItemStackView?> BackpackSlots(ItemCategory? category=null,bool sortByQuantity=false)
     {

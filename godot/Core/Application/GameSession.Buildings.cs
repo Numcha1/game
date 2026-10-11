@@ -30,7 +30,7 @@ public sealed partial class GameSession
         Buildings.Locations[Player.Id]=new InteriorLocation { BuildingId=id,X=building.Spawn.X,Y=building.Spawn.Y };
         if(building.ParentId==""){Player.X=building.Return.X;Player.Y=building.Return.Y;}
         if(id==NpcRegistry.Village)npcSimulation.Initialize(Buildings.Village,State);
-        BuildingChanged();return new("เข้าพื้นที่แล้ว · F โต้ตอบกับคนหรือประตู",true);
+        SeatedFurnitureId="";BuildingChanged();return new("เข้าพื้นที่แล้ว · F โต้ตอบกับคนหรือประตู",true);
     }
     public CommandResult ExitBuilding(bool emergency=false)
     {
@@ -46,7 +46,7 @@ public sealed partial class GameSession
             if(!SuanPleng.Farm.Walkable(exterior.Return.X,exterior.Return.Y))return new("จุดกลับฟาร์มไม่พร้อม",false);
             Buildings.Locations.Remove(Player.Id);Player.X=exterior.Return.X;Player.Y=exterior.Return.Y;
         }
-        BuildingChanged();return new("กลับฟาร์มแล้ว",true);
+        SeatedFurnitureId="";BuildingChanged();return new("กลับฟาร์มแล้ว",true);
     }
     void BuildingChanged()
     {

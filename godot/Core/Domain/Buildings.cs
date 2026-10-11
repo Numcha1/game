@@ -53,6 +53,7 @@ public sealed class BuildingState
 {
     [JsonRequired] public Dictionary<string,InteriorState> Interiors { get; set; } = new();
     [JsonRequired] public Dictionary<string,InteriorLocation> Locations { get; set; } = new();
+    [JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] public FurnitureState? Furniture {get;set;}
     public VillageState Village {get;set;}=new(); // Optional for existing v2 saves; strict when present.
     public void Validate(Farm farm)
     {
@@ -70,5 +71,6 @@ public sealed class BuildingState
             if(p==null || !farm.Players.Any(player=>player.Id==pair.Key) || p.BuildingId==null || !Interiors.ContainsKey(p.BuildingId) || BuildingRegistry.Find(p.BuildingId) is not { } def || !def.Walkable(new(p.X,p.Y)))
                 throw new InvalidDataException("ตำแหน่งภายในอาคารไม่ถูกต้อง");
         }
+        Furniture?.Validate(farm,this);
     }
 }

@@ -32,7 +32,7 @@ static class ItemTransactionChecks
             Check(game.Read.BackpackSlots(ItemCategory.Seed).Count(i=>i!=null)==1 && game.Read.BackpackSlots(ItemCategory.Seed).First()!.ItemId=="seed:carrot","backpack filter retains seed identity and counts");
             Check(game.Read.BackpackSlots(sortByQuantity:true).First()!.Quantity==4,"backpack quantity sorting does not mutate legacy dictionaries");
             Check(stacks.Single(i=>i.ItemId=="carrot").Quantity==3 && stacks.Single(i=>i.ItemId=="seed:carrot").Quantity==4 && stacks.All(i=>i.Quality==null && i.Freshness==null),"legacy runtime stacks preserve totals without fabricated quality or freshness");
-            Check(game.Read.ShopOffers("mira").Count==8 && game.Read.ShopOffers("rowan").Count==0,"shop offers list only implemented item sales");
+            Check(game.Read.ShopOffers("mira").Count==8 && game.Read.ShopOffers("rowan").Count==7,"shop offers list only implemented item sales");
             var id=Guid.NewGuid();int price=game.State.SalePrice("carrot");
             Check(game.Execute(new("sell",Id:id)).Changed && game.State.Coins==coins+price*3,"valid sell still delegates original daily price");
             Check(!game.Execute(new("sell",Id:id)).Changed && game.State.Coins==coins+price*3,"replayed selling command cannot credit twice");

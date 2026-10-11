@@ -60,6 +60,13 @@ public sealed class AssetCatalog
     readonly Dictionary<string, AtlasTexture> furnitureIcons = new(StringComparer.Ordinal);
     public Texture2D ItemIcon(ItemIconReference icon)
     {
+        if(icon.Source==ItemIconSource.FurnitureAtlas) {
+            if(furnitureIcons.TryGetValue(icon.Key,out var itemIcon))return itemIcon;
+            var frame=FurnitureFrame(icon.Key=="wood"?8:PlaceableFurnitureCatalog.Find(icon.Key)!.AtlasIndex);
+            using var image=frame.GetImage();var used=image.GetUsedRect();
+            if(used.Size.X==0 || used.Size.Y==0)throw new InvalidDataException("Empty furniture item icon");
+            return furnitureIcons[icon.Key]=new AtlasTexture {Atlas=frame.Atlas,Region=new Rect2(frame.Region.Position+(Vector2)used.Position,(Vector2)used.Size),FilterClip=true};
+        }
         if (icon.Source == ItemIconSource.ToolAction) return ToolIcon(icon.Key);
         if (icon.Source == ItemIconSource.CropStage) return CropStage(icon.Key, 3);
         if (icon.Source != ItemIconSource.FarmhouseRegion) throw new ArgumentException("Unknown icon source", nameof(icon));
@@ -73,6 +80,14 @@ public sealed class AssetCatalog
             ?? throw new InvalidDataException("Furniture icon source missing");
         if (region.End.X > source.GetWidth() || region.End.Y > source.GetHeight()) throw new InvalidDataException("Furniture icon outside source");
         return furnitureIcons[icon.Key] = new AtlasTexture { Atlas=source, Region=region, FilterClip=true };
+    }
+    Texture2D? furnitureAtlas;
+    readonly Dictionary<int,AtlasTexture> furnitureFrames=new();
+    public AtlasTexture FurnitureFrame(int index) {
+        if(index<0 || index>8)throw new ArgumentOutOfRangeException(nameof(index));
+        if(furnitureFrames.TryGetValue(index,out var cached))return cached;
+        var source=furnitureAtlas??=GD.Load<Texture2D>("res://Assets/Furniture/furniture-atlas.png")??throw new InvalidDataException("Furniture atlas missing");
+        return furnitureFrames[index]=new AtlasTexture {Atlas=source,Region=new Rect2(index%5*80,index/5*96,80,96),FilterClip=true};
     }
     public AtlasTexture ToolIcon(string action) => PolishRegion("tool-" + action, ToolIcons);
     AtlasTexture PolishRegion(string key, Texture2D atlas) {
