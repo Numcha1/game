@@ -1,3 +1,9 @@
+# Playable farmhouse (building Milestones 1-2)
+
+Approach the home door and press **F**. Walk inside, use **F** at bed/chest/exit, or Space near the bed. Deposit/withdraw chosen quantities; room position, chest and lights persist. [Audit, architecture, save migration and remaining scope](docs/BUILDINGS.md), [executed tests and measured performance](docs/BUILDINGS_MEASUREMENTS.md). Saves v1 still load; using buildings writes an atomic Godot v2 envelope and retains the original v1 file when present. Native remains separate. Furniture placement/upgrades/shop interiors and building co-op are not yet implemented.
+
+---
+
 # GDD 1.1 development baseline (2026-10-11)
 
 [GDD](docs/GDD_V1_1.md) is the current design specification: peaceful farming, single-player A-F before co-op G. [Current implementation and open acceptance](docs/GDD_IMPLEMENTATION_STATUS.md). Press E near the shipping crate or use the bag to inspect daily revenue and confirm selling. Old saves and rules remain intact. The records below describe prior milestones.

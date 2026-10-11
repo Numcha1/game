@@ -20,7 +20,7 @@ Current design authority: [GDD 1.1](GDD_V1_1.md) and [implementation status](GDD
 | Feature | Status | Evidence / boundary |
 | --- | --- | --- |
 | Layer ownership / single farming authority | TESTED | ArchitectureChecks; Domain/Application free of Godot/WinForms/graphics; `native/World.cs` remains authoritative. |
-| Original complete Version 1 save/load | TESTED | Native reader round trips, older optional effects, UTF-8/16/32 BOMs and paired identity fixtures. |
+| Original complete Version 1 save/load | TESTED | v1 compatibility retained. Godot building state uses a v2 envelope with original nested Farm v1 and preserved pre-migration file; see BUILDINGS.md. |
 | Unknown/ambiguous/incomplete save protection | TESTED | 28 additional contract checks; live/import/undo failures preserve original bytes. |
 | Background atomic save, backup and import recovery | TESTED | Coalescing, disk failure, retries, profile lease, paired undo, recovery UI; no power-loss certification. |
 | Pending manual/settings save on scene teardown | TESTED | 50 immediate teardowns with queued quality choices/manual saves; lifecycle now 350 checks. |
@@ -30,7 +30,7 @@ Current design authority: [GDD 1.1](GDD_V1_1.md) and [implementation status](GDD
 | Soil types/nutrient inventory/sprinklers/AOE tools | NOT STARTED | No invented balance values or unused manager scaffolding. |
 | XP/tool upgrades/farm expansion/automation | NOT STARTED | Requires approved progression definitions, balance and migration. |
 | Crop inventory/stable identifiers/descriptions | TESTED | Original eight crop IDs and counts, application read models, shared cards and daily refresh. |
-| Capacity/equipment/stack rules/storage/transfers | NOT STARTED | No new restrictions imposed on old bags. |
+| Capacity/equipment/stack rules/storage/transfers | IN PROGRESS | Tested starter crop-chest quantity transfers, v2 atomic bag/chest persistence. General equipment/capacity/storage furniture remain open; see BUILDINGS.md. |
 | Original selling/daily prices/greenhouse/rescue | TESTED | Original pricing is centralized in Farm; no UI-owned price formula. |
 | Crafting/processing/supply-demand/new upgrades | NOT STARTED | Requires a full production loop and co-op transaction acceptance. |
 | Existing legacy room wire protocol | TESTED | Loopback HTTP, original Native server, 2/4 independent OS processes, simultaneous harvest and duplicate UUID retry. |
@@ -43,3 +43,5 @@ Current design authority: [GDD 1.1](GDD_V1_1.md) and [implementation status](GDD
 | Godot Windows standalone export/clean machine | NOT STARTED | Launcher depends on installed Godot .NET/SDK; export templates/runtime packaging still required. |
 
 User QA preference: test several instances locally first; do not certify Internet multiplayer from loopback results. Next priority is Milestone A onboarding and first-time farming acceptance, followed by B-F single-player systems. Godot multiplayer integration is G; authority contracts are required when each new system is designed.
+
+Building slice: [Milestones 1-2 audit/implementation](BUILDINGS.md), [actual tests/measurements](BUILDINGS_MEASUREMENTS.md). Farmhouse entry/bed/chest/light persistence are TESTED; placement, house upgrades, other interiors and co-op are NOT STARTED.

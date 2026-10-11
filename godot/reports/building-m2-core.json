@@ -137,7 +137,7 @@
     "closed door and invalid spawn explain rejection",
     "entry uses reusable definition spawn",
     "duplicate entry does not change state",
-    "indoor collision and invalid coordinates rejected",
+    "bed back-wall collision and invalid coordinates rejected",
     "farming commands rejected inside without spending energy",
     "remote indoor exit rejected",
     "migration retains exact original version-one bytes",
