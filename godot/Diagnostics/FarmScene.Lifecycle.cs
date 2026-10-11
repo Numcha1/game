@@ -26,11 +26,14 @@ public partial class FarmScene
                 }
                 Check(session.ObserverCount == 2,"menu cycles do not duplicate observers " + round);
                 await session.SaveAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                string profile=scene.DataDirectory;int expectedCoins=session.Read.World.Coins;
+                scene.SaveQuality(0);scene.SaveQuality(1);scene.SaveQuality(2);scene.SaveNow();
                 Task delayed = scene.WaitForDiagnosticExit();
                 GetTree().Root.RemoveChild(scene);
                 Task finished = scene.shutdown;
                 scene.QueueFree(); await NextFrame(SceneTree.SignalName.ProcessFrame);
                 await finished.WaitAsync(TimeSpan.FromSeconds(5));
+                Check(new SeasonsTogether.Core.Infrastructure.Configuration.GraphicsSettings(profile).Load()==2 && SuanPleng.Farm.Load(Path.Combine(profile,"farm.json")).Coins==expectedCoins && !Directory.GetFiles(profile,"*.tmp").Any(),"shutdown flushes manual save and last queued graphics choice " + round);
                 await delayed.WaitAsync(TimeSpan.FromSeconds(5));
                 Check(session.ObserverCount == 0,"freed scene detaches all application observers " + round);
                 Check(!GodotObject.IsInstanceValid(scene),"scene node freed " + round);
