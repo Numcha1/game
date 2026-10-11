@@ -15,10 +15,8 @@ public partial class NpcActor : Node2D
         session=game;id=npcId;region=room;Name="Npc-"+id;
         TextureFilter=TextureFilterEnum.Nearest;
         AddChild(new Sprite2D{Texture=AssetCatalog.Shared.Shadow,Scale=new Vector2(.65f,.45f),Modulate=new Color(1,1,1,.55f)});
-        float presence=BuildingRegistry.Find(room)?.Type=="village"?1:PresentationScale.IndoorCharacter;
-        float scale=44f*presence/(NpcAssets.Characters.GetHeight()/4f*.92f);
-        sprite=new AnimatedSprite2D{SpriteFrames=NpcAssets.Frames(id),Scale=Vector2.One*scale,Offset=new Vector2(0,-NpcAssets.Characters.GetHeight()/8f),Animation="down"};AddChild(sprite);
-        var label=new Label{Text=NpcRegistry.Find(id)!.Name,Theme=FarmTypography.Shared,Position=new Vector2(-40,-55*presence),Size=new Vector2(80,20),HorizontalAlignment=HorizontalAlignment.Center};
+        sprite=new AnimatedSprite2D{SpriteFrames=NpcAssets.Frames(id),Scale=Vector2.One,Offset=new Vector2(0,-22),Animation="down"};AddChild(sprite);
+        var label=new Label{Text=NpcRegistry.Find(id)!.Name,Theme=FarmTypography.Shared,Position=new Vector2(-40,-64),Size=new Vector2(80,20),HorizontalAlignment=HorizontalAlignment.Center};
         label.AddThemeFontSizeOverride("font_size",12);label.AddThemeColorOverride("font_color",new Color("fff4d5"));label.AddThemeColorOverride("font_shadow_color",new Color("332f26"));label.AddThemeConstantOverride("shadow_offset_x",1);label.AddThemeConstantOverride("shadow_offset_y",1);AddChild(label);
     }
     public override void _Process(double delta)

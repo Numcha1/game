@@ -1,0 +1,77 @@
+{
+  "passed": 19,
+  "checks": [
+    "actual entry village.seed-shop",
+    "actual resolution village.seed-shop (1280, 720)",
+    "HUD separation village.seed-shop (1280, 720)",
+    "player visible village.seed-shop (1280, 720)",
+    "stable camera village.seed-shop (1280, 720)",
+    "uniform pixel scale village.seed-shop (1280, 720)",
+    "opaque prepared room floor village.seed-shop (1280, 720)",
+    "actual resolution village.seed-shop (1600, 900)",
+    "HUD separation village.seed-shop (1600, 900)",
+    "player visible village.seed-shop (1600, 900)",
+    "stable camera village.seed-shop (1600, 900)",
+    "uniform pixel scale village.seed-shop (1600, 900)",
+    "opaque prepared room floor village.seed-shop (1600, 900)",
+    "actual resolution village.seed-shop (1920, 1080)",
+    "HUD separation village.seed-shop (1920, 1080)",
+    "player visible village.seed-shop (1920, 1080)",
+    "stable camera village.seed-shop (1920, 1080)",
+    "uniform pixel scale village.seed-shop (1920, 1080)",
+    "opaque prepared room floor village.seed-shop (1920, 1080)"
+  ],
+  "frames": [
+    {
+      "scene": "village.seed-shop",
+      "window": "(1280, 720)",
+      "position": {
+        "X": 12,
+        "Y": 9.5
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 304)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 800,
+      "shotHeight": 450,
+      "screenshot": "after-village.seed-shop-1280x720.png"
+    },
+    {
+      "scene": "village.seed-shop",
+      "window": "(1600, 900)",
+      "position": {
+        "X": 12,
+        "Y": 9.5
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 304)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 1600,
+      "shotHeight": 900,
+      "screenshot": "after-village.seed-shop-1600x900.png"
+    },
+    {
+      "scene": "village.seed-shop",
+      "window": "(1920, 1080)",
+      "position": {
+        "X": 12,
+        "Y": 9.5
+      },
+      "time": 600,
+      "weather": "\u0E41\u0E14\u0E14\u0E2D\u0E48\u0E2D\u0E19",
+      "season": 0,
+      "cameraPosition": "(384, 304)",
+      "zoom": 1,
+      "spriteScale": 1,
+      "shotWidth": 1600,
+      "shotHeight": 900,
+      "screenshot": "after-village.seed-shop-1920x1080.png"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ public partial class FarmScene
         async Task Enter(string id) {RequestBuildingEntry(id);await TransitionCompletion;await NextFrame(SceneTree.SignalName.ProcessFrame);Check(Session.ActiveBuildingId==id && InteriorVisible && !Farmer.InputBlocked,"real transition into "+id);}
         async Task Exit() {Session.Move(12,14);RequestBuildingExit();await TransitionCompletion;await NextFrame(SceneTree.SignalName.ProcessFrame);}
         try {
+            if(arguments.Contains("--bake-presentation")){PresentationAssetBake.WriteNpcAtlas();GD.Print("ASSET BAKE PASS");GetTree().Quit();return;}
             await NextFrame(SceneTree.SignalName.ProcessFrame);
             Session.State.Minute=600;Session.State.Coins=500;Session.Move(23,8);
             await NextFrame(SceneTree.SignalName.ProcessFrame);
@@ -33,7 +34,7 @@ public partial class FarmScene
             await NextFrame(SceneTree.SignalName.ProcessFrame);
             Check(weather.Visible && weather.IsProcessing() && !accents.PondRipplesEnabled && accents.VisibleRipples==0,"village uses outdoor rain without farm pond rings on dry land");
             Session.State.Weather=originalWeather;
-            Check(NpcAssets.Characters.GetWidth()==NpcAssets.Characters.GetHeight()*2 && NpcAssets.Frames("mira").GetFrameCount("up")==4 && ReferenceEquals(NpcAssets.Frames("mira"),NpcAssets.Frames("mira")),"shared directional NPC sprite atlas and cached frames");
+            Check(NpcAssets.Characters.GetWidth()==320 && NpcAssets.Characters.GetHeight()==224 && NpcAssets.Frames("mira").GetFrameCount("up")==4 && ReferenceEquals(NpcAssets.Frames("mira"),NpcAssets.Frames("mira")),"shared directional NPC sprite atlas and cached frames");
             using(var pixels=NpcAssets.Characters.GetImage())Check(pixels.GetPixel(0,0).A<.01f,"original sprite sheet preserves transparency");
             if(arguments.Contains("--composition-checks")){await RunCompositionChecks();return;}
             if(arguments.Contains("--indoor-layout-checks")){await RunIndoorLayoutChecks();return;}

@@ -8,7 +8,7 @@ public sealed class PixelCameraFollower(Camera2D camera)
     public void Initialize(Vector2 start,int width=800,int height=576,bool indoorProfile=false)
     {
         indoor=indoorProfile;roomWidth=width;roomHeight=height;UpdateZoom();
-        camera.LimitLeft = !indoor && width<800 ? -16 : 0; camera.LimitTop = 0; camera.LimitRight = !indoor && width<800 ? width+16 : width; camera.LimitBottom = height;
+        camera.LimitLeft = width<800 ? -16 : 0; camera.LimitTop = 0; camera.LimitRight = width<800 ? width+16 : width; camera.LimitBottom = height;
         position = start; camera.GlobalPosition = start.Round();camera.ResetSmoothing();camera.ForceUpdateScroll();
     }
     void UpdateZoom()
@@ -16,7 +16,7 @@ public sealed class PixelCameraFollower(Camera2D camera)
         var viewport=camera.GetViewportRect().Size;
         // Integer window stretching can expose a larger logical viewport. Cover the room
         // at those sizes instead of revealing pixels outside its background.
-        float zoom=indoor?Math.Max(PresentationScale.IndoorZoom,Math.Max(viewport.X/roomWidth,viewport.Y/roomHeight)):1;
+        float zoom=indoor?Math.Max(PresentationScale.IndoorZoom,Math.Max(viewport.X/(roomWidth<800?roomWidth+32:roomWidth),viewport.Y/roomHeight)):1;
         camera.Zoom=Vector2.One*zoom;
     }
     public void Follow(Vector2 target, double delta)

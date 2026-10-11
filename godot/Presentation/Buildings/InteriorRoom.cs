@@ -9,6 +9,7 @@ public partial class InteriorRoom : Node2D
 {
     GameReadModel read=null!;
     Sprite2D background=null!;
+    Texture2D foregroundSource=null!;
     readonly List<Polygon2D> panes=new();
     readonly List<Sprite2D> lamps=new();
     int lastMinute=-1; bool lastLights;
@@ -17,6 +18,8 @@ public partial class InteriorRoom : Node2D
     public virtual void Initialize(GameReadModel model,BuildingDefinition def,FarmScene scene)
     {
         read=model;owner=scene;background=GetNode<Sprite2D>("Background");
+        foregroundSource=background.Texture;
+        background.Texture=RoomPresentationAssets.Padded(def.Id,background.Texture);background.Scale=Vector2.One;background.Position=new Vector2(-16,0);
         foreach(var marker in new[]{("Spawn",def.Spawn),("Exit",def.Exit),("Bed",def.Bed),("Chest",def.Chest)})
             if(GetNodeOrNull<Marker2D>(marker.Item1) is not { } node || node.Position.DistanceTo(new((float)marker.Item2.X*32,(float)marker.Item2.Y*32))>.1f)
                 throw new InvalidDataException("Interior marker does not match its building definition");
@@ -42,7 +45,7 @@ public partial class InteriorRoom : Node2D
     }
     void AddForeground(Node2D actors,Rect2 region)
     {
-        var texture=new AtlasTexture {Atlas=background.Texture,Region=region,FilterClip=true};
+        var texture=new AtlasTexture {Atlas=foregroundSource,Region=region,FilterClip=true};
         actors.AddChild(new Sprite2D {Texture=texture,Scale=Vector2.One*.5f,Position=new Vector2(region.Position.X+region.Size.X/2,region.End.Y)*.5f,Offset=new Vector2(0,-region.Size.Y/2)});
     }
     public override void _Process(double delta)

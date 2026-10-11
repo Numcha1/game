@@ -29,17 +29,17 @@ public partial class FarmScene
             Check(buttons.Length==3,"three top controls "+size);
             Check(!top.GetGlobalRect().Intersects(buttons[0].GetGlobalRect()),"top panels do not overlap "+size);
             if(!before) {
-                Check(Farmer.Camera.Zoom.X>=1.25f && Mathf.IsEqualApprox(Farmer.Sprite.Scale.X,1.05f),"indoor zoom and visual-only scale "+size);
+                Check(Mathf.IsEqualApprox(Farmer.Camera.Zoom.X,1) && Mathf.IsEqualApprox(Farmer.Sprite.Scale.X,1),"indoor zoom and visual-only scale "+size);
                 Check(buttons.All(b=>Mathf.IsEqualApprox(b.Size.Y,buttons[0].Size.Y)),"consistent top button height "+size);
                 Check(DoorPrompt.Contains("มิรา"),"single contextual Thai NPC prompt "+size);
                 var canvas=GetViewport().GetCanvasTransform();
-                var left=canvas*Vector2.Zero;var right=canvas*new Vector2(768,512);var view=GetViewport().GetVisibleRect();
+                var left=canvas*new Vector2(-16,0);var right=canvas*new Vector2(784,512);var view=GetViewport().GetVisibleRect();
                 Check(left.X<=1 && left.Y<=1 && right.X>=view.Size.X-1 && right.Y>=view.Size.Y-1,"camera covers viewport without room edge gaps "+size);
                 Check(Farmer.GlobalPosition==Farmer.GlobalPosition.Round(),"pixel snapped actor "+size);
                 Check(Mathf.IsEqualApprox(Farmer.Sprite.Position.Y/Farmer.Sprite.Scale.Y,-22),"original player foot anchor retained "+size);
                 var resident=interior!.GetNode<Node2D>("Actors").GetChildren().OfType<NpcActor>().Single(a=>a.Name=="Npc-mira");
                 var npcSprite=resident.GetChildren().OfType<AnimatedSprite2D>().Single();
-                Check(Mathf.IsEqualApprox(npcSprite.Scale.X,44f*1.05f/(NpcAssets.Characters.GetHeight()/4f*.92f)) && Farmer.Scale==Vector2.One,"NPC visual scale and unchanged actor transform "+size);
+                Check(Mathf.IsEqualApprox(npcSprite.Scale.X,1) && Farmer.Scale==Vector2.One,"NPC visual scale and unchanged actor transform "+size);
                 var settled=GetViewport().GetCanvasTransform();
                 for(int i=0;i<10;i++)await NextFrame(SceneTree.SignalName.PhysicsFrame);
                 Check(GetViewport().GetCanvasTransform().IsEqualApprox(settled),"standing camera is stable "+size);

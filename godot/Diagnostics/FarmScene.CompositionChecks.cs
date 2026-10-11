@@ -28,7 +28,7 @@ public partial class FarmScene
                 Check(GetViewport().GetVisibleRect().HasPoint(GetViewport().GetCanvasTransform()*Farmer.GlobalPosition),"player visible "+id+" "+size);
                 var stable=GetViewport().GetCanvasTransform();for(int i=0;i<10;i++)await NextFrame(SceneTree.SignalName.PhysicsFrame);
                 Check(GetViewport().GetCanvasTransform().IsEqualApprox(stable),"stable camera "+id+" "+size);
-                if(!before){Check(Farmer.Sprite.Scale==Vector2.One && Farmer.Camera.Zoom==Vector2.One,"uniform pixel scale "+id+" "+size);}
+                if(!before){Check(Farmer.Sprite.Scale==Vector2.One && Farmer.Camera.Zoom==Vector2.One,"uniform pixel scale "+id+" "+size);if(interior!=null){using var pixels=interior.GetNode<Sprite2D>("Background").Texture.GetImage();Check(pixels.GetPixel(400,300).A>.99f,"opaque prepared room floor "+id+" "+size);}}
                 await NextDraw();using var texture=GetViewport().GetTexture();using var shot=texture.GetImage();
                 string name=$"{(before?"before":"after")}-{id}-{size.X}x{size.Y}.png";shot.SavePng(Path.Combine(reports,name));
                 frames.Add(new{scene=id,window=size.ToString(),position=Session.Position,time=Session.State.Minute,weather=Session.State.Weather,season=0,cameraPosition=Farmer.Camera.GlobalPosition.ToString(),zoom=Farmer.Camera.Zoom.X,spriteScale=Farmer.Sprite.Scale.X,shotWidth=shot.GetWidth(),shotHeight=shot.GetHeight(),screenshot=name});

@@ -13,7 +13,8 @@ public partial class VillageRoom : InteriorRoom
         owner=scene;building=def;
         if(GetNodeOrNull<Node2D>("Actors") is not {YSortEnabled:true})throw new InvalidDataException("Village scene requires Y sorted Actors");
         Texture2D texture=def.Type=="village"?NpcAssets.Village:NpcAssets.Room(def.Id);
-        AddChild(new Sprite2D {Name="Background",Texture=texture,Centered=false,ZIndex=-10,Scale=new Vector2(768f/texture.GetWidth(),512f/texture.GetHeight())});
+        AddChild(new Sprite2D {Name="Background",Texture=RoomPresentationAssets.Padded(def.Id,texture),Position=new Vector2(-16,0),Centered=false,ZIndex=-10});
+        if(def.Type!="village")RoomDepth.ServiceRoom(GetNode<Node2D>("Actors"),RoomPresentationAssets.Flat(def.Id,texture),def.Id);
         foreach(var npc in NpcRegistry.Active) {
             var actor=NpcAssets.CreateActor();GetNode<Node2D>("Actors").AddChild(actor);actor.Initialize(scene.Session,npc.Id,def.Id);
         }
