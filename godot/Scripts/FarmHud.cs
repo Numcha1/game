@@ -29,6 +29,7 @@ public partial class FarmHud : Control
     }
     public void Initialize(FarmScene scene)
     {
+        if (farm != null) throw new InvalidOperationException("HUD already initialized");
         farm = scene;
         var theme = new Theme { DefaultFont = new SystemFont { FontNames = new string[] { "Tahoma", "Noto Sans Thai", "sans-serif" } }, DefaultFontSize = 14 };
         theme.SetColor("font_color", "Label", new Color("443d2f"));
@@ -61,8 +62,13 @@ public partial class FarmHud : Control
         var panel = new PanelContainer { CustomMinimumSize = new Vector2(500, 350) }; panel.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); center.AddChild(panel);
         var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(470, 340) }; panel.AddChild(scroll);
         modalContent = new VBoxContainer { CustomMinimumSize = new Vector2(465, 320) }; scroll.AddChild(modalContent);
-        scene.Message += message => { toast.Text = message; toast.Visible = true; toastTime = 5; };
+        scene.Message += OnMessage;
         scene.FarmChanged += Refresh; Refresh();
+    }
+    void OnMessage(string message) { toast.Text = message; toast.Visible = true; toastTime = 5; }
+    public override void _ExitTree()
+    {
+        if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.FarmChanged -= Refresh; }
     }
     public void Refresh()
     {
