@@ -8,7 +8,7 @@ public partial class FarmScene
     public DisplayPreferences Display { get; private set; } = new();
     Task pendingDisplay = Task.CompletedTask;
     Vector2I windowedSize = new(1600, 900);
-    bool IsDiagnosticSession => arguments.Any(a => a is "--smoke" or "--showcase" or "--lifecycle" or "--startup-checks" or "--recovery-check" or "--premium-checks");
+    bool IsDiagnosticSession => arguments.Any(a => a is "--smoke" or "--showcase" or "--lifecycle" or "--startup-checks" or "--recovery-check" or "--premium-checks" or "--building-checks");
     void InitializeDisplay()
     {
         displaySettings = new DisplaySettings(DataDirectory); Display = displaySettings.Load();

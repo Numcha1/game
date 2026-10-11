@@ -34,6 +34,7 @@ public partial class FarmerController : Node2D
         cameraFollower.Initialize(Position);
     }
     static bool Down(Key a, Key b) => Input.IsPhysicalKeyPressed(a) || Input.IsPhysicalKeyPressed(b);
+    public void ResetCamera(Vector2 position,int width,int height) { Position=position.Round();cameraFollower.Initialize(Position,width,height); }
     public override void _PhysicsProcess(double delta)
     {
         if (Session == null || Sprite == null || Camera == null || cameraFollower == null) return;

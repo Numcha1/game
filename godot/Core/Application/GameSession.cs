@@ -9,7 +9,7 @@ public readonly record struct GameCommand(string Action, int Plot = -1, string S
 public readonly record struct CommandResult(string Message, bool Changed, ActionEffect? Effect = null);
 
 /// <summary>Main-thread coordinator. Delegates every gameplay mutation to the original Farm.</summary>
-public sealed class GameSession : IAsyncDisposable
+public sealed partial class GameSession : IAsyncDisposable
 {
     internal Farm State { get; }
     internal Farmer Player { get; }
@@ -28,8 +28,9 @@ public sealed class GameSession : IAsyncDisposable
     {
         saves = persistence; log = logger ?? NullGameLog.Instance;
         State = saves.Load(); FarmInvariants.Validate(State);
+        Buildings = saves.LoadBuildings(); Buildings.Validate(State);
         Player = State.Join(saves.LoadPlayerSession(), "ชาวสวน"); State.Owner = Player.Id;
-        Read = new GameReadModel(State, Player); log.Write("info", "session.started");
+        Read = new GameReadModel(State, Player, Buildings); log.Write("info", "session.started");
     }
     void CheckThread()
     {
@@ -46,7 +47,7 @@ public sealed class GameSession : IAsyncDisposable
         if (State.Day != day) StateChanged?.Invoke(GameChange.World | GameChange.Plots | GameChange.Inventory | GameChange.Player | GameChange.Time);
         else if ((int)State.Minute != minute) StateChanged?.Invoke(GameChange.Time);
         saveElapsed += seconds;
-        if (saveElapsed >= 15) { saveElapsed = 0; saves.RequestSave(State); }
+        if (saveElapsed >= 15) { saveElapsed = 0; saves.RequestSave(State,Buildings); }
         while (saves.TryReadFailure(out var error)) PersistenceFailed?.Invoke(error);
     }
     public CommandResult Execute(GameCommand command)
@@ -54,6 +55,7 @@ public sealed class GameSession : IAsyncDisposable
         CheckThread();
         if (command.Id != Guid.Empty && recentCommands.TryGetValue(command.Id, out var existing)) return existing with { Changed = false, Effect = null };
         if (!ValidAction(command.Action)) return new("เลือกเครื่องมือก่อน", false);
+        if (InsideBuilding && command.Action is not ("pause" or "wake")) return new("ออกไปฟาร์มก่อนใช้เครื่องมือ", false);
         bool plotAction = command.Action is "plant" or "water" or "harvest" or "treat" or "fertilize" or "stake" or "clear";
         if (plotAction && (command.Plot < 0 || command.Plot >= State.Plots.Count)) return new("เลือกแปลงผักก่อน", false);
         if (command.Action == "plant" && (command.Seed == null || !GameCatalog.Crops.ContainsKey(command.Seed))) return new("เลือกเมล็ดก่อน", false);
@@ -71,7 +73,7 @@ public sealed class GameSession : IAsyncDisposable
         var result = new CommandResult(message, changed, effect);
         if (changed)
         {
-            saves.RequestSave(State);
+            saves.RequestSave(State,Buildings);
             StateChanged?.Invoke(GameChange.Player | GameChange.Plots | GameChange.Inventory | GameChange.Economy | GameChange.Time | GameChange.World);
             log.Write("info", "command." + command.Action);
         }
@@ -86,13 +88,19 @@ public sealed class GameSession : IAsyncDisposable
     public bool Move(double x, double y)
     {
         CheckThread();
-        if (State.Paused || Player.Sleeping || !Farm.Walkable(x, y)) return false;
+        if (State.Paused || Player.Sleeping) return false;
+        if (Buildings.Locations.TryGetValue(Player.Id,out var indoor)) {
+            if(BuildingRegistry.Find(indoor.BuildingId) is not { } building || !building.Walkable(new(x,y)))return false;
+            if(indoor.X==x && indoor.Y==y)return true;
+            indoor.X=x;indoor.Y=y;StateChanged?.Invoke(GameChange.Position);return true;
+        }
+        if (!Farm.Walkable(x,y)) return false;
         if (Player.X == x && Player.Y == y) return true;
         Player.X = x; Player.Y = y; StateChanged?.Invoke(GameChange.Position); return true;
     }
     public Task SaveAsync(CancellationToken cancellationToken = default)
     {
-        CheckThread(); saves.RequestSave(State); return saves.FlushAsync(cancellationToken);
+        CheckThread(); saves.RequestSave(State,Buildings); return saves.FlushAsync(cancellationToken);
     }
     public Task FlushAsync(CancellationToken cancellationToken = default) => saves.FlushAsync(cancellationToken);
     public async ValueTask DisposeAsync()

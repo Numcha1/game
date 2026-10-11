@@ -230,6 +230,7 @@ public partial class FarmHud : Control
     public void OpenSettings()
     {
         Open("ตั้งค่าภาพและเซฟ");
+        if(farm.Session.InsideBuilding)modalContent.AddChild(Button("กลับฟาร์มอย่างปลอดภัย",()=>{CloseModal();farm.RequestBuildingExit(true);}));
         for (int i = 0; i < 3; i++) { int q = i; modalContent.AddChild(Button(new[] { "ต่ำ", "กลาง", "สูง" }[i], () => { farm.SaveQuality(q); farm.Notify("ตั้งค่าคุณภาพภาพแล้ว"); })); }
         modalContent.AddChild(new Label { Text = "หน้าจอและการเข้าถึง", ThemeTypeVariation = "Heading" });
         foreach (var option in new[] { (0, "หน้าต่าง"), (1, "เต็มจอ"), (2, "หน้าต่างไร้ขอบ") }) {

@@ -12,7 +12,9 @@ public sealed class SaveService : ISaveService
 {
     const int MaximumSaveBytes = 2 * 1024 * 1024;
     const int MaximumIdentityBytes = 256;
-    readonly record struct Snapshot(long Revision, byte[] Bytes);
+    readonly record struct Snapshot(long Revision, byte[] Bytes, bool Extended);
+    BuildingState loadedBuildings = new();
+    public BuildingState LoadBuildings() => loadedBuildings;
     readonly Channel<Snapshot> queue = Channel.CreateBounded<Snapshot>(new BoundedChannelOptions(1) {
         FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = false });
     readonly ConcurrentQueue<string> failures = new();
@@ -44,12 +46,12 @@ public sealed class SaveService : ISaveService
     public static Farm Deserialize(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length > MaximumSaveBytes) throw new InvalidDataException("เซฟมีขนาดเกินขอบเขตที่รองรับ");
-        var farm = SaveJsonContract.Read<Farm>(bytes);
-        FarmInvariants.Validate(farm); return farm;
+        return BuildingSaveDocument.Decode(bytes).Farm;
     }
     public Farm Load()
     {
-        var farm = File.Exists(SavePath) ? Deserialize(ReadBounded(SavePath)) : new Farm();
+        var loaded = File.Exists(SavePath) ? BuildingSaveDocument.Decode(ReadBounded(SavePath)) : (new Farm(), new BuildingState());
+        var farm=loaded.Item1;loadedBuildings=loaded.Item2;
         foreach (var player in farm.Players) { player.LastSeen = 0; player.Sleeping = false; }
         farm.Paused = false; return farm;
     }
@@ -81,15 +83,17 @@ public sealed class SaveService : ISaveService
         return reader.ReadToEnd().Trim();
     }
     public void RequestSave(Farm state)
+        => RequestSave(state,loadedBuildings);
+    public void RequestSave(Farm state, BuildingState buildings)
     {
         FarmInvariants.Validate(state);
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(state);
+        byte[] bytes = BuildingSaveDocument.Encode(state,buildings);
         if (bytes.Length > MaximumSaveBytes) throw new InvalidDataException("เซฟมีขนาดเกินขอบเขตที่รองรับ");
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(closing, this);
             if (importing) throw new InvalidOperationException("กำลังนำเข้าเซฟ");
-            if (!queue.Writer.TryWrite(new Snapshot(++requested, bytes))) throw new IOException("ช่องบันทึกปิดแล้ว");
+            if (!queue.Writer.TryWrite(new Snapshot(++requested, bytes, buildings.Interiors.Count>0))) throw new IOException("ช่องบันทึกปิดแล้ว");
         }
     }
     public async Task FlushAsync(CancellationToken cancellationToken = default)
@@ -117,7 +121,15 @@ public sealed class SaveService : ISaveService
         {
             Exception? error = null;
             await storageGate.WaitAsync().ConfigureAwait(false);
-            try { await ReplaceAsync(SavePath, snapshot.Bytes, SavePath + ".bak").ConfigureAwait(false); }
+            try {
+                string original=SavePath+".v1-before-buildings";
+                if(snapshot.Extended && File.Exists(SavePath) && !File.Exists(original)) {
+                    byte[] previous=ReadBounded(SavePath);
+                    if(BuildingSaveDocument.Decode(previous).Buildings.Interiors.Count==0)
+                        await ReplaceAsync(original,previous).ConfigureAwait(false);
+                }
+                await ReplaceAsync(SavePath, snapshot.Bytes, SavePath + ".bak").ConfigureAwait(false);
+            }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 error = e;

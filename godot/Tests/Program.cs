@@ -61,6 +61,7 @@ passed.AddRange(await PersistenceChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await SaveContractChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await RecoveryChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await ApplicationChecks.Run());
+passed.AddRange(await BuildingChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await GameplayMatrixChecks.Run());
 passed.AddRange(await DisplayChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await NetworkChecks.Run());

@@ -8,9 +8,12 @@ public sealed class GameReadModel
 {
     readonly Farm farm;
     readonly Farmer player;
-    internal GameReadModel(Farm state, Farmer localPlayer) { farm = state; player = localPlayer; }
+    readonly BuildingState buildings;
+    internal GameReadModel(Farm state, Farmer localPlayer, BuildingState? buildingState=null) { farm = state; player = localPlayer; buildings=buildingState ?? new(); }
     public WorldView World => new(farm.Day, farm.Minute, farm.Coins, farm.Weather, farm.Greenhouse, farm.Paused, farm.Season, farm.SeasonDay);
-    public PlayerView Player => new(player.X, player.Y, player.Energy, player.Sleeping);
+    public PlayerView Player => buildings.Locations.TryGetValue(player.Id,out var indoor) ? new(indoor.X,indoor.Y,player.Energy,player.Sleeping) : new(player.X, player.Y, player.Energy, player.Sleeping);
+    public string BuildingId => buildings.Locations.GetValueOrDefault(player.Id)?.BuildingId ?? "";
+    public bool InteriorLightsOn => buildings.Interiors.GetValueOrDefault(BuildingId)?.LightsOn ?? true;
     public int PlotCount => farm.Plots.Count;
     public string TomorrowWeather => farm.Forecast(farm.Day + 1);
     public SaleQuote QuoteSale() => new(farm.Day, Array.AsReadOnly(Inventory().OrderBy(item => item.Crop, StringComparer.Ordinal).ToArray()));

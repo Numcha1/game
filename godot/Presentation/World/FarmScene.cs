@@ -20,7 +20,7 @@ public partial class FarmScene : Node2D
     public int SelectedPlot { get; private set; } = -1;
     public int Quality { get; private set; } = 2;
     public string[] CropKeys { get; } = GameCatalog.Crops.Keys.ToArray();
-    public bool IsBusy => operationInProgress;
+    public bool IsBusy => operationInProgress || transitioning;
     public bool ReadyToPlay => presentationReady && sceneActive;
     public bool TitleActive { get; private set; }
     public void ShowTitle() => TitleActive=true;
@@ -49,7 +49,7 @@ public partial class FarmScene : Node2D
         GetTree().AutoAcceptQuit = false;
         arguments = OS.GetCmdlineUserArgs();
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
-        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks") || arguments.Contains("--premium-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
+        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks") || arguments.Contains("--premium-checks") || arguments.Contains("--building-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         if (arguments.Contains("--startup-checks") && DiagnosticDataDirectory != null) DataDirectory = DiagnosticDataDirectory;
         if (arguments.Contains("--recovery-check")) DataDirectory = PrepareRecoveryDiagnostic();
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
@@ -80,7 +80,7 @@ public partial class FarmScene : Node2D
         audio = new FarmAudio { DiagnosticMuted=IsDiagnosticSession }; AddChild(audio);
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
-        SetQuality(settings.Load()); InitializeDisplay();
+        SetQuality(settings.Load()); InitializeDisplay();InitializeBuildings();
         presentationReady = true;
         }
         catch (Exception e) when (e is InvalidDataException or System.Text.Json.JsonException or KeyNotFoundException) {
@@ -94,6 +94,7 @@ public partial class FarmScene : Node2D
         else if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         else if (arguments.Contains("--premium-checks")) _ = RunPremiumChecks();
+        else if (arguments.Contains("--building-checks")) _ = RunBuildingChecks();
         if (arguments.Contains("--showcase")) PopulateShowcase();
         if (!IsDiagnosticSession && ReadyToPlay) Hud.OpenTitle();
     }
@@ -140,6 +141,7 @@ public partial class FarmScene : Node2D
         if (!ReadyToPlay || Farmer == null) return;
         frameMonitor.Record();
         if (!operationInProgress && !TitleActive) Session.Tick(delta);
+        UpdateDoorPrompt();
     }
     public override void _UnhandledInput(InputEvent ev) => FarmInputRouter.Handle(this, ev);
     public void Perform(string action, int plot = -1)

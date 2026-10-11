@@ -40,7 +40,7 @@ public partial class FarmScene
         if (Session == null) { shutdown = ReleaseStartupServices(saves, log); return; }
         Session.StateChanged -= OnStateChanged; Session.PersistenceFailed -= Notify;
         if (!operationInProgress && !finalCheckpoint) { try { _ = Session.SaveAsync(); } catch (Exception e) { log.Write("error", "save.exit", e.GetType().Name); } }
-        shutdown = ReleaseServices(Task.WhenAll(pendingOperation, pendingDisplay, pendingGraphics, pendingManualSave), Session, log);
+        shutdown = ReleaseServices(Task.WhenAll(pendingOperation, pendingDisplay, pendingGraphics, pendingManualSave,pendingTransition), Session, log);
     }
     static async Task ReleaseStartupServices(SaveService? storage, JsonGameLog? logger)
     {
@@ -67,7 +67,7 @@ public partial class FarmScene
         if (!ReadyToPlay) { GetTree().Quit(); return; }
         operationInProgress = true; Farmer.InputBlocked = true;
         try {
-            await Task.WhenAll(pendingDisplay,pendingGraphics,pendingManualSave); await Session.SaveAsync();
+            await Task.WhenAll(pendingDisplay,pendingGraphics,pendingManualSave,pendingTransition); await Session.SaveAsync();
             if (import) await saves.ImportLegacyAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng"));
             finalCheckpoint = true;
             if (sceneActive) { if (import) GetTree().ReloadCurrentScene(); else GetTree().Quit(); }

@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Presentation/Buildings/InteriorRoom.cs" id="1"]
+[ext_resource type="Texture2D" path="res://Assets/Interiors/farmhouse-studio.png" id="2"]
+
+[node name="Farmhouse" type="Node2D"]
+script = ExtResource("1")
+texture_filter = 1
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -10
+texture = ExtResource("2")
+centered = false
+scale = Vector2(0.5, 0.5)
+
+[node name="Actors" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(384, 425.6)
+
+[node name="Exit" type="Marker2D" parent="."]
+position = Vector2(384, 448)
+
+[node name="Bed" type="Marker2D" parent="."]
+position = Vector2(144, 256)
+
+[node name="Chest" type="Marker2D" parent="."]
+position = Vector2(614.4, 195.2)
