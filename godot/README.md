@@ -1,3 +1,10 @@
+# Item foundation and backpack compatibility slice
+
+The 25-item catalog now drives existing seed-shop offers, icon references and validated item transactions. The backpack combines actual produce/seeds with filters, sorting and a 24-cell display; the farmhouse chest supports quick deposit/withdraw of a whole crop stack. Original save IDs, prices, farming and spoilage remain intact.
+
+[Audit, actual tests, screenshots and pending milestones](docs/ITEM_SYSTEM_MILESTONES.md). M1 is verified; full M2 remains open for persisted stack splitting, drag/drop, capacity upgrades and configurable equipment. Furniture placement/crafting/production are later milestones and are not enabled by the fixed bed/chest metadata.
+
+---
 # World-wide scale and composition (tested presentation milestone)
 
 All seven existing playable regions now share camera/actor scale 1.0 and prepared NPC pixels. Interiors use original edited assets, cached canvases, silhouette depth and coordinated lighting; farm props, shadows, paths and decoration clusters have been composed explicitly. [Implementation, changed files and remaining art work](docs/WORLD_COMPOSITION.md) | [Actual regression, performance and before/after gallery](docs/WORLD_VISUAL_VALIDATION.md) | [Scale contract](docs/WORLD_SCALE.md).

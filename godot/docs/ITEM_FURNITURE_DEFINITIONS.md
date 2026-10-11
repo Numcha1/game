@@ -1,3 +1,5 @@
+> Historical definition baseline at 8b0388b. Current 25-item foundation and inventory compatibility work: [ITEM_SYSTEM_MILESTONES.md](ITEM_SYSTEM_MILESTONES.md).
+
 # Item and furniture definition contract
 
 Definitions are immutable Domain metadata without Godot, WinForms, delegates, Nodes or graphics types. Runtime state is separate. `GameReadModel.ItemDefinitions` and `FurnitureDefinitions` expose these catalogs to presentation.

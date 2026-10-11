@@ -20,6 +20,7 @@ public partial class FarmScene
         async Task Enter(string id) {RequestBuildingEntry(id);await TransitionCompletion;await NextFrame(SceneTree.SignalName.ProcessFrame);Check(Session.ActiveBuildingId==id && InteriorVisible && !Farmer.InputBlocked,"real transition into "+id);}
         async Task Exit() {Session.Move(12,14);RequestBuildingExit();await TransitionCompletion;await NextFrame(SceneTree.SignalName.ProcessFrame);}
         try {
+            if(arguments.Contains("--inventory-checks")){await RunInventoryChecks();return;}
             if(arguments.Contains("--bake-presentation")){PresentationAssetBake.WriteNpcAtlas();GD.Print("ASSET BAKE PASS");GetTree().Quit();return;}
             await NextFrame(SceneTree.SignalName.ProcessFrame);
             Session.State.Minute=600;Session.State.Coins=500;Session.Move(23,8);

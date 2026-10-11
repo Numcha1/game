@@ -1,0 +1,27 @@
+{
+  "passed": 21,
+  "checks": [
+    "24 display slots (1280, 720)",
+    "produce and actual seeds share backpack (1280, 720)",
+    "backpack fits logical viewport (1280, 720)",
+    "Thai filter label does not wrap vertically (1280, 720)",
+    "backpack modal blocks world and keeps keyboard focus (1280, 720)",
+    "24 display slots (1600, 900)",
+    "produce and actual seeds share backpack (1600, 900)",
+    "backpack fits logical viewport (1600, 900)",
+    "Thai filter label does not wrap vertically (1600, 900)",
+    "backpack modal blocks world and keeps keyboard focus (1600, 900)",
+    "24 display slots (1920, 1080)",
+    "produce and actual seeds share backpack (1920, 1080)",
+    "backpack fits logical viewport (1920, 1080)",
+    "Thai filter label does not wrap vertically (1920, 1080)",
+    "backpack modal blocks world and keeps keyboard focus (1920, 1080)",
+    "seed filter preserves owned quantities",
+    "seed slot chooses existing planting seed without consuming it",
+    "quantity sort puts largest stack first",
+    "quick deposit conserves whole stack",
+    "quick withdraw restores whole stack",
+    "closing inventory/storage restores movement"
+  ],
+  "scope": "Actual legacy-compatible backpack filters sort seed selection and quick storage; no persistent slot/placement claim"
+}

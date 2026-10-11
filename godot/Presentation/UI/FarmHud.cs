@@ -203,11 +203,8 @@ public partial class FarmHud : Control
     public void OpenBag()
     {
         Open("กระเป๋าผลผลิต");
-        var inventory = farm.Session.Read.Inventory();
-        AppendSeedInventory();
-        if (inventory.Count == 0) modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ยังไม่มีผลผลิตในกระเป๋า" });
-        var grid=new GridContainer { Columns=2,SizeFlagsHorizontal=SizeFlags.ExpandFill };modalContent.AddChild(grid);
-        foreach (var pair in inventory) AddItemCard(grid,pair.Crop,pair.Name,$"{pair.Quantity} ชิ้น\nราคาวันนี้ {pair.UnitPrice} เหรียญ",()=>OpenItem(pair));
+        if (farm.Session.Read.ItemStacks().Count == 0) modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ยังไม่มีผลผลิตในกระเป๋า" });
+        AddBackpack();
         modalContent.AddChild(Button("ตรวจรายได้และขายทั้งหมด · ใกล้ลังขาย", RequestSale));
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ผลผลิตลด 25% เมื่อข้ามคืน ควรขายก่อนเข้านอน" });
         currentMenu=1;menuDay=farm.Session.Read.World.Day;

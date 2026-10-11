@@ -27,6 +27,11 @@ public partial class FarmHud
                 var button=Button(deposit?"ฝากในกล่อง":"นำออกใส่กระเป๋า",()=>{
                     var result=farm.Session.TransferStorage(crop,(int)quantity.Value,deposit,id);farm.Notify(result.Message);
                 });button.Name=(deposit?"StorageDeposit-":"StorageWithdraw-")+crop;button.Disabled=available==0;rows.AddChild(button);
+                Guid quickId=Guid.NewGuid();
+                var quick=Button(deposit?"ฝากทั้งหมด":"ถอนทั้งหมด",()=>{
+                    var result=farm.Session.TransferStorage(crop,available,deposit,quickId);farm.Notify(result.Message);
+                });quick.Name=(deposit?"StorageQuickDeposit-":"StorageQuickWithdraw-")+crop;quick.Disabled=available==0;rows.AddChild(quick);
+
             }
             AddTransfer(true,bagCount);AddTransfer(false,chestCount);
         }

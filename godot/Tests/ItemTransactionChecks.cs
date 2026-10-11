@@ -28,6 +28,9 @@ static class ItemTransactionChecks
             game.Player.Bag["carrot"]=3;
             game.Buildings.Village.Seeds["carrot"]=4;
             var stacks=game.Read.ItemStacks();
+            Check(game.Read.BackpackSlots().Count==24 && game.Read.BackpackSlots().Count(i=>i!=null)==2,"backpack pads empty display slots without inventing items");
+            Check(game.Read.BackpackSlots(ItemCategory.Seed).Count(i=>i!=null)==1 && game.Read.BackpackSlots(ItemCategory.Seed).First()!.ItemId=="seed:carrot","backpack filter retains seed identity and counts");
+            Check(game.Read.BackpackSlots(sortByQuantity:true).First()!.Quantity==4,"backpack quantity sorting does not mutate legacy dictionaries");
             Check(stacks.Single(i=>i.ItemId=="carrot").Quantity==3 && stacks.Single(i=>i.ItemId=="seed:carrot").Quantity==4 && stacks.All(i=>i.Quality==null && i.Freshness==null),"legacy runtime stacks preserve totals without fabricated quality or freshness");
             Check(game.Read.ShopOffers("mira").Count==8 && game.Read.ShopOffers("rowan").Count==0,"shop offers list only implemented item sales");
             var id=Guid.NewGuid();int price=game.State.SalePrice("carrot");

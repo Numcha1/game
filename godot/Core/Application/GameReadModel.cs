@@ -21,6 +21,16 @@ public sealed class GameReadModel
     public IReadOnlyList<ItemStackView> ItemStacks() => Array.AsReadOnly(
         player.Bag.Where(p=>p.Value>0).Select(p=>new ItemStackView(p.Key,p.Value))
         .Concat(buildings.Village.Seeds.Select(p=>new ItemStackView(ItemCatalog.SeedId(p.Key),p.Value))).ToArray());
+    // Presentation slots only. Legacy aggregate inventory is not re-capped or split on load.
+    public IReadOnlyList<ItemStackView?> BackpackSlots(ItemCategory? category=null,bool sortByQuantity=false)
+    {
+        var items=ItemStacks().Where(i=>category==null || ItemCatalog.All[i.ItemId].Category==category);
+        var ordered=sortByQuantity ? items.OrderByDescending(i=>i.Quantity).ThenBy(i=>i.ItemId,StringComparer.Ordinal)
+            : items.OrderBy(i=>i.ItemId,StringComparer.Ordinal);
+        var slots=ordered.Cast<ItemStackView?>().ToList();
+        while(slots.Count<24)slots.Add(null);
+        return slots.AsReadOnly();
+    }
     public bool InteriorLightsOn => buildings.Interiors.GetValueOrDefault(BuildingId)?.LightsOn ?? true;
     public IReadOnlyList<InventoryItem> Storage() => buildings.Interiors.TryGetValue(BuildingId,out var interior)
         ? Array.AsReadOnly(interior.Storage.OrderBy(pair=>pair.Key,StringComparer.Ordinal).Select(pair=>new InventoryItem(pair.Key,ItemCatalog.All[pair.Key].Name,pair.Value,farm.SalePrice(pair.Key))).ToArray())
