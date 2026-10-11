@@ -35,6 +35,7 @@ public partial class FarmScene
             Session.State.Weather=originalWeather;
             Check(NpcAssets.Characters.GetWidth()==NpcAssets.Characters.GetHeight()*2 && NpcAssets.Frames("mira").GetFrameCount("up")==4 && ReferenceEquals(NpcAssets.Frames("mira"),NpcAssets.Frames("mira")),"shared directional NPC sprite atlas and cached frames");
             using(var pixels=NpcAssets.Characters.GetImage())Check(pixels.GetPixel(0,0).A<.01f,"original sprite sheet preserves transparency");
+            if(arguments.Contains("--composition-checks")){await RunCompositionChecks();return;}
             if(arguments.Contains("--indoor-layout-checks")){await RunIndoorLayoutChecks();return;}
             if(arguments.Contains("--npc-assets-only")) {
                 Session.Move(12,14);RequestBuildingExit();await TransitionCompletion;await NextFrame(SceneTree.SignalName.ProcessFrame);
