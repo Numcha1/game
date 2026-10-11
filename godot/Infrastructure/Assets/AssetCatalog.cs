@@ -10,6 +10,7 @@ public sealed class AssetCatalog
     // Godot resources are initialized and consumed only on the scene thread.
     public AssetCatalog()
     {
+        if(ItemCardScene==null)throw new InvalidDataException("Required item card scene missing");
         foreach(string key in new[]{"click","water","harvest","coin","error"})
             sounds[key]=GD.Load<AudioStream>("res://Assets/Audio/"+key+".wav") ?? throw new InvalidDataException("Missing action sound " + key);
         if (Growth == null || ToolIcons == null || ToolPoses == null || polishDefinitions == null || polishDefinitions.Count != 40)
@@ -41,6 +42,7 @@ public sealed class AssetCatalog
     public readonly Texture2D Shadow = GD.Load<Texture2D>("res://Assets/shadow.png");
     public readonly Texture2D Stake = GD.Load<Texture2D>("res://Assets/stake.png");
     public readonly Texture2D Glow = GD.Load<Texture2D>("res://Assets/glow.png");
+    public readonly PackedScene ItemCardScene=GD.Load<PackedScene>("res://Scenes/UI/ItemCard.tscn");
     public readonly Texture2D Growth = GD.Load<Texture2D>("res://Assets/crop-growth.png");
     public readonly Texture2D ToolIcons = GD.Load<Texture2D>("res://Assets/tool-icons.png");
     public readonly Texture2D ToolPoses = GD.Load<Texture2D>("res://Assets/tool-poses.png");

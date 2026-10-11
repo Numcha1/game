@@ -30,6 +30,7 @@ public static class FarmTypography
         theme.DefaultFontSize = 14 + index * 2;
         theme.SetFontSize("font_size", "Heading", 20 + index * 2);
         theme.SetFontSize("font_size", "Compact", 13 + index);
+        theme.SetFontSize("font_size", "ItemHeading", 16 + index*2);
         return scales[index] = theme;
     }
 }

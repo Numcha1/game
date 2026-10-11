@@ -22,11 +22,15 @@ public partial class FarmHud : Control
     Button[] tools = Array.Empty<Button>();
     double toastTime, refreshElapsed;
     bool dirty;
+    int currentMenu, menuDay;
     void OnStateChanged(GameChange change)
     {
         if (change != GameChange.Position) dirty = true;
         if (change == GameChange.Position && farm.SelectedPlot >= 0) farm.InspectPlot(-1);
         if ((change & GameChange.Plots) != 0) RefreshInspector();
+        if(ModalVisible && currentMenu>0 && (change & GameChange.Inventory)!=0) {
+            if(currentMenu==1)OpenBag();else if(menuDay!=farm.Session.Read.World.Day)OpenShop();
+        }
     }
     string lastStatus = "", lastCoins = "", lastSeed = "";
     Button Button(string text, Action action, float minimumWidth = 48)
@@ -129,6 +133,7 @@ public partial class FarmHud : Control
     }
     void Open(string title)
     {
+        currentMenu=0;
         foreach (Node child in modalContent.GetChildren()) { modalContent.RemoveChild(child); child.QueueFree(); }
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = title, ThemeTypeVariation = "Heading", HorizontalAlignment = HorizontalAlignment.Center });
         modalContent.AddChild(Button("ปิด · Esc", CloseModal)); modal.Visible = true; farm.Farmer.InputBlocked = true;
@@ -140,22 +145,34 @@ public partial class FarmHud : Control
         Open("กระเป๋าผลผลิต");
         var inventory = farm.Session.Read.Inventory();
         if (inventory.Count == 0) modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ยังไม่มีผลผลิตในกระเป๋า" });
-        foreach (var pair in inventory) modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = $"{pair.Name} × {pair.Quantity} · ราคาวันนี้ {pair.UnitPrice} เหรียญ" });
+        var grid=new GridContainer { Columns=2,SizeFlagsHorizontal=SizeFlags.ExpandFill };modalContent.AddChild(grid);
+        foreach (var pair in inventory) AddItemCard(grid,pair.Crop,pair.Name,$"{pair.Quantity} ชิ้น\nราคาวันนี้ {pair.UnitPrice} เหรียญ",()=>OpenItem(pair));
         modalContent.AddChild(Button("ขายทั้งหมด · ต้องยืนใกล้ลังขาย", () => { CloseModal(); farm.Perform("sell"); }));
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ผลผลิตลด 25% เมื่อข้ามคืน ควรขายก่อนเข้านอน" });
+        currentMenu=1;menuDay=farm.Session.Read.World.Day;
+    }
+    void AddItemCard(GridContainer grid,string key,string title,string description,Action action,bool selected=false) {
+        var card=farm.Art.ItemCardScene.Instantiate<FarmItemCard>();card.Name="Item-"+key;grid.AddChild(card);
+        card.Configure(title,description,farm.Art.CropStage(key,3),()=>{farm.PlayUiClick();action();},selected);
+    }
+    void OpenItem(InventoryItem item) {
+        Open(item.Name);modalContent.AddChild(new Label { Text=$"มี {item.Quantity} ชิ้น · ราคาที่แสดงสำหรับวันนี้ {item.UnitPrice} เหรียญ\nขายใกล้ลังเพื่อรับราคาจริง ณ เวลาขาย",AutowrapMode=TextServer.AutowrapMode.WordSmart });
+        modalContent.AddChild(Button("กลับกระเป๋า",OpenBag));
     }
     public void OpenShop()
     {
         Open("เมล็ดและอุปกรณ์");
+        var grid=new GridContainer { Columns=2,SizeFlagsHorizontal=SizeFlags.ExpandFill };modalContent.AddChild(grid);
         foreach (var key in farm.CropKeys)
         {
             string cropKey = key; var crop = GameCatalog.Crops[key];
-            var row = Button($"{crop.Name} · {crop.Cost} เหรียญ · {crop.Days} วัน" + (farm.Session.Read.World.Greenhouse || crop.Seasons.Contains(farm.Session.Read.World.Season) ? " · ปลูกได้ฤดูนี้" : " · นอกฤดู"), () => { farm.Seed = cropKey; CloseModal(); Refresh(); });
-            row.Icon = farm.Art.Region(key); row.ExpandIcon = true; row.AddThemeConstantOverride("icon_max_width", 24); modalContent.AddChild(row);
+            string availability=farm.Session.Read.World.Greenhouse || crop.Seasons.Contains(farm.Session.Read.World.Season)?"ปลูกได้ฤดูนี้":"นอกฤดู";
+            AddItemCard(grid,key,crop.Name,$"{crop.Cost} เหรียญ · {crop.Days} วัน\n{availability}",()=>{farm.Seed=cropKey;CloseModal();Refresh();},farm.Seed==key);
         }
         modalContent.AddChild(Button("หลังคาเรือนกระจก · 300 เหรียญ · ใกล้ร้านค้า", () => { CloseModal(); farm.Perform("greenhouse"); }));
         modalContent.AddChild(Button("ทุนฉุกเฉิน · เงินต่ำกว่า 6 เหรียญ", () => { CloseModal(); farm.Perform("rescue"); }));
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "เลือกเมล็ดที่นี่ แล้วปลูกในแปลงเพื่อจ่ายเงิน\nเรือนกระจกช่วยให้ปลูกได้ทุกฤดูและกันพายุ" });
+        currentMenu=2;menuDay=farm.Session.Read.World.Day;
     }
     public void OpenSettings()
     {

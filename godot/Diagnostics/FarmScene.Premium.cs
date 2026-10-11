@@ -56,6 +56,12 @@ public partial class FarmScene
             await NextFrame(SceneTree.SignalName.ProcessFrame);
             Check(Seed != initialSeed, "original Tab seed shortcut preserved outside modal (" + initialSeed + " -> " + Seed + ")");
             Hud.OpenShop();
+            Check(Hud.FindChildren("*","Button",true,false).OfType<FarmItemCard>().Count()==8,"shop uses eight reusable original crop cards");
+            int coinsBefore=Session.Read.World.Coins;string wanted="tomato";
+            var seedCard=Hud.FindChild("Item-"+wanted,true,false) as FarmItemCard;
+            seedCard!.EmitSignal(Button.SignalName.Pressed);
+            Check(Seed==wanted && !Hud.ModalVisible && Session.Read.World.Coins==coinsBefore,"seed card selects without duplicating planting charges");
+            Hud.OpenShop();
             var firstFocus = GetViewport().GuiGetFocusOwner();
             Check(firstFocus is Button, "modal opens with keyboard focus");
             Input.ParseInputEvent(new InputEventKey { Keycode = Key.Tab, PhysicalKeycode = Key.Tab, Pressed = true });
@@ -64,6 +70,10 @@ public partial class FarmScene
             Check(GetViewport().GuiGetFocusOwner() is Button && GetViewport().GuiGetFocusOwner() != firstFocus, "Tab navigates shop controls");
             Hud.CloseModal();
             Check(GetViewport().GuiGetFocusOwner() == null && !Farmer.InputBlocked, "closing modal releases focus and gameplay input");
+            Session.Player.Bag["carrot"]=4;Hud.OpenBag();Session.Move(4,4);Session.Execute(new Core.Application.GameCommand("sleep"));
+            var inventoryCard=Hud.FindChild("Item-carrot",true,false) as FarmItemCard;
+            Check(inventoryCard!=null && inventoryCard.GetNode<Label>("Margin/Row/Text/Description").Text.Contains("3 ชิ้น"),"open inventory refreshes original spoilage and daily price on day change");
+            Hud.CloseModal();
             SetReducedMotion(true);
             Check(weather.ReducedMotion && Display.ReducedMotion, "reduced motion disables ambient rain and foliage motion");
             SetReducedMotion(false);
@@ -102,6 +112,11 @@ public partial class FarmScene
                             capture.SavePng(Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "premium-" + size.X + "x" + size.Y + ".png"));
                             surfaces.Add(new { requestedWidth=size.X,requestedHeight=size.Y,renderWidth=capture.GetWidth(),renderHeight=capture.GetHeight(),pixelScale,letterboxX=(size.X-capture.GetWidth())/2,letterboxY=(size.Y-capture.GetHeight())/2 });
                         }
+                        Hud.CloseModal();
+                        Hud.OpenShop();
+                        for(int n=0;n<3;n++)await NextFrame(SceneTree.SignalName.ProcessFrame);
+                        var cards=Hud.FindChildren("*","Button",true,false).OfType<FarmItemCard>();
+                        Check(cards.All(c=>c.FindChildren("*","Label",true,false).OfType<Label>().All(l=>c.GetGlobalRect().Encloses(l.GetGlobalRect()))),"crop card Thai text stays inside card at " + size + " text scale " + scale + " menu scale " + ui);
                         Hud.CloseModal();
                     }
                     var canvas = GetViewport().GetCanvasTransform();
