@@ -56,6 +56,7 @@ using(var server=new RoomServer(new Farm())){
     }finally{foreach(var client in clients)client.Dispose();}
 }
 passed.AddRange(await PersistenceChecks.Run(Path.GetDirectoryName(output)!));
+passed.AddRange(await SaveContractChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await RecoveryChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await ApplicationChecks.Run());
 passed.AddRange(await GameplayMatrixChecks.Run());

@@ -44,14 +44,7 @@ public sealed class SaveService : ISaveService
     public static Farm Deserialize(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length > MaximumSaveBytes) throw new InvalidDataException("เซฟมีขนาดเกินขอบเขตที่รองรับ");
-        Farm? farm;
-        // Legacy File.ReadAllText accepted BOM-marked UTF-8/16/32. Preserve that acceptance at the new byte boundary.
-        if (bytes is [0xEF, 0xBB, 0xBF, ..] or [0xFF, 0xFE, ..] or [0xFE, 0xFF, ..] or [0x00, 0x00, 0xFE, 0xFF, ..]) {
-            using var reader = new StreamReader(new MemoryStream(bytes.ToArray()), System.Text.Encoding.UTF8, true);
-            farm = JsonSerializer.Deserialize<Farm>(reader.ReadToEnd());
-        }
-        else farm = JsonSerializer.Deserialize<Farm>(bytes);
-        if (farm == null) throw new InvalidDataException("เซฟไม่สมบูรณ์");
+        var farm = SaveJsonContract.Read<Farm>(bytes);
         FarmInvariants.Validate(farm); return farm;
     }
     public Farm Load()
@@ -216,8 +209,7 @@ public sealed class SaveService : ISaveService
         if (!File.Exists(ImportJournalPath)) return;
         if (new FileInfo(ImportJournalPath).Length > MaximumSaveBytes * 2)
             throw new InvalidDataException("บันทึกกู้คืนมีขนาดเกินขอบเขตที่รองรับ");
-        var journal = JsonSerializer.Deserialize<ImportJournal>(File.ReadAllBytes(ImportJournalPath))
-            ?? throw new InvalidDataException("บันทึกกู้คืนไม่สมบูรณ์");
+        var journal = SaveJsonContract.Read<ImportJournal>(File.ReadAllBytes(ImportJournalPath),"Version","Farm","Identity");
         ValidateJournal(journal); // Validate both files before touching either; no paths come from the journal.
         Restore(SavePath, journal.Farm);
         Restore(IdentityPath, journal.Identity);
