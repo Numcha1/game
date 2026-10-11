@@ -20,6 +20,7 @@ public sealed class SaveService : ISaveService
     readonly IGameLog log;
     readonly Task writer;
     TaskCompletionSource progress = NewProgress();
+    TaskCompletionSource? importFinished;
     long requested, completed;
     Exception? lastError;
     bool closing, importing;
@@ -129,7 +130,7 @@ public sealed class SaveService : ISaveService
     public bool TryReadFailure(out string error) => failures.TryDequeue(out error!);
     public async Task ImportLegacyAsync(string sourceDirectory, CancellationToken cancellationToken = default)
     {
-        lock (gate) { ObjectDisposedException.ThrowIf(closing, this); if (importing) throw new InvalidOperationException("กำลังนำเข้าเซฟ"); importing = true; }
+        lock (gate) { ObjectDisposedException.ThrowIf(closing, this); if (importing) throw new InvalidOperationException("กำลังนำเข้าเซฟ"); importing = true; importFinished = NewProgress(); }
         try
         {
             await FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -165,12 +166,14 @@ public sealed class SaveService : ISaveService
             }
             finally { storageGate.Release(); }
         }
-        finally { lock (gate) importing = false; }
+        finally { lock (gate) { importing = false; importFinished!.TrySetResult(); } }
     }
     public async ValueTask DisposeAsync()
     {
-        lock (gate) { if (closing) return; closing = true; queue.Writer.TryComplete(); }
+        Task importingTask;
+        lock (gate) { if (closing) return; closing = true; queue.Writer.TryComplete(); importingTask = importFinished?.Task ?? Task.CompletedTask; }
         await writer.ConfigureAwait(false);
+        await importingTask.ConfigureAwait(false);
         storageGate.Dispose();
     }
 }

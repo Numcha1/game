@@ -5,6 +5,25 @@ namespace SeasonsTogether;
 /// <summary>Imported PNG textures and atlas regions are shared by every scene instance.</summary>
 public sealed class AssetCatalog
 {
+    static AssetCatalog? shared;
+    public static AssetCatalog Shared => shared ??= new AssetCatalog();
+    // Godot resources are initialized and consumed only on the scene thread.
+    public AssetCatalog()
+    {
+        if (Tiles == null || Props == null || Characters == null || TileSet == null || Pond == null || Shadow == null || Stake == null || Glow == null || WindShader == null || WaterShader == null)
+            throw new InvalidDataException("Required farm resource missing");
+        if (definitions == null || Characters.GetWidth() < 160 || Characters.GetHeight() < 224) throw new InvalidDataException("Invalid farm atlas");
+        foreach (var pair in definitions)
+        {
+            var r = pair.Value;
+            if (r == null || r.Length != 4 || r[0] < 0 || r[1] < 0 || r[2] <= 0 || r[3] <= 0 || (long)r[0] + r[2] > Props.GetWidth() || (long)r[1] + r[3] > Props.GetHeight())
+                throw new InvalidDataException("Invalid atlas region: " + pair.Key);
+        }
+        foreach (var crop in Core.Domain.GameCatalog.CropKeys)
+            if (!definitions.ContainsKey(crop) || !definitions.ContainsKey("young-" + crop)) throw new InvalidDataException("Missing crop atlas region: " + crop);
+        foreach (string key in new[] { "spring", "summer", "autumn", "winter", "sprout", "house", "shop", "crate", "well", "barrel", "sign", "rocks", "flowers", "seeds", "water", "hoe" })
+            if (!definitions.ContainsKey(key)) throw new InvalidDataException("Missing prop atlas region: " + key);
+    }
     public readonly Texture2D Tiles = GD.Load<Texture2D>("res://Assets/terrain.png");
     public readonly Texture2D Props = GD.Load<Texture2D>("res://Assets/props.png");
     public readonly Texture2D Characters = GD.Load<Texture2D>("res://Assets/characters.png");

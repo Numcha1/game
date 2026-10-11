@@ -3,22 +3,25 @@ using SuanPleng;
 namespace SeasonsTogether;
 public partial class FarmScene
 {
+    List<double> frameTimes => frameMonitor.Samples;
     void PopulateShowcase()
     {
         Session.State.Greenhouse = true;
         for (int i = 0; i < 24; i++) { var p = Session.State.Plots[i]; p.Crop = CropKeys[i % 8]; p.Growth = Farm.Crops[p.Crop].Days; p.RipeDay = Session.State.Day; }
         RefreshPlots();
     }
-    async Task NextFrame(StringName signal)
+    Task NextFrame(StringName signal) => AwaitSignal(GetTree(),signal);
+    Task NextDraw() => AwaitSignal(RenderingServer.Singleton,RenderingServer.SignalName.FramePostDraw);
+    async Task AwaitSignal(GodotObject emitter, StringName signal)
     {
         if (!sceneActive) throw new OperationCanceledException();
-        await ToSignal(GetTree(), signal);
-        if (!sceneActive) throw new OperationCanceledException();
-    }
-    async Task NextDraw()
-    {
-        if (!sceneActive) throw new OperationCanceledException();
-        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        // Signals and scene cancellation both arrive on the Godot thread, matching ToSignal timing.
+        var completion = new TaskCompletionSource();
+        var callback = Callable.From(() => completion.TrySetResult());
+        emitter.Connect(signal,callback,(uint)GodotObject.ConnectFlags.OneShot);
+        using var registration = sceneLifetime.Token.Register(() => completion.TrySetCanceled(sceneLifetime.Token));
+        try { await completion.Task; }
+        finally { if (GodotObject.IsInstanceValid(emitter) && emitter.IsConnected(signal,callback)) emitter.Disconnect(signal,callback); }
         if (!sceneActive) throw new OperationCanceledException();
     }
     async Task RunSmoke()
@@ -93,7 +96,8 @@ public partial class FarmScene
                 privateBytes = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64, managedBytes = GC.GetTotalMemory(false), qualityReports,
                 limitation = "Finite engine-loop sample. Headless does not measure graphics. Rendered runs include presentation but are not long-term GPU or leak certification." };
             System.IO.File.WriteAllText(Path.Combine(reportDir, "godot-smoke-" + DisplayServer.GetName() + ".json"), System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-            GD.Print("SLICE PASS " + checks.Count); GetTree().Quit();
+            await Session.SaveAsync(); finalCheckpoint = true;
+            if (sceneActive) { GD.Print("SLICE PASS " + checks.Count); GetTree().Quit(); }
         }
         catch (OperationCanceledException) { /* Scene exited while diagnostics awaited a frame. */ }
         catch (Exception e) { if (!sceneActive) return; GD.PushError("SLICE FAIL " + e); GetTree().Quit(1); }

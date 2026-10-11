@@ -7,6 +7,8 @@ internal static class PersistenceChecks
 {
     public static async Task<List<string>> Run(string root)
     {
+        root = Path.Combine(root, "persistence-profile-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
         var checks = new List<string>();
         void Check(bool value, string label) { if (!value) throw new Exception(label); checks.Add(label); }
         string directory = Path.Combine(root, "persistence-" + Guid.NewGuid().ToString("N"));
@@ -67,6 +69,12 @@ internal static class PersistenceChecks
             bool failed = false; try { await save.ImportLegacyAsync(source); } catch (IOException) { failed = true; }
             Check(failed && Farm.Load(save.SavePath).Coins == 333, "identity failure rolls farm replacement back");
         }
+        var concurrent = new SaveService(Path.Combine(root,"dispose-import"));
+        concurrent.RequestSave(new Farm()); await concurrent.FlushAsync();
+        Task importing = concurrent.ImportLegacyAsync(source);
+        Task disposing = concurrent.DisposeAsync().AsTask();
+        await Task.WhenAll(importing,disposing).WaitAsync(TimeSpan.FromSeconds(5));
+        Check(Farm.Load(concurrent.SavePath).Coins == 888, "shutdown waits for active import before disposing storage resources");
         return checks;
     }
 }

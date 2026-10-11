@@ -14,7 +14,7 @@ public partial class WeatherLighting : Node2D
     Texture2D rain = null!;
     public override void _Ready()
     {
-        var image = Image.CreateEmpty(2, 9, false, Image.Format.Rgba8);
+        using var image = Image.CreateEmpty(2, 9, false, Image.Format.Rgba8);
         image.Fill(new Color(0.72f, 0.88f, 0.91f, 0.6f)); rain = ImageTexture.CreateFromImage(image);
         var random = new Random(702);
         for (int i = 0; i < drops.Length; i++)
@@ -26,7 +26,7 @@ public partial class WeatherLighting : Node2D
     public void AddLamp(Vector2 position, Texture2D texture)
     {
         var lamp = new PointLight2D { Position = position, Texture = texture, TextureScale = 1.5f, Color = new Color("ffdba3"), Energy = 0, ShadowEnabled = false, RangeZMax = 8 };
-        GetParent().AddChild(lamp); lamps.Add(lamp);
+        AddChild(lamp); lamps.Add(lamp);
     }
     public override void _Process(double delta)
     {
@@ -47,4 +47,5 @@ public partial class WeatherLighting : Node2D
             if (p.Y > 590) p.Y -= 605; if (p.X < -8) p.X += 816; sprite.Position = p;
         }
     }
+    public override void _ExitTree() { rain?.Dispose(); lamps.Clear(); }
 }

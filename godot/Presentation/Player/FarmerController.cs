@@ -9,18 +9,18 @@ public partial class FarmerController : Node2D
     public bool InputBlocked { get; set; }
     public AnimatedSprite2D Sprite { get; private set; } = null!;
     public Camera2D Camera { get; private set; } = null!;
-    Vector2 cameraPosition;
+    PixelCameraFollower cameraFollower = null!;
     double gesture;
     public override void _Ready()
     {
         Sprite = GetNode<AnimatedSprite2D>("Sprite"); Camera = GetNode<Camera2D>("Camera");
-        Camera.LimitLeft = 0; Camera.LimitTop = 0; Camera.LimitRight = 800; Camera.LimitBottom = 576;
+        cameraFollower = new PixelCameraFollower(Camera);
     }
     public void Initialize(GameSession session, SpriteFrames frames)
     {
         Session = session; Sprite.SpriteFrames = frames; Sprite.Animation = "south";
         Position = new Vector2((float)session.Read.Player.X * 32, (float)session.Read.Player.Y * 32);
-        cameraPosition = Position; Camera.GlobalPosition = Position.Round();
+        cameraFollower.Initialize(Position);
     }
     static bool Down(Key a, Key b) => Input.IsPhysicalKeyPressed(a) || Input.IsPhysicalKeyPressed(b);
     public override void _PhysicsProcess(double delta)
@@ -43,8 +43,7 @@ public partial class FarmerController : Node2D
         else { Sprite.Stop(); Sprite.Frame = 1; }
         gesture = Math.Max(0, gesture - delta);
         Sprite.Position = new Vector2(0, -22 + (gesture > 0 ? 2 : 0));
-        cameraPosition = cameraPosition.Lerp(Position, (float)(1 - Math.Exp(-7 * delta)));
-        Camera.GlobalPosition = cameraPosition.Round();
+        cameraFollower.Follow(Position,delta);
     }
     public void Gesture() => gesture = 0.28;
 }

@@ -90,7 +90,7 @@ public partial class FarmHud : Control
         modalContent.AddChild(new Label { Text = title, HorizontalAlignment = HorizontalAlignment.Center });
         modalContent.AddChild(Button("ปิด · Esc", CloseModal)); modal.Visible = true; farm.Farmer.InputBlocked = true;
     }
-    public void CloseModal() { modal.Visible = false; farm.Farmer.InputBlocked = false; }
+    public void CloseModal() { modal.Visible = false; farm.Farmer.InputBlocked = farm.IsBusy; }
     public void OpenBag()
     {
         Open("กระเป๋าผลผลิต");
@@ -134,8 +134,8 @@ public partial class FarmHud : Control
         modalContent.AddChild(new Label { Text = "วางลิงก์ HTTPS ของ YouTube เพื่อฟังในเบราว์เซอร์" });
         var input = new LineEdit { PlaceholderText = "https://www.youtube.com/watch?v=…", MaxLength = 512 }; modalContent.AddChild(input);
         modalContent.AddChild(Button("เปิดเพลง", () => {
-            if (!Uri.TryCreate(input.Text.Trim(), UriKind.Absolute, out var uri) || uri.Scheme != "https" || uri.UserInfo != "" || !uri.IsDefaultPort || !new[] { "youtube.com", "www.youtube.com", "music.youtube.com", "m.youtube.com", "youtu.be" }.Contains(uri.Host)) { farm.Notify("ใส่ลิงก์ HTTPS ของ YouTube เท่านั้น"); return; }
-            if (OS.ShellOpen(uri.AbsoluteUri) != Error.Ok) farm.Notify("เปิดเบราว์เซอร์ไม่ได้"); else CloseModal();
+            if (!MusicLink.TryParse(input.Text, out var uri)) { farm.Notify("ใส่ลิงก์ HTTPS ของ YouTube เท่านั้น"); return; }
+            if (OS.ShellOpen(uri!.AbsoluteUri) != Error.Ok) farm.Notify("เปิดเบราว์เซอร์ไม่ได้"); else CloseModal();
         }));
     }
     public override void _Input(InputEvent ev)

@@ -19,6 +19,7 @@ public partial class FarmScene : Node2D
     public string Seed { get; set; } = "carrot";
     public int Quality { get; private set; } = 2;
     public string[] CropKeys { get; } = GameCatalog.Crops.Keys.ToArray();
+    public bool IsBusy => operationInProgress;
     public bool ReadyToPlay => Session != null;
     FarmWorldPresenter renderer = null!;
     WeatherLighting weather = null!;
@@ -26,21 +27,22 @@ public partial class FarmScene : Node2D
     SaveService saves = null!;
     JsonGameLog log = null!;
     GraphicsSettings settings = null!;
-    readonly List<double> frameTimes = new(1800);
+    readonly FrameTimeMonitor frameMonitor = new();
     int lastDay = -1;
-    long lastTimestamp;
     bool operationInProgress, finalCheckpoint;
     Task pendingOperation = Task.CompletedTask;
+    Task shutdown = Task.CompletedTask;
     public string DataDirectory { get; private set; } = "";
     string[] arguments = Array.Empty<string>();
     bool sceneActive;
+    readonly CancellationTokenSource sceneLifetime = new();
     public override void _Ready()
     {
         sceneActive = true;
         GetTree().AutoAcceptQuit = false;
         arguments = OS.GetCmdlineUserArgs();
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
-        if (arguments.Contains("--smoke") || arguments.Contains("--showcase")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
+        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
         catch (Exception e) when (e is IOException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
@@ -49,7 +51,7 @@ public partial class FarmScene : Node2D
             AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
         }
         Engine.MaxFps = 60;
-        Art = new AssetCatalog(); renderer = new FarmWorldPresenter(); AddChild(renderer); renderer.Initialize(this, Session.Read, Art);
+        Art = AssetCatalog.Shared; renderer = new FarmWorldPresenter(); AddChild(renderer); renderer.Initialize(this, Session.Read, Art);
         Farmer = GetNode<FarmerController>("Actors/Farmer"); Farmer.Initialize(Session, Art.FarmerFrames());
         weather = new WeatherLighting { Read = Session.Read, Ambient = GetNode<CanvasModulate>("Ambient") }; AddChild(weather);
         weather.AddLamp(new Vector2(112, 82), Art.Glow); weather.AddLamp(new Vector2(656, 82), Art.Glow);
@@ -57,7 +59,8 @@ public partial class FarmScene : Node2D
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
         SetQuality(settings.Load());
-        if (arguments.Contains("--smoke")) _ = RunSmoke();
+        if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
+        else if (arguments.Contains("--smoke")) _ = RunSmoke();
         if (arguments.Contains("--showcase")) PopulateShowcase();
     }
     void RefreshSeason() => renderer.RefreshSeason();
@@ -73,36 +76,10 @@ public partial class FarmScene : Node2D
     public override void _Process(double delta)
     {
         if (!ReadyToPlay || Farmer == null) return;
-        long timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-        if (lastTimestamp != 0 && frameTimes.Count < 3600) frameTimes.Add(System.Diagnostics.Stopwatch.GetElapsedTime(lastTimestamp, timestamp).TotalMilliseconds);
-        lastTimestamp = timestamp;
+        frameMonitor.Record();
         if (!operationInProgress) Session.Tick(delta);
     }
-    public override void _UnhandledInput(InputEvent ev)
-    {
-        if (!ReadyToPlay || operationInProgress || Hud.ModalVisible) return;
-        if (ev is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)
-        {
-            Vector2 mouse = GetViewport().GetCanvasTransform().AffineInverse() * click.Position;
-            int x = (int)Math.Round(mouse.X / 32), y = (int)Math.Round(mouse.Y / 32);
-            if (x >= 8 && x <= 13 && y >= 6 && y <= 9) Perform(Tool, (y - 6) * 6 + x - 8);
-        }
-        if (ev is InputEventKey { Pressed: true, Echo: false } key)
-        {
-            if (key.PhysicalKeycode >= Key.Key1 && key.PhysicalKeycode <= Key.Key7) { Tool = FarmHud.Tools[(int)(key.PhysicalKeycode - Key.Key1)].Action; Hud.Refresh(); }
-            switch (key.PhysicalKeycode)
-            {
-                case Key.Tab: Seed = CropKeys[(Array.IndexOf(CropKeys, Seed) + 1) % 8]; Hud.Refresh(); break;
-                case Key.E: Perform("sell"); break;
-                case Key.Space: Perform(Session.Read.Player.Sleeping ? "wake" : "sleep"); break;
-                case Key.B: case Key.I: Hud.OpenBag(); break;
-                case Key.O: Hud.OpenShop(); break;
-                case Key.F3: Hud.OpenSettings(); break;
-                case Key.Escape: Perform("pause"); break;
-                case Key.F1: Hud.OpenHelp(); break;
-            }
-        }
-    }
+    public override void _UnhandledInput(InputEvent ev) => FarmInputRouter.Handle(this, ev);
     public void Perform(string action, int plot = -1)
     {
         if (operationInProgress) return;
@@ -129,10 +106,11 @@ public partial class FarmScene : Node2D
     public override void _ExitTree()
     {
         sceneActive = false;
+        sceneLifetime.Cancel();
         if (Session == null) { if (saves != null) _ = saves.DisposeAsync(); if (log != null) _ = log.DisposeAsync(); return; }
         Session.StateChanged -= OnStateChanged; Session.PersistenceFailed -= Notify;
         if (!operationInProgress && !finalCheckpoint) { try { _ = Session.SaveAsync(); } catch (Exception e) { log.Write("error", "save.exit", e.GetType().Name); } }
-        _ = ReleaseServices(pendingOperation, Session, log);
+        shutdown = ReleaseServices(pendingOperation, Session, log);
     }
     static async Task ReleaseServices(Task pending, GameSession session, JsonGameLog logger)
     {
