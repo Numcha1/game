@@ -41,3 +41,8 @@ UI ภาษาไทยเป็นแถบสถานะและ Hotbar พ
 - `CLOUDFlARED-LICENSE.txt`: ใบอนุญาต Apache-2.0 ของตัวเชื่อมต่อที่รวมใน EXE
 
 ห้องออนไลน์ยังเป็นบริการชั่วคราว ยังไม่มีเซิร์ฟเวอร์ถาวร ผลประสิทธิภาพเป็นการวัดบนเครื่องทดสอบ ไม่รับรอง 60 FPS เท่ากันทุกเครื่อง
+
+
+## Godot vertical slice
+
+A separate Godot 4.7.2 .NET single-player scene is available in [godot/](godot/README.md). Run `godot/Run-Seasons-Together.cmd` or open `godot/project.godot` in the Mono editor. It reuses the existing farming/save core and has its own save profile. [Analysis](godot/ANALYSIS.md), [art status](godot/ART.md), [test results](godot/TESTING.md). Online co-op remains available in the native release; the Godot online scene is a later migration stage.

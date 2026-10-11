@@ -1,0 +1,10 @@
+.godot/
+.nuget/
+**/bin/
+**/obj/
+NuGet.Config
+reports/*-profile-*/
+reports/*.log
+*.user
+.vs/
+export/
