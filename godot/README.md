@@ -1,3 +1,23 @@
+# Production core verification (2026-10-11)
+
+Current branch: `feature/production-core`. Read [progress](docs/PRODUCTION_PROGRESS.md), [focused audit](docs/PRODUCTION_AUDIT.md), [feature matrix](FEATURE_MATRIX.md) and [quality gates](QUALITY_GATES.md) for current evidence. The older vertical-slice numbers below remain historical.
+
+Open `Run-Seasons-Together.cmd` in this Godot directory to play on the current configured machine. It requires Godot .NET and the .NET SDK; it is not a standalone exported game. For editing, import `project.godot` in Godot .NET and build before F5.
+
+From the repository root:
+
+```powershell
+.\godot\verify.ps1 -Rendered -ExtendedLifecycle
+# Faster logic/lifecycle run without GPU metrics:
+.\godot\verify.ps1
+```
+
+Pass `-GodotPath <absolute-path-to-Mono-console.exe>` if discovery fails. Diagnostics use isolated GUID profiles. Startup fault injection deliberately logs errors; exit code, fresh reports and check counts determine success. No test overwrites the real Native/Godot player profile. Reports contain no raw player credentials; fixture/profile directories are excluded from Git.
+
+Core CI runs only the engine-independent regression suite. Godot rendering, export, Internet co-op and real-player acceptance remain separate gates.
+
+---
+
 # Seasons Together · Godot single-player vertical slice
 
 ฉากเล่นได้จริงใน Godot 4.7.2 .NET/C# สร้างแยกจาก native release เดิม ใช้กติกาเดิมผ่าน Core project ไม่ใช้ WinForms renderer
