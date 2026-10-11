@@ -1,3 +1,9 @@
+# GDD 1.1 development baseline (2026-10-11)
+
+[GDD](docs/GDD_V1_1.md) is the current design specification: peaceful farming, single-player A-F before co-op G. [Current implementation and open acceptance](docs/GDD_IMPLEMENTATION_STATUS.md). Press E near the shipping crate or use the bag to inspect daily revenue and confirm selling. Old saves and rules remain intact. The records below describe prior milestones.
+
+---
+
 # Premium systems development (2026-10-11)
 
 Current branch: `feature/premium-game-systems`. [Milestone 1 implementation/audit](docs/SYSTEMS_MILESTONE1.md), [feature status and roadmap](docs/SYSTEMS_ROADMAP.md), and [actual performance comparison](docs/SYSTEMS_MEASUREMENTS.md) are the current records. Earlier sections below retain historical results from the integrated presentation work.

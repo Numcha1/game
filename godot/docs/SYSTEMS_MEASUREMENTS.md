@@ -2,7 +2,7 @@
 
 Actual Windows renderer on i5-12400F / RTX 3060, Godot 4.7.2 .NET Compatibility, NVIDIA 610.62. Same upgraded integer-canvas pipeline, 1600×900 requested window, deterministic 24-ripe-crop storm/evening fixture, 60 warmup frames and 600 recorded frames per quality, cap 60 FPS.
 
-All numeric columns show **integrated baseline / final milestone**. Source JSON: `reports/systems-m1-before.json` and `reports/godot-smoke-Windows.json`.
+All numeric columns show **integrated baseline / final milestone**. Source JSON: `reports/systems-m1-before.json` and `reports/systems-m1-after.json`.
 
 | Quality | FPS | P95 frame ms | Render CPU mean ms | GPU mean ms | Private MiB |
 | --- | --- | --- | --- | --- | --- |

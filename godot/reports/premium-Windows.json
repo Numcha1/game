@@ -1,5 +1,5 @@
 {
-  "passed": 175,
+  "passed": 180,
   "checks": [
     "boot completes real threaded resource requests before scene transition",
     "title blocks input without mutating saved pause state",
@@ -7,6 +7,11 @@
     "title escape keeps a reachable play action",
     "enter farm releases presentation input gate",
     "tutorial overlay keeps farming input responsive",
+    "sale preview displays daily estimate without spending or selling",
+    "cancel sale preserves inventory and releases input",
+    "day transition requires fresh sale confirmation",
+    "confirmed sale pays authoritative price once despite repeated UI signal",
+    "emptied inventory dismisses stale preview without selling",
     "pause settings return resumes through original pause command",
     "ground and fence layers do not occlude pond or contact shadows",
     "four distinct anchored growth stages carrot",

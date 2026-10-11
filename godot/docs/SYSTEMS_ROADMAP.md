@@ -4,16 +4,18 @@ Working branch: `feature/premium-game-systems`. Original base `godot/vertical-sl
 
 Status vocabulary: **NOT STARTED** = no working implementation; **IN PROGRESS** = partial implementation or missing required acceptance; **IMPLEMENTED** = callable code; **TESTED** = named executable checks passed within their stated scope; **RELEASE READY** = actual playable package passed release acceptance. Nothing in this roadmap is currently RELEASE READY.
 
-| Milestone | Status | Existing work / next acceptance |
+Current design authority: [GDD 1.1](GDD_V1_1.md) and [implementation status](GDD_IMPLEMENTATION_STATUS.md). The A-H order below supersedes the former numeric/co-op-first plan. Completed systems Milestone 1 remains reliability evidence, not a completed GDD milestone.
+
+| Milestone | Actual status | Required next acceptance |
 | --- | --- | --- |
-| 1 Architecture and save reliability | TESTED | Four conceptual layers, read-only views, shared original rules, bounded atomic save worker, strict save/undo contract, tracked scene persistence and local protocol compatibility. See `SYSTEMS_MILESTONE1.md`. |
-| 2 Existing farming loop | IN PROGRESS | Original actions and eight-crop regression matrix are TESTED; rendered loop, feedback, onboarding and confirmations tested. Extended player acceptance and balance documentation remain. |
-| 3 Godot co-op integration | IN PROGRESS | Application NetworkService, HTTP adapter, timeout/reconnect/UUID retry and 2/4-process local tests. Godot room routing, remote actors and online session binding still required. |
-| 4 Advanced farming/economy | NOT STARTED | Approve meaningful mechanics and tested balance first; define explicit new-state migration/protocol compatibility before persistence fields change. |
-| 5 First exploration region | NOT STARTED | Handcrafted region plus one full gather/inventory/production/save/co-op loop required. |
-| 6 Connected exploration world | NOT STARTED | Depends on region and co-op acceptance; stable object IDs and persistence required. |
-| 7 Full experience polish | IN PROGRESS | Existing premium typography/art/UI/audio/effects integrated; artist, Thai-reader and sound-mix acceptance open. |
-| 8 Full regression and Windows release | IN PROGRESS | Local builds/regressions verified; extended gameplay/Internet/clean-machine/export gates open. No production release is published. |
+| A Core farming | IN PROGRESS | Original farming/inventory/shop/save tests pass; sale preview implemented. Contextual onboarding, first-time human acceptance and extended balance sessions remain. |
+| B Advanced farming | NOT STARTED | Soil/NPK/health/quality tiers, new crops, upgrade/irrigation/expansion progression; define explicit persistence migration and authority first. |
+| C Village/relationships | NOT STARTED | Authored village, schedules, conversations, persistent relationships and initial quests. |
+| D Exploration | NOT STARTED | Complete forest gathering, transitions, resource persistence, discovery and restoration loop. |
+| E Extended simulation | NOT STARTED | Animals, crafting/production, fishing, peaceful mining and magic. |
+| F Story/world | NOT STARTED | Remaining regions, story, festivals/restoration and sustainable endgame. |
+| G Multiplayer | IN PROGRESS (infrastructure only) | Existing authoritative protocol/2-4 OS-process tests; Godot room/actors, shared progression, reconnect, Internet acceptance remain. |
+| H Release candidate | IN PROGRESS (diagnostics only) | Final art/audio, performance, migration, standalone Windows export and clean-machine/human QA. |
 
 | Feature | Status | Evidence / boundary |
 | --- | --- | --- |
@@ -40,4 +42,4 @@ Status vocabulary: **NOT STARTED** = no working implementation; **IN PROGRESS** 
 | Windows Native game | TESTED | Existing EXE and 35 self-tests preserved. |
 | Godot Windows standalone export/clean machine | NOT STARTED | Launcher depends on installed Godot .NET/SDK; export templates/runtime packaging still required. |
 
-User QA preference: test several instances locally first; do not certify Internet multiplayer from loopback results. Next implementation priority is to finish existing-loop acceptance and bind one authoritative room session into Godot before advanced persistent mechanics or region expansion.
+User QA preference: test several instances locally first; do not certify Internet multiplayer from loopback results. Next priority is Milestone A onboarding and first-time farming acceptance, followed by B-F single-player systems. Godot multiplayer integration is G; authority contracts are required when each new system is designed.
