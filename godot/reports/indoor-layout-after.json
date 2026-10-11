@@ -52,8 +52,8 @@
     {
       "resolution": "(1280, 720)",
       "viewport": "(800, 450)",
-      "cameraZoom": 1.25,
-      "playerScale": 1.05,
+      "cameraZoom": 1,
+      "playerScale": 1,
       "topHeight": 48,
       "buttonHeights": [
         28,
@@ -65,8 +65,8 @@
     {
       "resolution": "(1920, 1080)",
       "viewport": "(800, 450)",
-      "cameraZoom": 1.25,
-      "playerScale": 1.05,
+      "cameraZoom": 1,
+      "playerScale": 1,
       "topHeight": 48,
       "buttonHeights": [
         28,

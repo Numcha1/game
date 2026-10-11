@@ -20,7 +20,7 @@ public static class RoomDepth
         } else {
             Add(actors,texture,"BedCluster",new(72,81),new(210,65),new(239,125),new(225,225),new(82,225));
             if(id.EndsWith("mira-home"))Add(actors,texture,"ReadingChair",new(118,274),new(214,264),new(243,345),new(206,383),new(133,367));
-            else Add(actors,texture,"ReadingChair",new(622,197),new(688,179),new(729,215),new(713,298),new(644,307));
+            else Add(actors,texture,"ReadingChair",new(675,99),new(711,103),new(723,131),new(715,170),new(696,192),new(659,189),new(644,161),new(653,131));
         }
     }
 }

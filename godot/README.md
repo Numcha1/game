@@ -1,4 +1,11 @@
-# Indoor scale and compact HUD
+# World-wide scale and composition (tested presentation milestone)
+
+All seven existing playable regions now share camera/actor scale 1.0 and prepared NPC pixels. Interiors use original edited assets, cached canvases, silhouette depth and coordinated lighting; farm props, shadows, paths and decoration clusters have been composed explicitly. [Implementation, changed files and remaining art work](docs/WORLD_COMPOSITION.md) | [Actual regression, performance and before/after gallery](docs/WORLD_VISUAL_VALIDATION.md) | [Scale contract](docs/WORLD_SCALE.md).
+
+Build/Core/native/rendered regression passed, including 190 composition checks. Exact bed/door/floor proportions and organic terrain transitions remain art tasks; one pre-existing ObjectDB exit warning remains unresolved. Open `Run-Seasons-Together.cmd` for the existing launcher. No new Windows export or Internet multiplayer certification is claimed.
+
+---
+# Earlier indoor scale and compact HUD (superseded scale profile)
 
 Enclosed rooms now use 1.25x camera zoom and 1.05x visual character scale, with a compact top bar and one contextual bottom prompt. The farm/village outdoor profile and gameplay rules remain unchanged. [Audit, design tokens and before/after captures](docs/INDOOR_PRESENTATION.md) | [Executed validation and limits](docs/INDOOR_VALIDATION.md).
 

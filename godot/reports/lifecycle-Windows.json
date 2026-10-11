@@ -75,81 +75,81 @@
   "samples": [
     {
       "round": 0,
-      "nodes": 448,
-      "managedBytes": 1749496,
-      "privateBytes": 264097792,
+      "nodes": 437,
+      "managedBytes": 1537848,
+      "privateBytes": 247255040,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 1,
-      "nodes": 448,
-      "managedBytes": 1785024,
-      "privateBytes": 282583040,
+      "nodes": 437,
+      "managedBytes": 1540976,
+      "privateBytes": 244666368,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 2,
-      "nodes": 448,
-      "managedBytes": 1786016,
-      "privateBytes": 282591232,
+      "nodes": 437,
+      "managedBytes": 1541984,
+      "privateBytes": 248438784,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 3,
-      "nodes": 448,
-      "managedBytes": 1804616,
-      "privateBytes": 282591232,
+      "nodes": 437,
+      "managedBytes": 1577240,
+      "privateBytes": 248324096,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 4,
-      "nodes": 448,
-      "managedBytes": 1805720,
-      "privateBytes": 282591232,
+      "nodes": 437,
+      "managedBytes": 1595032,
+      "privateBytes": 252919808,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 5,
-      "nodes": 448,
-      "managedBytes": 1806576,
-      "privateBytes": 282591232,
+      "nodes": 437,
+      "managedBytes": 1595888,
+      "privateBytes": 257720320,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 6,
-      "nodes": 448,
-      "managedBytes": 1807432,
-      "privateBytes": 351096832,
+      "nodes": 437,
+      "managedBytes": 1596712,
+      "privateBytes": 257863680,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 7,
-      "nodes": 448,
-      "managedBytes": 1827024,
-      "privateBytes": 351129600,
+      "nodes": 437,
+      "managedBytes": 1597568,
+      "privateBytes": 257863680,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 8,
-      "nodes": 448,
-      "managedBytes": 1827912,
-      "privateBytes": 351272960,
+      "nodes": 437,
+      "managedBytes": 1598440,
+      "privateBytes": 257994752,
       "resources": 49,
       "orphans": 0
     },
     {
       "round": 9,
-      "nodes": 448,
-      "managedBytes": 1829336,
-      "privateBytes": 351154176,
+      "nodes": 437,
+      "managedBytes": 1599864,
+      "privateBytes": 257929216,
       "resources": 49,
       "orphans": 0
     }

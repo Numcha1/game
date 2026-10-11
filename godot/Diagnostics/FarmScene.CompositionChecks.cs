@@ -8,7 +8,7 @@ public partial class FarmScene
     {
         bool before=arguments.Contains("--composition-before");
         string stage=arguments.Contains("--composition-seed")?"seed":arguments.Contains("--composition-exterior")?"exterior":"all";
-        var checks=new List<string>();var frames=new List<object>();
+        var checks=new List<string>();var frames=new List<object>();var performance=new List<object>();
         void Check(bool ok,string label){if(!ok)throw new InvalidOperationException(label);checks.Add(label);}
         string reports=ProjectSettings.GlobalizePath("res://reports/composition");Directory.CreateDirectory(reports);
         async Task Leave(){Session.State.Paused=false;while(Session.InsideBuilding){Session.Move(12,14);RequestBuildingExit();await TransitionCompletion;}}
@@ -32,10 +32,34 @@ public partial class FarmScene
                 await NextDraw();using var texture=GetViewport().GetTexture();using var shot=texture.GetImage();
                 string name=$"{(before?"before":"after")}-{id}-{size.X}x{size.Y}.png";shot.SavePng(Path.Combine(reports,name));
                 frames.Add(new{scene=id,window=size.ToString(),position=Session.Position,time=Session.State.Minute,weather=Session.State.Weather,season=0,cameraPosition=Farmer.Camera.GlobalPosition.ToString(),zoom=Farmer.Camera.Zoom.X,spriteScale=Farmer.Sprite.Scale.X,shotWidth=shot.GetWidth(),shotHeight=shot.GetHeight(),screenshot=name});
+                if(!before) {
+                    using var baseline=JsonDocument.Parse(File.ReadAllText(Path.Combine(reports,"before-all.json")));
+                    var prior=baseline.RootElement.GetProperty("frames").EnumerateArray().Single(f=>f.GetProperty("scene").GetString()==id && f.GetProperty("window").GetString()==size.ToString());
+                    Check(prior.GetProperty("time").GetDouble()==Session.State.Minute && prior.GetProperty("weather").GetString()==Session.State.Weather && prior.GetProperty("position").GetProperty("X").GetDouble()==Session.Position.X && prior.GetProperty("position").GetProperty("Y").GetDouble()==Session.Position.Y && prior.GetProperty("cameraPosition").GetString()==Farmer.Camera.GlobalPosition.ToString(),"matched baseline scene pose camera time weather "+id+" "+size);
+                }
+                if(!before && interior!=null) {
+                    var actors=interior.GetNode<Node2D>("Actors");Check(actors.YSortEnabled && actors.GetChildren().OfType<Polygon2D>().All(p=>p.ZIndex==0 && p.Texture is ImageTexture),"prepared silhouettes share actor Y sorting "+id+" "+size);
+                    var transform=GetViewport().GetCanvasTransform();var view=GetViewport().GetVisibleRect();
+                    Check((transform*new Vector2(-16,0)).X<=1 && (transform*new Vector2(784,512)).X>=view.Size.X-1,"no exposed room side edges "+id+" "+size);
+                }
+                if(size.X==1600 && (id=="farm" || id=="village.seed-shop")) {
+                    var samples=new List<double>();long last=System.Diagnostics.Stopwatch.GetTimestamp();
+                    for(int i=0;i<180;i++){await NextFrame(SceneTree.SignalName.ProcessFrame);long now=System.Diagnostics.Stopwatch.GetTimestamp();samples.Add((now-last)*1000d/System.Diagnostics.Stopwatch.Frequency);last=now;}
+                    var sorted=samples.Order().ToArray();double mean=sorted.Average(),p95=sorted[(int)(sorted.Length*.95)];
+                    performance.Add(new{scene=id,frames=samples.Count,meanMs=mean,p95Ms=p95,fps=1000/mean,privateBytes=System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64,managedBytes=GC.GetTotalMemory(false)});
+                    if(!before)Check(mean<=17 && p95<=18,"representative frame-time gate "+id);
+                }
+                if(!before && size.X==1600 && id=="village.rowan-home") {
+                    foreach(var y in new[]{5.0,7.0}) {
+                        Session.State.Paused=false;Check(Session.Move(22,y),"saved-safe chair approach "+y);Session.State.Paused=true;
+                        for(int i=0;i<60;i++)await NextFrame(SceneTree.SignalName.PhysicsFrame);
+                        await NextDraw();using var depthTexture=GetViewport().GetTexture();using var depthImage=depthTexture.GetImage();depthImage.SavePng(Path.Combine(reports,y==5.0?"chair-behind.png":"chair-front.png"));
+                    }
+                }
             }
         }
         await Leave();await Session.SaveAsync();finalCheckpoint=true;
-        File.WriteAllText(Path.Combine(reports,$"{(before?"before":"after")}-{stage}.json"),JsonSerializer.Serialize(new{passed=checks.Count,checks,frames},new JsonSerializerOptions{WriteIndented=true}));
+        File.WriteAllText(Path.Combine(reports,$"{(before?"before":"after")}-{stage}.json"),JsonSerializer.Serialize(new{passed=checks.Count,checks,frames,performance},new JsonSerializerOptions{WriteIndented=true}));
         GD.Print("COMPOSITION PASS "+checks.Count);GetTree().CallDeferred(SceneTree.MethodName.Quit,0);
     }
 }
