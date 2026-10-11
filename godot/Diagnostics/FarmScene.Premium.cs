@@ -14,11 +14,14 @@ public partial class FarmScene
             bool pausedBefore=Session.Read.World.Paused;
             Hud.OpenTitle();
             Check(TitleActive && Hud.ModalVisible && Farmer.InputBlocked && Session.Read.World.Paused==pausedBefore,"title blocks input without mutating saved pause state");
+            double titleMinute=Session.Read.World.Minute;_Process(12);
+            Check(Session.Read.World.Minute==titleMinute,"title gate prevents game clock advancement for a simulated long frame");
             if(DisplayServer.GetName()!="headless") { for(int n=0;n<3;n++)await NextFrame(SceneTree.SignalName.ProcessFrame);await NextDraw();using var shot=GetViewport().GetTexture().GetImage();shot.SavePng(Path.Combine(ProjectSettings.GlobalizePath("res://reports"),"title.png")); }
             Hud.CloseModal();
             Check(TitleActive && Hud.ModalVisible,"title escape keeps a reachable play action");
             StartPlaying();Hud.CloseModal();
             Check(!TitleActive && !Hud.ModalVisible && !Farmer.InputBlocked,"enter farm releases presentation input gate");
+            Hud.ShowTutorial();Check(Hud.TutorialVisible && !Farmer.InputBlocked,"tutorial overlay keeps farming input responsive");
             Hud.OpenPause();
             if(DisplayServer.GetName()!="headless") { for(int n=0;n<3;n++)await NextFrame(SceneTree.SignalName.ProcessFrame);await NextDraw();using var shot=GetViewport().GetTexture().GetImage();shot.SavePng(Path.Combine(ProjectSettings.GlobalizePath("res://reports"),"pause.png")); }
             Hud.OpenSettings();Hud.CloseModal();

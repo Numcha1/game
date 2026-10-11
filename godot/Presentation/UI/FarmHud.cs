@@ -19,6 +19,9 @@ public partial class FarmHud : Control
     public bool PlotInspectorVisible => inspector.Visible;
     VBoxContainer modalContent = null!;
     Control modal = null!;
+    PanelContainer guide = null!;
+    public bool TutorialVisible=>guide.Visible;
+    public void ShowTutorial()=>guide.Visible=true;
     Button[] tools = Array.Empty<Button>();
     double toastTime, refreshElapsed;
     bool dirty;
@@ -69,6 +72,11 @@ public partial class FarmHud : Control
         toast = new Label { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -360, OffsetRight = 360, OffsetTop = -134, OffsetBottom = -91,
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, Visible = false };
         toast.AddThemeColorOverride("font_color", new Color("fff2cc")); toast.AddThemeColorOverride("font_shadow_color", new Color("2e3f32")); toast.AddThemeConstantOverride("shadow_offset_x", 1); toast.AddThemeConstantOverride("shadow_offset_y", 2); AddChild(toast);
+        guide=new PanelContainer { AnchorLeft=1,AnchorRight=1,OffsetLeft=-270,OffsetRight=-14,OffsetTop=58,Visible=false };AddChild(guide);
+        var guideRows=new VBoxContainer();guide.AddChild(guideRows);
+        guideRows.AddChild(new Label { Text="เริ่มฟาร์มของคุณ",ThemeTypeVariation="ItemHeading",HorizontalAlignment=HorizontalAlignment.Center });
+        guideRows.AddChild(new Label { Text="1 เมล็ด → คลิกแปลงใกล้ตัว\n2 รดน้ำ → 3 เก็บเกี่ยว\nE ขายใกล้ลัง · Space นอนหน้าบ้าน",AutowrapMode=TextServer.AutowrapMode.WordSmart,CustomMinimumSize=new Vector2(240,0) });
+        guideRows.AddChild(Button("เข้าใจแล้ว",()=>{guide.Visible=false;GetViewport().GuiGetFocusOwner()?.ReleaseFocus();}));
         modal = new Control { AnchorRight = 1, AnchorBottom = 1, Visible = false, MouseFilter = MouseFilterEnum.Stop }; AddChild(modal);
         var dim = new ColorRect { AnchorRight = 1, AnchorBottom = 1, Color = new Color(0.08f, .13f, .1f, .65f) }; modal.AddChild(dim);
         var center = new CenterContainer { AnchorRight = 1, AnchorBottom = 1 }; modal.AddChild(center);
@@ -151,7 +159,7 @@ public partial class FarmHud : Control
         farm.ShowTitle(); Open("Seasons Together");
         var close=modalContent.GetChild<Button>(1);modalContent.RemoveChild(close);close.QueueFree();
         modalContent.AddChild(new Label { Text="สวนเพลง · ฟาร์มของคุณในทุกฤดู",AutowrapMode=TextServer.AutowrapMode.WordSmart,HorizontalAlignment=HorizontalAlignment.Center });
-        var play=Button("เข้าฟาร์ม",()=>{farm.StartPlaying();CloseModal();});modalContent.AddChild(play);
+        var play=Button("เข้าฟาร์ม",()=>{farm.StartPlaying();CloseModal();if(farm.Session.Read.World.Day==1)ShowTutorial();});modalContent.AddChild(play);
         modalContent.AddChild(Button("ตั้งค่า",OpenSettings));modalContent.AddChild(Button("วิธีเล่น",OpenHelp));
         modalContent.AddChild(Button("บันทึกและออก",farm.RequestQuit));
         modalContent.AddChild(new Label { Text="โหมดคนเดียว · ใช้ฟาร์มที่บันทึกไว้โดยอัตโนมัติ",AutowrapMode=TextServer.AutowrapMode.WordSmart });

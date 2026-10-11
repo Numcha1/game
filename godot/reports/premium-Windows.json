@@ -1,10 +1,12 @@
 {
-  "passed": 173,
+  "passed": 175,
   "checks": [
     "boot completes real threaded resource requests before scene transition",
     "title blocks input without mutating saved pause state",
+    "title gate prevents game clock advancement for a simulated long frame",
     "title escape keeps a reachable play action",
     "enter farm releases presentation input gate",
+    "tutorial overlay keeps farming input responsive",
     "pause settings return resumes through original pause command",
     "ground and fence layers do not occlude pond or contact shadows",
     "four distinct anchored growth stages carrot",
