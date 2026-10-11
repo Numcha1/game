@@ -59,6 +59,11 @@ internal static class RecoveryChecks
             Check(refused && !File.Exists(Path.Combine(missing, "player.txt")), "missing identity for an inhabited farm cannot create a replacement owner");
         }
         string recovery = Path.Combine(root, "backup"); Directory.CreateDirectory(recovery);
+        File.WriteAllBytes(Path.Combine(missing, "player.txt"), newIdentity);
+        await using (var save = new SaveService(missing)) {
+            bool refused = false; try { save.LoadPlayerSession(); } catch (InvalidDataException) { refused = true; }
+            Check(refused && File.ReadAllBytes(Path.Combine(missing, "player.txt")).SequenceEqual(newIdentity), "unrelated valid identity cannot change the owner of an existing farm");
+        }
         string recoveryPath = Path.Combine(recovery, "farm.json"); File.WriteAllBytes(recoveryPath + ".bak", oldFarm);
         File.WriteAllText(recoveryPath, "{damaged");
         await using (var save = new SaveService(recovery)) Check(save.CanRestoreBackup, "validated backup offered for explicit recovery");

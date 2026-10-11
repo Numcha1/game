@@ -18,6 +18,8 @@ public partial class FarmWorldPresenter : Node
     readonly Sprite2D[] stakes = new Sprite2D[24];
     readonly List<Sprite2D> trees = new();
     readonly List<Sprite2D> treeShadows = new();
+    Line2D selection = null!;
+    public int SelectedPlot { get; private set; } = -1;
     readonly Vector2[] treeLocations = { new(38,170), new(100,335), new(42,477), new(740,180), new(737,354), new(615,490), new(370,50), new(485,45), new(208,460), new(431,461) };
     public void Initialize(FarmScene owner, GameReadModel model, AssetCatalog art)
     {
@@ -26,6 +28,14 @@ public partial class FarmWorldPresenter : Node
         wind = new ShaderMaterial { Shader = Art.WindShader };
         ground.TileSet = Art.TileSet; details.TileSet = ground.TileSet;
         BuildEnvironment(); RefreshSeason(); RefreshPlots();
+        selection = new Line2D { Width = 1, DefaultColor = new Color("ffe3a0"), Closed = true, ZIndex = 9, Visible = false,
+            Points = new Vector2[] { new(-15, -15), new(15, -15), new(15, 15), new(-15, 15) } };
+        root.AddChild(selection);
+    }
+    public void SelectPlot(int index)
+    {
+        SelectedPlot = index; var tile = GameCatalog.PlotTile(index);
+        selection.Position = new Vector2(tile.X * 32, tile.Y * 32); selection.Visible = true;
     }
     public void SetQuality(int quality) { wind.SetShaderParameter("strength", quality == 0 ? 0 : .8f); foreach (var shadow in treeShadows) shadow.Visible = quality > 0; }
     Sprite2D Prop(string asset, Vector2 position, float width, int z = 0)

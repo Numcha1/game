@@ -57,7 +57,14 @@ public sealed class SaveService : ISaveService
     public string LoadPlayerSession()
     {
         string identity = File.Exists(IdentityPath) ? System.Text.Encoding.UTF8.GetString(ReadBounded(IdentityPath, 128)).Trim() : "";
-        if (Guid.TryParseExact(identity, "N", out _)) return identity;
+        if (Guid.TryParseExact(identity, "N", out _)) {
+            if (File.Exists(SavePath)) {
+                var farm = Deserialize(ReadBounded(SavePath));
+                if (farm.Players.Count > 0 && farm.Find(identity) == null)
+                    throw new InvalidDataException("player.txt ไม่ตรงกับผู้เล่นในฟาร์ม โปรดกู้คืนไฟล์ที่เป็นคู่กัน");
+            }
+            return identity;
+        }
         if (File.Exists(IdentityPath) || (File.Exists(SavePath) && Deserialize(ReadBounded(SavePath)).Players.Count > 0))
             throw new InvalidDataException("ข้อมูลผู้เล่นสูญหายหรือเสียหาย โปรดกู้คืน player.txt คู่กับเซฟเดิม ไม่มีการสร้างผู้เล่นใหม่ทับข้อมูล");
         identity = Guid.NewGuid().ToString("N");

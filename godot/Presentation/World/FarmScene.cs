@@ -17,6 +17,7 @@ public partial class FarmScene : Node2D
     public FarmHud Hud { get; private set; } = null!;
     public string Tool { get; set; } = "plant";
     public string Seed { get; set; } = "carrot";
+    public int SelectedPlot { get; private set; } = -1;
     public int Quality { get; private set; } = 2;
     public string[] CropKeys { get; } = GameCatalog.Crops.Keys.ToArray();
     public bool IsBusy => operationInProgress;
@@ -56,6 +57,7 @@ public partial class FarmScene : Node2D
             var dialog = new AcceptDialog { DialogText = "เปิดเซฟไม่ได้: " + e.Message + "\nโปรดสำรองและตรวจไฟล์ farm.json ก่อนลองอีกครั้ง" };
             AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
         }
+        try {
         Engine.MaxFps = 60;
         Art = AssetCatalog.Shared; renderer = new FarmWorldPresenter(); AddChild(renderer); renderer.Initialize(this, Session.Read, Art);
         Farmer = GetNode<FarmerController>("Actors/Farmer"); Farmer.Initialize(Session, Art.FarmerFrames());
@@ -65,6 +67,13 @@ public partial class FarmScene : Node2D
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
         SetQuality(settings.Load());
+        }
+        catch (Exception e) when (e is InvalidDataException or System.Text.Json.JsonException or KeyNotFoundException) {
+            finalCheckpoint = true; // Failed composition must not save a partially initialized session.
+            log.Write("error", "assets.startup.failed", e.GetType().Name);
+            var dialog = new AcceptDialog { DialogText = "ไฟล์ภาพหรือฉากเกมไม่สมบูรณ์ โปรดติดตั้งเกมใหม่\nเซฟเดิมยังเก็บไว้" };
+            AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
+        }
         if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         if (arguments.Contains("--showcase")) PopulateShowcase();
@@ -84,6 +93,11 @@ public partial class FarmScene : Node2D
         }
     }
     void RefreshSeason() => renderer.RefreshSeason();
+    public void InspectPlot(int index)
+    {
+        if (!ReadyToPlay || index < 0 || index >= Session.Read.PlotCount || SelectedPlot == index) return;
+        SelectedPlot = index; renderer.SelectPlot(index); Hud.Refresh();
+    }
     public void RefreshPlots() => renderer.RefreshPlots();
     void OnStateChanged(GameChange change)
     {

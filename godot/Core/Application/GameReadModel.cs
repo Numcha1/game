@@ -12,10 +12,12 @@ public sealed class GameReadModel
     public WorldView World => new(farm.Day, farm.Minute, farm.Coins, farm.Weather, farm.Greenhouse, farm.Paused, farm.Season, farm.SeasonDay);
     public PlayerView Player => new(player.X, player.Y, player.Energy, player.Sleeping);
     public int PlotCount => farm.Plots.Count;
+    public string TomorrowWeather => farm.Forecast(farm.Day + 1);
+    public IReadOnlyList<string> Journal() => Array.AsReadOnly(farm.Journal.ToArray());
     public PlotView Plot(int index)
     {
         var p = farm.Plots[index];
-        return new(p.Crop, p.Growth, p.RipeDay, p.Moisture, p.Fertility, p.Quality, p.Disease, p.Stake);
+        return new(p.Crop, p.Growth, p.RipeDay, p.Moisture, p.Fertility, p.Quality, p.Disease, p.Stake, p.LastCrop);
     }
     public IReadOnlyList<InventoryItem> Inventory()
     {
