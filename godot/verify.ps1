@@ -44,7 +44,7 @@ try {
     if ($process.ExitCode -ne 0) { throw 'Native regression failed.' }
     Copy-Item -LiteralPath (Join-Path (Split-Path $native) 'self-test.json') -Destination (Join-Path $reports 'production-native-tests.json')
     $renderer = if ($Rendered) { 'Windows' } else { 'headless' }
-    Invoke-Diagnostic @('--startup-checks') "startup-$renderer.json" 45
+    Invoke-Diagnostic @('--startup-checks') "startup-$renderer.json" 60
     Invoke-Diagnostic @('--recovery-check') "recovery-ui-$renderer.json" 10
     Invoke-Diagnostic @('--smoke') "godot-smoke-$renderer.json" $(if ($Rendered) { 101 } else { 26 })
     Invoke-Diagnostic @('--premium-checks') "premium-$renderer.json" $(if ($Rendered) { 175 } else { 47 })

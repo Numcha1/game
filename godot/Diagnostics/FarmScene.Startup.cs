@@ -68,7 +68,7 @@ public partial class FarmScene
         {
             await NextFrame(SceneTree.SignalName.ProcessFrame);
             var template = GD.Load<PackedScene>("res://Scenes/Farm.tscn");
-            foreach (string fault in new[] { "schema", "json", "identity", "missing-identity", "journal", "backup", "assets", "scene", "camera" })
+            foreach (string fault in new[] { "schema", "json", "identity", "missing-identity", "journal", "backup", "assets", "scene", "camera", "unknown-data", "missing-critical", "incomplete-undo" })
             {
                 string directory = Path.Combine(DataDirectory, "startup-" + fault); Directory.CreateDirectory(directory);
                 string path = Path.Combine(directory, "farm.json");
@@ -81,6 +81,9 @@ public partial class FarmScene
                 if (fault == "identity") System.IO.File.WriteAllText(Path.Combine(directory, "player.txt"), "corrupt");
                 if (fault == "journal") System.IO.File.WriteAllText(path + ".import-pending", "{\"Version\":2}");
                 if (fault == "backup") System.IO.File.WriteAllBytes(path + ".bak", originalBytes);
+                if(fault=="unknown-data")System.IO.File.WriteAllText(path,"{\"FutureProgression\":{},"+System.Text.Encoding.UTF8.GetString(originalBytes)[1..]);
+                if(fault=="missing-critical") { var incomplete=System.Text.Json.Nodes.JsonNode.Parse(originalBytes)!.AsObject();incomplete.Remove("Version");System.IO.File.WriteAllText(path,incomplete.ToJsonString()); }
+                if(fault=="incomplete-undo")System.IO.File.WriteAllText(path+".import-pending","{\"Version\":1}");
                 byte[] before = System.IO.File.ReadAllBytes(path);
                 var scene = template.Instantiate<FarmScene>();
                 scene.DiagnosticDataDirectory = directory; scene.DiagnosticAssetFailure = fault == "assets";
@@ -103,7 +106,7 @@ public partial class FarmScene
             await Session.SaveAsync(); finalCheckpoint = true;
             string report = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "startup-" + DisplayServer.GetName() + ".json");
             await System.IO.File.WriteAllTextAsync(report, JsonSerializer.Serialize(new { passed = checks.Count, checks,
-                scope = "Nine startup faults on isolated profiles, including removed ground/camera nodes. Resource case injects composition failure; not a missing-PNG package test." }, new JsonSerializerOptions { WriteIndented = true }));
+                scope = "Twelve startup faults on isolated profiles, including unsupported state, missing schema members, incomplete undo data and removed ground/camera nodes. Resource case injects composition failure; not a missing-PNG package test." }, new JsonSerializerOptions { WriteIndented = true }));
             if (sceneActive) { GD.Print("STARTUP PASS " + checks.Count); GetTree().Quit(); }
         }
         catch (Exception e) { if (sceneActive) { GD.PushError("STARTUP FAIL " + e); GetTree().Quit(1); } }

@@ -1,5 +1,5 @@
 {
-  "passed": 35,
+  "passed": 60,
   "checks": [
     "startup fault disables gameplay: schema",
     "startup fault shows an error dialog: schema",
@@ -35,7 +35,32 @@
     "startup fault shows an error dialog: assets",
     "recovery offered only for validated backup: assets",
     "failed startup and teardown preserve farm bytes: assets",
-    "failed startup frees scene and profile lease: assets"
+    "failed startup frees scene and profile lease: assets",
+    "startup fault disables gameplay: scene",
+    "startup fault shows an error dialog: scene",
+    "recovery offered only for validated backup: scene",
+    "failed startup and teardown preserve farm bytes: scene",
+    "failed startup frees scene and profile lease: scene",
+    "startup fault disables gameplay: camera",
+    "startup fault shows an error dialog: camera",
+    "recovery offered only for validated backup: camera",
+    "failed startup and teardown preserve farm bytes: camera",
+    "failed startup frees scene and profile lease: camera",
+    "startup fault disables gameplay: unknown-data",
+    "startup fault shows an error dialog: unknown-data",
+    "recovery offered only for validated backup: unknown-data",
+    "failed startup and teardown preserve farm bytes: unknown-data",
+    "failed startup frees scene and profile lease: unknown-data",
+    "startup fault disables gameplay: missing-critical",
+    "startup fault shows an error dialog: missing-critical",
+    "recovery offered only for validated backup: missing-critical",
+    "failed startup and teardown preserve farm bytes: missing-critical",
+    "failed startup frees scene and profile lease: missing-critical",
+    "startup fault disables gameplay: incomplete-undo",
+    "startup fault shows an error dialog: incomplete-undo",
+    "recovery offered only for validated backup: incomplete-undo",
+    "failed startup and teardown preserve farm bytes: incomplete-undo",
+    "failed startup frees scene and profile lease: incomplete-undo"
   ],
-  "scope": "Seven injected startup faults on isolated profiles. Resource case tests composition failure; not a missing-PNG package test."
+  "scope": "Twelve startup faults on isolated profiles, including unsupported state, missing schema members, incomplete undo data and removed ground/camera nodes. Resource case injects composition failure; not a missing-PNG package test."
 }
