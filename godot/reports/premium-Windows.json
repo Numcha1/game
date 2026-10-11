@@ -1,6 +1,10 @@
 {
-  "passed": 168,
+  "passed": 172,
   "checks": [
+    "title blocks input without mutating saved pause state",
+    "title escape keeps a reachable play action",
+    "enter farm releases presentation input gate",
+    "pause settings return resumes through original pause command",
     "ground and fence layers do not occlude pond or contact shadows",
     "four distinct anchored growth stages carrot",
     "four distinct anchored growth stages turnip",

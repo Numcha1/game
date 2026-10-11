@@ -22,6 +22,10 @@ public partial class FarmScene : Node2D
     public string[] CropKeys { get; } = GameCatalog.Crops.Keys.ToArray();
     public bool IsBusy => operationInProgress;
     public bool ReadyToPlay => presentationReady && sceneActive;
+    public bool TitleActive { get; private set; }
+    public void ShowTitle() => TitleActive=true;
+    public void StartPlaying() => TitleActive=false;
+    public void RequestQuit() { if(!operationInProgress)pendingOperation=CompleteOperation(false); }
     FarmWorldPresenter renderer = null!;
     WeatherLighting weather = null!;
     WeatherAccentPool accents = null!;
@@ -91,6 +95,7 @@ public partial class FarmScene : Node2D
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         else if (arguments.Contains("--premium-checks")) _ = RunPremiumChecks();
         if (arguments.Contains("--showcase")) PopulateShowcase();
+        if (!IsDiagnosticSession && ReadyToPlay) Hud.OpenTitle();
     }
     void ValidateSceneComposition()
     {
@@ -134,7 +139,7 @@ public partial class FarmScene : Node2D
     {
         if (!ReadyToPlay || Farmer == null) return;
         frameMonitor.Record();
-        if (!operationInProgress) Session.Tick(delta);
+        if (!operationInProgress && !TitleActive) Session.Tick(delta);
     }
     public override void _UnhandledInput(InputEvent ev) => FarmInputRouter.Handle(this, ev);
     public void Perform(string action, int plot = -1)

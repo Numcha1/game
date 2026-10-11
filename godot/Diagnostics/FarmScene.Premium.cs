@@ -10,6 +10,15 @@ public partial class FarmScene
         void Check(bool pass, string label) { if (!pass) throw new InvalidOperationException(label); checks.Add(label); }
         try {
             await NextFrame(SceneTree.SignalName.ProcessFrame);
+            bool pausedBefore=Session.Read.World.Paused;
+            Hud.OpenTitle();
+            Check(TitleActive && Hud.ModalVisible && Farmer.InputBlocked && Session.Read.World.Paused==pausedBefore,"title blocks input without mutating saved pause state");
+            Hud.CloseModal();
+            Check(TitleActive && Hud.ModalVisible,"title escape keeps a reachable play action");
+            StartPlaying();Hud.CloseModal();
+            Check(!TitleActive && !Hud.ModalVisible && !Farmer.InputBlocked,"enter farm releases presentation input gate");
+            Hud.OpenPause();Hud.OpenSettings();Hud.CloseModal();
+            Check(!Session.Read.World.Paused && !Hud.ModalVisible,"pause settings return resumes through original pause command");
             Check(GetNode<TileMapLayer>("Ground").ZIndex < -2 && GetNode<TileMapLayer>("Details").ZIndex < -2,"ground and fence layers do not occlude pond or contact shadows");
             foreach (string crop in Core.Domain.GameCatalog.CropKeys) {
                 var hashes = new HashSet<string>();

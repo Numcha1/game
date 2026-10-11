@@ -23,6 +23,7 @@ public partial class FarmHud : Control
     double toastTime, refreshElapsed;
     bool dirty;
     int currentMenu, menuDay;
+    bool pauseMenuActive;
     void OnStateChanged(GameChange change)
     {
         if (change != GameChange.Position) dirty = true;
@@ -139,7 +140,32 @@ public partial class FarmHud : Control
         modalContent.AddChild(Button("ปิด · Esc", CloseModal)); modal.Visible = true; farm.Farmer.InputBlocked = true;
         modalContent.GetChild<Button>(1).GrabFocus();
     }
-    public void CloseModal() { GetViewport().GuiGetFocusOwner()?.ReleaseFocus(); modal.Visible = false; farm.Farmer.InputBlocked = farm.IsBusy; }
+    public void CloseModal()
+    {
+        if (farm.TitleActive) { OpenTitle(); return; }
+        if (pauseMenuActive) { pauseMenuActive=false; if(farm.Session.Read.World.Paused)farm.Perform("pause"); }
+        GetViewport().GuiGetFocusOwner()?.ReleaseFocus(); modal.Visible = false; farm.Farmer.InputBlocked = farm.IsBusy;
+    }
+    public void OpenTitle()
+    {
+        farm.ShowTitle(); Open("Seasons Together");
+        var close=modalContent.GetChild<Button>(1);modalContent.RemoveChild(close);close.QueueFree();
+        modalContent.AddChild(new Label { Text="สวนเพลง · ฟาร์มของคุณในทุกฤดู",AutowrapMode=TextServer.AutowrapMode.WordSmart,HorizontalAlignment=HorizontalAlignment.Center });
+        var play=Button("เข้าฟาร์ม",()=>{farm.StartPlaying();CloseModal();});modalContent.AddChild(play);
+        modalContent.AddChild(Button("ตั้งค่า",OpenSettings));modalContent.AddChild(Button("วิธีเล่น",OpenHelp));
+        modalContent.AddChild(Button("บันทึกและออก",farm.RequestQuit));
+        modalContent.AddChild(new Label { Text="โหมดคนเดียว · ใช้ฟาร์มที่บันทึกไว้โดยอัตโนมัติ",AutowrapMode=TextServer.AutowrapMode.WordSmart });
+        play.GrabFocus();
+    }
+    public void OpenPause()
+    {
+        if(!farm.Session.Read.World.Paused)farm.Perform("pause");
+        if(!farm.Session.Read.World.Paused)return;
+        pauseMenuActive=true;Open("พักฟาร์ม");
+        modalContent.GetChild<Button>(1).Text="กลับเข้าฟาร์ม · Esc";
+        modalContent.AddChild(Button("ตั้งค่า",OpenSettings));modalContent.AddChild(Button("วิธีเล่น",OpenHelp));
+        modalContent.AddChild(Button("บันทึกฟาร์ม",farm.SaveNow));modalContent.AddChild(Button("บันทึกและออก",farm.RequestQuit));
+    }
     public void OpenBag()
     {
         Open("กระเป๋าผลผลิต");

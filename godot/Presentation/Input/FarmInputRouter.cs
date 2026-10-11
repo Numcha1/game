@@ -23,7 +23,7 @@ public static class FarmInputRouter
                 case Key.B: case Key.I: farm.Hud.OpenBag(); break;
                 case Key.O: farm.Hud.OpenShop(); break;
                 case Key.F3: farm.Hud.OpenSettings(); break;
-                case Key.Escape: farm.Perform("pause"); break;
+                case Key.Escape: farm.Hud.OpenPause(); break;
                 case Key.F1: farm.Hud.OpenHelp(); break;
             }
         }
