@@ -1,5 +1,5 @@
 {
-  "passed": 35,
+  "passed": 45,
   "checks": [
     "startup fault disables gameplay: schema",
     "startup fault shows an error dialog: schema",
@@ -35,7 +35,17 @@
     "startup fault shows an error dialog: assets",
     "recovery offered only for validated backup: assets",
     "failed startup and teardown preserve farm bytes: assets",
-    "failed startup frees scene and profile lease: assets"
+    "failed startup frees scene and profile lease: assets",
+    "startup fault disables gameplay: scene",
+    "startup fault shows an error dialog: scene",
+    "recovery offered only for validated backup: scene",
+    "failed startup and teardown preserve farm bytes: scene",
+    "failed startup frees scene and profile lease: scene",
+    "startup fault disables gameplay: camera",
+    "startup fault shows an error dialog: camera",
+    "recovery offered only for validated backup: camera",
+    "failed startup and teardown preserve farm bytes: camera",
+    "failed startup frees scene and profile lease: camera"
   ],
-  "scope": "Seven injected startup faults on isolated profiles. Resource case tests composition failure; not a missing-PNG package test."
+  "scope": "Nine startup faults on isolated profiles, including removed ground/camera nodes. Resource case injects composition failure; not a missing-PNG package test."
 }

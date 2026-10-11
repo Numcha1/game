@@ -13,8 +13,9 @@ public partial class FarmerController : Node2D
     double gesture;
     public override void _Ready()
     {
-        Sprite = GetNode<AnimatedSprite2D>("Sprite"); Camera = GetNode<Camera2D>("Camera");
-        cameraFollower = new PixelCameraFollower(Camera);
+        Sprite = GetNodeOrNull<Node>("Sprite") as AnimatedSprite2D ?? null!;
+        Camera = GetNodeOrNull<Node>("Camera") as Camera2D ?? null!;
+        if (Camera != null) cameraFollower = new PixelCameraFollower(Camera);
     }
     public void Initialize(GameSession session, SpriteFrames frames)
     {
@@ -25,7 +26,7 @@ public partial class FarmerController : Node2D
     static bool Down(Key a, Key b) => Input.IsPhysicalKeyPressed(a) || Input.IsPhysicalKeyPressed(b);
     public override void _PhysicsProcess(double delta)
     {
-        if (Session == null) return;
+        if (Session == null || Sprite == null || Camera == null || cameraFollower == null) return;
         var p = Session.Read.Player;
         Vector2 direction = new((Down(Key.D, Key.Right) ? 1 : 0) - (Down(Key.A, Key.Left) ? 1 : 0), (Down(Key.S, Key.Down) ? 1 : 0) - (Down(Key.W, Key.Up) ? 1 : 0));
         if (InputBlocked || gesture > 0 || Session.Read.World.Paused || p.Sleeping) direction = Vector2.Zero;

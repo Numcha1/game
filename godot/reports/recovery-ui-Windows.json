@@ -1,0 +1,16 @@
+{
+  "passed": 10,
+  "checks": [
+    "damaged startup offers visible validated-backup confirmation",
+    "damaged startup creates no playable session",
+    "recovered scene is playable after real reload",
+    "recovery preserves backup day and shared coins",
+    "recovery retains original player and ownership",
+    "recovery retains original inventory",
+    "UI recovery keeps the damaged file unchanged",
+    "UI recovery keeps source backup unchanged",
+    "reloaded scene installs exactly its two application observers",
+    "reloaded scene uses shared imported assets"
+  ],
+  "scope": "Actual recovery dialog callback, atomic backup restore and full scene reload. Isolated profile only."
+}

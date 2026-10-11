@@ -6,18 +6,19 @@ public partial class FarmScene
     async Task RunLifecycle()
     {
         var checks = new List<string>(); var samples = new List<object>();
+        int rounds = arguments.Contains("--lifecycle-extended") ? 50 : 10;
         void Check(bool value,string label) { if (!value) throw new InvalidOperationException(label); checks.Add(label); }
         try
         {
             await NextFrame(SceneTree.SignalName.ProcessFrame);
             var template = GD.Load<PackedScene>("res://Scenes/Farm.tscn");
             long baselineNodes = (long)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
-            for (int round = 0; round < 10; round++)
+            for (int round = 0; round < rounds; round++)
             {
                 var scene = template.Instantiate<FarmScene>(); GetTree().Root.AddChild(scene);
                 var session = scene.Session; var catalog = scene.Art;
                 Check(session.ObserverCount == 2,"two scene/HUD observers in lifecycle " + round);
-                Check(ReferenceEquals(catalog,Art) && ReferenceEquals(catalog.FarmerFrames(),Art.FarmerFrames()),"shared asset and animation cache " + round);
+                Check(ReferenceEquals(catalog,Art) && ReferenceEquals(catalog.FarmerFrames(),Art.FarmerFrames()) && ReferenceEquals(scene.Hud.Theme.DefaultFont,Hud.Theme.DefaultFont),"shared assets, animation frames and Thai font cache " + round);
                 for (int cycle = 0; cycle < 10; cycle++)
                 {
                     scene.Hud.OpenBag(); scene.Hud.CloseModal(); scene.Hud.OpenShop(); scene.Hud.CloseModal();
@@ -42,9 +43,9 @@ public partial class FarmScene
             }
             // No performance claims from a lifecycle test that deliberately forces GC.
             await Session.SaveAsync(); finalCheckpoint = true;
-            string path = Path.Combine(ProjectSettings.GlobalizePath("res://reports"),"lifecycle-" + DisplayServer.GetName() + ".json");
+            string path = Path.Combine(ProjectSettings.GlobalizePath("res://reports"),(rounds > 10 ? "lifecycle-extended-" : "lifecycle-") + DisplayServer.GetName() + ".json");
             await System.IO.File.WriteAllTextAsync(path,System.Text.Json.JsonSerializer.Serialize(new { passed=checks.Count,checks,samples,
-                scope="10 full scene teardowns, 100 bag/shop cycles. Finite soak; no lifetime leak certification." },new System.Text.Json.JsonSerializerOptions { WriteIndented=true }));
+                scope=$"{rounds} full scene teardowns, {rounds * 10} bag/shop cycles. Finite soak; no lifetime leak certification." },new System.Text.Json.JsonSerializerOptions { WriteIndented=true }));
             if (sceneActive) { GD.Print("LIFECYCLE PASS " + checks.Count); GetTree().Quit(); }
         }
         catch (Exception e) { if (sceneActive) { GD.PushError("LIFECYCLE FAIL " + e); GetTree().Quit(1); } }

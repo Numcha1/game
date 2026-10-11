@@ -6,6 +6,7 @@ namespace SeasonsTogether;
 
 public partial class FarmHud : Control
 {
+    static SystemFont? sharedFont;
     public static readonly (string Action, string Label, string Icon)[] Tools = {
         ("plant", "เมล็ด", "seeds"), ("water", "รดน้ำ", "water"), ("harvest", "เก็บเกี่ยว", "carrot"),
         ("treat", "รักษา", "flowers"), ("fertilize", "ปุ๋ย", "seeds"), ("stake", "ไม้ค้ำ", "hoe"), ("clear", "ถอนต้น", "hoe") };
@@ -14,7 +15,9 @@ public partial class FarmHud : Control
     Label status = null!, seed = null!, toast = null!, coins = null!;
     ProgressBar energy = null!;
     Label plotInfo = null!;
+    PanelContainer inspector = null!;
     public string PlotInformation => plotInfo.Text;
+    public bool PlotInspectorVisible => inspector.Visible;
     VBoxContainer modalContent = null!;
     Control modal = null!;
     Button[] tools = Array.Empty<Button>();
@@ -23,6 +26,7 @@ public partial class FarmHud : Control
     void OnStateChanged(GameChange change)
     {
         if (change != GameChange.Position) dirty = true;
+        if (change == GameChange.Position && farm.SelectedPlot >= 0) farm.InspectPlot(-1);
         if ((change & GameChange.Plots) != 0) RefreshInspector();
     }
     string lastStatus = "", lastCoins = "", lastSeed = "";
@@ -40,7 +44,7 @@ public partial class FarmHud : Control
     {
         if (farm != null) throw new InvalidOperationException("HUD already initialized");
         farm = scene;
-        var theme = new Theme { DefaultFont = new SystemFont { FontNames = new string[] { "Tahoma", "Noto Sans Thai", "sans-serif" } }, DefaultFontSize = 14 };
+        var theme = new Theme { DefaultFont = sharedFont ??= new SystemFont { FontNames = new string[] { "Tahoma", "Noto Sans Thai", "sans-serif" } }, DefaultFontSize = 14 };
         theme.SetColor("font_color", "Label", new Color("443d2f"));
         theme.SetColor("font_color", "Button", new Color("443d2f")); theme.SetColor("font_hover_color", "Button", new Color("443d2f"));
         theme.SetStylebox("normal", "Button", PanelStyle("eee0b8")); theme.SetStylebox("hover", "Button", PanelStyle("f8eccd"));
@@ -50,7 +54,7 @@ public partial class FarmHud : Control
         var stats = new HBoxContainer(); topRows.AddChild(stats); coins = new Label { CustomMinimumSize = new Vector2(120, 22) }; stats.AddChild(coins);
         energy = new ProgressBar { CustomMinimumSize = new Vector2(135, 15), MaxValue = 100, ShowPercentage = false }; stats.AddChild(energy);
         energy.AddThemeStyleboxOverride("background", PanelStyle("bba985")); energy.AddThemeStyleboxOverride("fill", PanelStyle("729552", "729552"));
-        var inspector = new PanelContainer { Position = new Vector2(14, 84), CustomMinimumSize = new Vector2(218, 126), MouseFilter = MouseFilterEnum.Ignore };
+        inspector = new PanelContainer { Position = new Vector2(14, 84), CustomMinimumSize = new Vector2(218, 126), MouseFilter = MouseFilterEnum.Ignore, Visible = false };
         inspector.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); AddChild(inspector);
         plotInfo = new Label { CustomMinimumSize = new Vector2(190, 110), AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
         plotInfo.AddThemeFontSizeOverride("font_size", 12); inspector.AddChild(plotInfo);
@@ -90,7 +94,7 @@ public partial class FarmHud : Control
         if (s != lastStatus) { status.Text = s; lastStatus = s; }
         string c = $"● {state.Coins:N0} เหรียญ   แรง"; if (c != lastCoins) { coins.Text = c; lastCoins = c; }
         energy.Value = farm.Session.Read.Player.Energy;
-        string chosen = $"{GameCatalog.Crops[farm.Seed].Name} · Tab เปลี่ยนเมล็ด · {Tools.First(t => t.Action == farm.Tool).Label}";
+        string chosen = $"{GameCatalog.Crops[farm.Seed].Name} · Tab เปลี่ยนเมล็ด · F1 วิธีเล่น · {Tools.First(t => t.Action == farm.Tool).Label}";
         if (chosen != lastSeed) { seed.Text = chosen; lastSeed = chosen; }
         for (int i = 0; i < tools.Length; i++) tools[i].Modulate = Tools[i].Action == farm.Tool ? new Color("ffd484") : Colors.White;
         RefreshInspector();
@@ -99,6 +103,7 @@ public partial class FarmHud : Control
     {
         var read = farm.Session.Read;
         string next = "พรุ่งนี้ · " + read.TomorrowWeather;
+        inspector.Visible = farm.SelectedPlot >= 0;
         if (farm.SelectedPlot < 0) {
             plotInfo.Text = "เริ่มฟาร์มของคุณ\n1 เลือกเมล็ด · คลิกแปลงใกล้ตัว\n2 รดน้ำ · 3 เก็บเกี่ยวเมื่อโต\nE ขายที่ลัง · Space นอนหน้าบ้าน\n" + next; return;
         }

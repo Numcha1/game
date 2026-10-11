@@ -35,6 +35,7 @@ public partial class FarmWorldPresenter : Node
     public void SelectPlot(int index)
     {
         SelectedPlot = index; var tile = GameCatalog.PlotTile(index);
+        if (index < 0) { selection.Visible = false; return; }
         selection.Position = new Vector2(tile.X * 32, tile.Y * 32); selection.Visible = true;
     }
     public void SetQuality(int quality) { wind.SetShaderParameter("strength", quality == 0 ? 0 : .8f); foreach (var shadow in treeShadows) shadow.Visible = quality > 0; }

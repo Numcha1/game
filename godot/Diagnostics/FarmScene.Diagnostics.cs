@@ -45,6 +45,8 @@ public partial class FarmScene
             Check(SelectedPlot == 0 && Hud.PlotInformation.Contains("แครอต") && renderer.SelectedPlot == 0, "plot inspection shows selected crop and aligned highlight");
             _UnhandledInput(new InputEventMouseMotion { Position = GetViewport().GetCanvasTransform() * new Vector2(416, 288) });
             Check(SelectedPlot == 23 && Hud.PlotInformation.Contains("แปลง 24"), "hover inspects last plot using camera inverse");
+            _UnhandledInput(new InputEventMouseMotion { Position = GetViewport().GetCanvasTransform() * new Vector2(112, 128) });
+            Check(SelectedPlot == -1 && !Hud.PlotInspectorVisible && renderer.SelectedPlot == -1, "leaving plots hides inspection so buildings remain visible");
             Tool = "clear";
             _UnhandledInput(new InputEventMouseButton { Pressed = true, ButtonIndex = MouseButton.Left, Position = GetViewport().GetCanvasTransform() * new Vector2(256, 192) });
             Check(Hud.ModalVisible && Farmer.InputBlocked && Session.State.Plots[0].Crop == "carrot", "clear opens confirmation without spending or removing crop");
@@ -85,6 +87,7 @@ public partial class FarmScene
             if (DisplayServer.GetName() != "headless")
             {
                 Session.State.Weather = "แดดอ่อน"; Session.State.Minute = 720; Session.Move(10.5, 4);
+                InspectPlot(0);
                 for (int i = 0; i < 90; i++) await NextFrame(SceneTree.SignalName.ProcessFrame);
                 await NextDraw();
                 GetViewport().GetTexture().GetImage().SavePng(Path.Combine(reportDir, "farm-day.png"));

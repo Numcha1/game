@@ -33,5 +33,6 @@ public static class FarmInputRouter
         Vector2 mouse = farm.GetViewport().GetCanvasTransform().AffineInverse() * viewportPosition;
         int x = (int)Math.Round(mouse.X / 32), y = (int)Math.Round(mouse.Y / 32);
         if (x >= 8 && x <= 13 && y >= 6 && y <= 9) farm.InspectPlot((y - 6) * 6 + x - 8);
+        else farm.InspectPlot(-1);
     }
 }

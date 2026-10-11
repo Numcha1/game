@@ -45,6 +45,7 @@ public partial class FarmScene : Node2D
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
         if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         if (arguments.Contains("--startup-checks") && DiagnosticDataDirectory != null) DataDirectory = DiagnosticDataDirectory;
+        if (arguments.Contains("--recovery-check")) DataDirectory = PrepareRecoveryDiagnostic();
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
         catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
@@ -53,13 +54,16 @@ public partial class FarmScene : Node2D
             {
                 var recovery = new ConfirmationDialog { DialogText = "เปิดเซฟไม่ได้ มีเซฟสำรองที่ตรวจสอบแล้ว\nกู้คืนเซฟสำรองหรือไม่? ข้อมูลล่าสุดอาจหายไปหนึ่งจุดบันทึก\nไฟล์ที่เสียจะเก็บไว้แยก ไม่ลบทิ้ง", OkButtonText = "กู้คืนสำรอง", CancelButtonText = "ออก" };
                 AddChild(recovery); recovery.Confirmed += () => _ = RecoverStartupBackup();
-                recovery.Canceled += () => GetTree().Quit(1); recovery.PopupCentered(); return;
+                recovery.Canceled += () => GetTree().Quit(1); recovery.PopupCentered();
+                if (arguments.Contains("--recovery-check")) _ = RunRecoveryDialogCheck(recovery);
+                return;
             }
             var dialog = new AcceptDialog { DialogText = "เปิดเซฟไม่ได้: " + e.Message + "\nโปรดสำรองและตรวจไฟล์ farm.json ก่อนลองอีกครั้ง" };
             AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
         }
         try {
         Engine.MaxFps = 60;
+        ValidateSceneComposition();
         if (arguments.Contains("--startup-checks") && DiagnosticAssetFailure) throw new InvalidDataException("Injected asset initialization failure");
         Art = AssetCatalog.Shared; renderer = new FarmWorldPresenter(); AddChild(renderer); renderer.Initialize(this, Session.Read, Art);
         Farmer = GetNode<FarmerController>("Actors/Farmer"); Farmer.Initialize(Session, Art.FarmerFrames());
@@ -77,10 +81,20 @@ public partial class FarmScene : Node2D
             var dialog = new AcceptDialog { DialogText = "ไฟล์ภาพหรือฉากเกมไม่สมบูรณ์ โปรดติดตั้งเกมใหม่\nเซฟเดิมยังเก็บไว้" };
             AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
         }
-        if (arguments.Contains("--startup-checks") && !startupHarnessRunning) { startupHarnessRunning = true; _ = RunStartupChecks(); }
+        if (arguments.Contains("--recovery-check")) _ = RunRecoveredSceneCheck();
+        else if (arguments.Contains("--startup-checks") && !startupHarnessRunning) { startupHarnessRunning = true; _ = RunStartupChecks(); }
         else if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         if (arguments.Contains("--showcase")) PopulateShowcase();
+    }
+    void ValidateSceneComposition()
+    {
+        if (GetNodeOrNull<Node>("Ground") is not TileMapLayer || GetNodeOrNull<Node>("Details") is not TileMapLayer ||
+            GetNodeOrNull<Node>("Actors") is not Node2D || GetNodeOrNull<Node>("Actors/Farmer") is not FarmerController ||
+            GetNodeOrNull<Node>("Actors/Farmer/Sprite") is not AnimatedSprite2D || GetNodeOrNull<Node>("Actors/Farmer/Camera") is not Camera2D ||
+            GetNodeOrNull<Node>("Ambient") is not CanvasModulate || GetNodeOrNull<Node>("HUD/Control") is not FarmHud ||
+            GetNodeOrNull<Node>("Transitions/AnimationPlayer") is not AnimationPlayer)
+            throw new InvalidDataException("Required farm scene node missing or has an incompatible type");
     }
     async Task RecoverStartupBackup()
     {
@@ -99,7 +113,7 @@ public partial class FarmScene : Node2D
     void RefreshSeason() => renderer.RefreshSeason();
     public void InspectPlot(int index)
     {
-        if (!ReadyToPlay || index < 0 || index >= Session.Read.PlotCount || SelectedPlot == index) return;
+        if (!ReadyToPlay || index < -1 || index >= Session.Read.PlotCount || SelectedPlot == index) return;
         SelectedPlot = index; renderer.SelectPlot(index); Hud.Refresh();
     }
     public void RefreshPlots() => renderer.RefreshPlots();
