@@ -2,6 +2,8 @@ using SeasonsTogether.Core;
 using SuanPleng;
 using System.Text.Json;
 
+if(args.Length==1 && args[0]=="--network-peer") { await LocalRoomProcessChecks.Peer();return; }
+
 if (args.Length == 2 && args[0] == "--lock-probe") {
     try { await using var probe = new SeasonsTogether.Core.Infrastructure.Persistence.SaveService(args[1]); }
     catch (IOException) { Environment.ExitCode = 2; }
@@ -62,5 +64,6 @@ passed.AddRange(await ApplicationChecks.Run());
 passed.AddRange(await GameplayMatrixChecks.Run());
 passed.AddRange(await DisplayChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await NetworkChecks.Run());
+passed.AddRange(await LocalRoomProcessChecks.Run());
 passed.AddRange(await ArchitectureChecks.Run(Path.GetDirectoryName(output)!));
 File.WriteAllText(output,JsonSerializer.Serialize(new{passed=passed.Count,checks=passed,scope="Core/save regressions and legacy local protocol. Godot online UI and internet co-op not migrated."},new JsonSerializerOptions{WriteIndented=true}));Console.WriteLine("CORE PASS "+passed.Count);
