@@ -4,6 +4,7 @@ public static class FarmInputRouter
 {
     public static void Handle(FarmScene farm, InputEvent ev)
     {
+        if(farm.HandleFurnitureInput(ev))return;
         if (!farm.ReadyToPlay || farm.IsBusy || farm.Hud.ModalVisible) return;
         if (!farm.Session.InsideBuilding && ev is InputEventMouseMotion motion) Inspect(farm, motion.Position);
         if (!farm.Session.InsideBuilding && ev is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click)

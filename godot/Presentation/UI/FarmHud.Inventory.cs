@@ -26,7 +26,9 @@ public partial class FarmHud
             if(item.Category==ItemCategory.Produce)description+="\nราคาวันนี้ "+farm.Session.Read.Inventory().Single(i=>i.Crop==item.ItemId).UnitPrice+" เหรียญ";
             card.Configure(item.Name,description,farm.Art.ItemIcon(item.Icon),()=> {
                 if(item.Category==ItemCategory.Seed){farm.Seed=item.CropId!;CloseModal();farm.Notify("เลือก"+item.Name+"แล้ว");}
-                else OpenItem(farm.Session.Read.Inventory().Single(i=>i.Crop==item.ItemId));
+                else if(item.Placeable){CloseModal();farm.BeginFurniturePlacement(item.ItemId);}
+                else if(item.Category==ItemCategory.Produce)OpenItem(farm.Session.Read.Inventory().Single(i=>i.Crop==item.ItemId));
+                else farm.Notify(item.Name+" · "+item.Description);
             });
             card.MakeInventorySlot(stack.Quantity);
         }

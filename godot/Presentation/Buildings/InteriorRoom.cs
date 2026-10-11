@@ -25,6 +25,7 @@ public partial class InteriorRoom : Node2D
                 throw new InvalidDataException("Interior marker does not match its building definition");
         if(GetNodeOrNull<Node2D>("Actors") is not {YSortEnabled:true})throw new InvalidDataException("Interior actors require Y sorting");
         var actors=GetNode<Node2D>("Actors");
+        if(def.Id==BuildingRegistry.Farmhouse.Id)scene.AttachFurnitureRoom(actors);
         var logical=RoomPresentationAssets.Flat(def.Id,foregroundSource);
         RoomDepth.Add(actors,logical,"BedCluster",new(92,95),new(180,82),new(199,120),new(199,236),new(93,236));
         RoomDepth.Add(actors,logical,"StorageChest",new(570,101),new(650,97),new(655,161),new(570,167));

@@ -41,6 +41,7 @@ public partial class FarmHud
                 }
             }
             if(work && id=="rowan") {
+                var furnitureShop=Button("ซื้อเฟอร์นิเจอร์และไม้แปรรูป",OpenFurnitureShop);furnitureShop.Name="OpenFurnitureShop";modalContent.AddChild(furnitureShop);
                 Guid command=Guid.NewGuid();var button=Button(farm.Session.Read.World.Greenhouse?"ติดตั้งเรือนกระจกแล้ว":"ติดตั้งหลังคาเรือนกระจก · 300 เหรียญ",()=> {
                     var result=farm.Session.RequestCarpentry(command);farm.Notify(result.Message);if(result.Changed)OpenNpc(id);
                 });button.Name="NpcCarpentry";button.Disabled=farm.Session.Read.World.Greenhouse;modalContent.AddChild(button);

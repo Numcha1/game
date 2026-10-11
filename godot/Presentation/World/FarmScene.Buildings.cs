@@ -43,11 +43,15 @@ public partial class FarmScene
         if(transitioning || TitleActive || Hud.ModalVisible){SetContextPrompt("");return;}
         doorPrompt.OffsetTop=Session.InsideBuilding?-44:-124;doorPrompt.OffsetBottom=Session.InsideBuilding?-16:-96;
         var point=Session.Position;
+        if(Session.SeatedFurnitureId!=""){SetContextPrompt("F · ยืนขึ้น");return;}
+        if(FurniturePlacementActive){SetContextPrompt(FurniturePlacementPrompt);return;}
         string npc=Session.NearestNpc();
         if(npc!=""){Session.TryNpc(npc,out var view);SetContextPrompt("F · คุยกับ"+view.Name);return;}
         var nearby=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId==Session.ActiveBuildingId && point.Distance(b.Entrance)<=1.3);
         if(nearby!=null){SetContextPrompt("F · เข้า"+nearby.Name);return;}
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } inside) {
+            string furniture=Session.NearestFurniture();
+            if(point.Distance(inside.Exit)>1.4 && furniture!=""){SetContextPrompt("F · "+PlaceableFurnitureCatalog.Find(Session.FurnitureViews().Single(p=>p.Id==furniture).DefinitionId)!.Name);return;}
             SetContextPrompt(point.Distance(inside.Exit)<=1.4 ? inside.ParentId==""?"F · กลับฟาร์ม":"F · กลับหมู่บ้าน" : point.Distance(inside.Bed)<=1.6 ? "F / Space · เข้านอน" : point.Distance(inside.Chest)<=1.6 ? "F · เปิดกล่องเก็บของ" : "");
         } else {
             var building=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId=="" && point.Distance(b.Entrance)<=1.8);
@@ -57,11 +61,13 @@ public partial class FarmScene
     public void InteractBuilding()
     {
         if(!ReadyToPlay || IsBusy || Hud.ModalVisible || TitleActive)return;
+        if(Session.SeatedFurnitureId!=""){Notify(Session.SitFurniture(Session.SeatedFurnitureId).Message);return;}
         string npc=Session.NearestNpc();if(npc!=""){Hud.OpenNpc(npc);return;}
         var nearby=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId==Session.ActiveBuildingId && Session.Position.Distance(b.Entrance)<=1.3);
         if(nearby!=null){RequestBuildingEntry(nearby.Id);return;}
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } def) {
             if(Session.Position.Distance(def.Exit)<=1.4)RequestBuildingExit();
+            else if(Session.NearestFurniture() is var furniture && furniture!="")Hud.OpenFurniture(furniture);
             else if(Session.Position.Distance(def.Bed)<=1.6)Hud.RequestSleep();
             else if(Session.Position.Distance(def.Chest)<=1.6)Hud.OpenStorage();
             else Notify("เดินใกล้จุดโต้ตอบก่อน");
@@ -94,7 +100,7 @@ public partial class FarmScene
     }
     async Task TransitionBuilding(string id,bool exit,bool restoreOrEmergency)
     {
-        transitioning=true;Farmer.InputBlocked=true;InspectPlot(-1);
+        CancelFurniturePlacement();transitioning=true;Farmer.InputBlocked=true;InspectPlot(-1);
         InteriorRoom? candidate=null;bool committed=false;
         try {
             var def=BuildingRegistry.Find(id) ?? throw new InvalidDataException("อาคารไม่รองรับ");

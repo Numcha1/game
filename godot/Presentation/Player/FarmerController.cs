@@ -41,7 +41,7 @@ public partial class FarmerController : Node2D
         if (Session == null || Sprite == null || Camera == null || cameraFollower == null) return;
         var p = Session.Read.Player;
         Vector2 direction = new((Down(Key.D, Key.Right) ? 1 : 0) - (Down(Key.A, Key.Left) ? 1 : 0), (Down(Key.S, Key.Down) ? 1 : 0) - (Down(Key.W, Key.Up) ? 1 : 0));
-        if (InputBlocked || gesture > 0 || Session.Read.World.Paused || p.Sleeping) direction = Vector2.Zero;
+        if (Session.SeatedFurnitureId!="" || InputBlocked || gesture > 0 || Session.Read.World.Paused || p.Sleeping) direction = Vector2.Zero;
         direction = direction.Normalized();
         // Match the original four tiles/second speed and axis-separated collision rule.
         double x = p.X + direction.X * 4 * delta, y = p.Y + direction.Y * 4 * delta;
@@ -64,6 +64,10 @@ public partial class FarmerController : Node2D
             toolSprite.FlipH = facing == "west"; toolSprite.ZIndex = facing == "north" ? -1 : 1;
             toolSprite.Position = new Vector2(facing == "west" ? -10 : 10,-14 + (pose is 1 or 2 ? 1 : 0))*presentationScale;
         }
+        if(Session.SeatedFurnitureId!="") {
+            var seat=Session.FurnitureViews().FirstOrDefault(p=>p.Id==Session.SeatedFurnitureId);
+            if(seat!=null){Sprite.Animation=seat.Rotation==1?"idle-north":"idle-south";Sprite.Position=new Vector2((float)seat.X*32-Position.X,(float)seat.Y*32-Position.Y-22);Sprite.Scale=new Vector2(presentationScale,presentationScale*.78f);}
+        }else Sprite.Scale=Vector2.One*presentationScale;
         cameraFollower.Follow(Position,delta);
     }
     public void Gesture(string action = "plant") {

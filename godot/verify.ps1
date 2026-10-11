@@ -52,6 +52,8 @@ try {
     Invoke-Diagnostic @('--npc-checks') "npcs-$renderer.json" $(if ($Rendered) { 34 } else { 33 })
     if ($Rendered) { Invoke-Diagnostic @('--npc-checks', '--indoor-layout-checks') 'indoor-layout-after.json' 46 }
     if ($Rendered) { Invoke-Diagnostic @('--npc-checks', '--inventory-checks') 'items-inventory-Windows.json' 21 }
+    Invoke-Diagnostic @('--npc-checks', '--furniture-checks', '--furniture-box-only') "furniture-box-loop-$renderer.json" 14
+    Invoke-Diagnostic @('--npc-checks', '--furniture-checks') "furniture-six-types-$renderer.json" 60
     if ($Rendered) { Invoke-Diagnostic @('--npc-checks', '--composition-checks') 'composition/after-all.json' 190 }
     if ($ExtendedLifecycle) { Invoke-Diagnostic @('--lifecycle', '--lifecycle-extended') "lifecycle-extended-$renderer.json" 350 }
     else { Invoke-Diagnostic @('--lifecycle') "lifecycle-$renderer.json" 70 }
