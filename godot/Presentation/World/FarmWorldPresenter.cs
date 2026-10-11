@@ -10,7 +10,9 @@ public partial class FarmWorldPresenter : Node
     TileMapLayer ground = null!, details = null!;
     Node2D actors = null!;
     ShaderMaterial wind = null!;
-    int season = -1;
+    int season = -1, quality = 2;
+    bool reducedMotion;
+    ShaderMaterial water = null!;
     public int GroundCellCount => ground.GetUsedCells().Count;
     public int TreeCount => trees.Count;
     public int CurrentSeason => season;
@@ -34,11 +36,13 @@ public partial class FarmWorldPresenter : Node
     }
     public void SelectPlot(int index)
     {
-        SelectedPlot = index; var tile = GameCatalog.PlotTile(index);
+        SelectedPlot = index;
         if (index < 0) { selection.Visible = false; return; }
+        var tile = GameCatalog.PlotTile(index);
         selection.Position = new Vector2(tile.X * 32, tile.Y * 32); selection.Visible = true;
     }
-    public void SetQuality(int quality) { wind.SetShaderParameter("strength", quality == 0 ? 0 : .8f); foreach (var shadow in treeShadows) shadow.Visible = quality > 0; }
+    public void SetReducedMotion(bool value) { reducedMotion = value; SetQuality(quality); water.SetShaderParameter("motion", value ? 0f : 1f); }
+    public void SetQuality(int quality) { this.quality = quality; wind.SetShaderParameter("strength", quality == 0 || reducedMotion ? 0 : .8f); foreach (var shadow in treeShadows) shadow.Visible = quality > 0; }
     Sprite2D Prop(string asset, Vector2 position, float width, int z = 0)
     {
         var texture = Art.Region(asset);
@@ -54,7 +58,7 @@ public partial class FarmWorldPresenter : Node
         Prop("barrel", new Vector2(50, 116), 24);
         Prop("sign", new Vector2(607, 126), 30);
         var pond = new Sprite2D { Texture = Art.Pond, Position = new Vector2(624, 448), ZIndex = -1 };
-        pond.Material = new ShaderMaterial { Shader = Art.WaterShader }; root.AddChild(pond);
+        water = new ShaderMaterial { Shader = Art.WaterShader }; pond.Material = water; root.AddChild(pond);
         for (int i = 0; i < treeLocations.Length; i++)
         {
             var shadow = new Sprite2D { Texture = Art.Shadow, Position = treeLocations[i] + new Vector2(8, -2), Scale = new Vector2(1.6f, .8f), ZIndex = -2 }; root.AddChild(shadow); treeShadows.Add(shadow);

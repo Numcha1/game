@@ -6,6 +6,7 @@ namespace SeasonsTogether;
 public partial class WeatherLighting : Node2D
 {
     public GameReadModel Read { get; set; } = null!;
+    public bool ReducedMotion { get; set; }
     public int Quality { get; set; } = 2;
     public CanvasModulate Ambient { get; set; } = null!;
     readonly List<PointLight2D> lamps = new();
@@ -41,7 +42,7 @@ public partial class WeatherLighting : Node2D
         int count = Quality switch { 0 => 24, 1 => 64, _ => 120 };
         for (int i = 0; i < drops.Length; i++)
         {
-            var sprite = drops[i]; sprite.Visible = wet && i < count;
+            var sprite = drops[i]; sprite.Visible = wet && i < count && !ReducedMotion;
             if (!sprite.Visible) continue;
             var p = sprite.Position; p.Y += (float)delta * (110 + i % 3 * 60); p.X -= (float)delta * 25;
             if (p.Y > 590) p.Y -= 605; if (p.X < -8) p.X += 816; sprite.Position = p;

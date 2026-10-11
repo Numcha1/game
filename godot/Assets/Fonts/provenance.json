@@ -1,0 +1,27 @@
+﻿[
+    {
+        "file":  "mitr/Mitr-Medium.ttf",
+        "url":  "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/mitr/Mitr-Medium.ttf",
+        "sha256":  "847340933424D473BFF6D011BC08543A2A2D2A670985A93E3431E3AC8926068F"
+    },
+    {
+        "file":  "mitr/OFL.txt",
+        "url":  "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/mitr/OFL.txt",
+        "sha256":  "427AE4AC208B3CB1930BC2398141BED5880F0C057AF4D2FC91B2F7BA8DCFFB7D"
+    },
+    {
+        "file":  "sarabun/Sarabun-Regular.ttf",
+        "url":  "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sarabun/Sarabun-Regular.ttf",
+        "sha256":  "226D4F368FBC0457990DDEF2692679BADFD2C1A4E89E5AC4D43C10BA7743B2F1"
+    },
+    {
+        "file":  "sarabun/Sarabun-SemiBold.ttf",
+        "url":  "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sarabun/Sarabun-SemiBold.ttf",
+        "sha256":  "C0BB057D86E4A12097D701AC0953597E315788D47A446F5B63A6604AB21DCEBA"
+    },
+    {
+        "file":  "sarabun/OFL.txt",
+        "url":  "https://raw.githubusercontent.com/google/fonts/bd8f81ddb5c74d5c8897b36ad88b440266245103/ofl/sarabun/OFL.txt",
+        "sha256":  "B26CAE1321380296BA8311B632A397D5EAC11B47197F9D0AA0B9310F1531AD60"
+    }
+]

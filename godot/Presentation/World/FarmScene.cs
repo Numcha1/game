@@ -43,7 +43,7 @@ public partial class FarmScene : Node2D
         GetTree().AutoAcceptQuit = false;
         arguments = OS.GetCmdlineUserArgs();
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
-        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
+        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks") || arguments.Contains("--premium-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         if (arguments.Contains("--startup-checks") && DiagnosticDataDirectory != null) DataDirectory = DiagnosticDataDirectory;
         if (arguments.Contains("--recovery-check")) DataDirectory = PrepareRecoveryDiagnostic();
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
@@ -72,7 +72,7 @@ public partial class FarmScene : Node2D
         effects = new EffectPool { ZIndex = 8 }; AddChild(effects);
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
-        SetQuality(settings.Load());
+        SetQuality(settings.Load()); InitializeDisplay();
         presentationReady = true;
         }
         catch (Exception e) when (e is InvalidDataException or System.Text.Json.JsonException or KeyNotFoundException) {
@@ -85,6 +85,7 @@ public partial class FarmScene : Node2D
         else if (arguments.Contains("--startup-checks") && !startupHarnessRunning) { startupHarnessRunning = true; _ = RunStartupChecks(); }
         else if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
+        else if (arguments.Contains("--premium-checks")) _ = RunPremiumChecks();
         if (arguments.Contains("--showcase")) PopulateShowcase();
     }
     void ValidateSceneComposition()
@@ -121,7 +122,7 @@ public partial class FarmScene : Node2D
     {
         if ((change & (GameChange.World | GameChange.Plots)) != 0) { RefreshSeason(); RefreshPlots(); }
         if (lastDay != Session.Read.World.Day) {
-            if (lastDay >= 0 && Quality > 0) GetNode<AnimationPlayer>("Transitions/AnimationPlayer").Play("dawn");
+            if (lastDay >= 0 && Quality > 0 && !Display.ReducedMotion) GetNode<AnimationPlayer>("Transitions/AnimationPlayer").Play("dawn");
             lastDay = Session.Read.World.Day;
         }
     }
@@ -162,7 +163,7 @@ public partial class FarmScene : Node2D
         if (Session == null) { shutdown = ReleaseStartupServices(saves, log); return; }
         Session.StateChanged -= OnStateChanged; Session.PersistenceFailed -= Notify;
         if (!operationInProgress && !finalCheckpoint) { try { _ = Session.SaveAsync(); } catch (Exception e) { log.Write("error", "save.exit", e.GetType().Name); } }
-        shutdown = ReleaseServices(pendingOperation, Session, log);
+        shutdown = ReleaseServices(Task.WhenAll(pendingOperation, pendingDisplay), Session, log);
     }
     static async Task ReleaseStartupServices(SaveService? storage, JsonGameLog? logger)
     {
@@ -185,7 +186,7 @@ public partial class FarmScene : Node2D
         if (!ReadyToPlay) { GetTree().Quit(); return; }
         operationInProgress = true; Farmer.InputBlocked = true;
         try {
-            await Session.SaveAsync();
+            await pendingDisplay; await Session.SaveAsync();
             if (import) await saves.ImportLegacyAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng"));
             finalCheckpoint = true;
             if (sceneActive) { if (import) GetTree().ReloadCurrentScene(); else GetTree().Quit(); }

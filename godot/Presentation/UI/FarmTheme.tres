@@ -1,0 +1,90 @@
+[gd_resource type="Theme" load_steps=9 format=3]
+
+[ext_resource type="FontFile" path="res://Assets/Fonts/sarabun/Sarabun-Regular.ttf" id="1"]
+[ext_resource type="FontFile" path="res://Assets/Fonts/sarabun/Sarabun-SemiBold.ttf" id="2"]
+[ext_resource type="FontFile" path="res://Assets/Fonts/mitr/Mitr-Medium.ttf" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="Normal"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.933, 0.878, 0.722, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.412, 0.333, 0.231, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="Hover"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.973, 0.925, 0.804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.624, 0.482, 0.282, 1)
+
+[sub_resource type="StyleBoxFlat" id="Pressed"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.800, 0.667, 0.384, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.412, 0.333, 0.231, 1)
+
+[sub_resource type="StyleBoxFlat" id="Focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.353, 0.478, 0.267, 1)
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="Disabled"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.78, 0.75, 0.66, 1)
+
+[resource]
+default_font = ExtResource("1")
+default_font_size = 14
+Label/colors/font_color = Color(0.267, 0.239, 0.184, 1)
+Label/constants/line_spacing = 3
+Button/colors/font_color = Color(0.267, 0.239, 0.184, 1)
+Button/colors/font_hover_color = Color(0.267, 0.239, 0.184, 1)
+Button/colors/font_pressed_color = Color(0.267, 0.239, 0.184, 1)
+Button/colors/font_focus_color = Color(0.267, 0.239, 0.184, 1)
+Button/colors/font_disabled_color = Color(0.42, 0.40, 0.34, 1)
+Button/fonts/font = ExtResource("2")
+Button/styles/normal = SubResource("Normal")
+Button/styles/hover = SubResource("Hover")
+Button/styles/pressed = SubResource("Pressed")
+Button/styles/focus = SubResource("Focus")
+Button/styles/disabled = SubResource("Disabled")
+Heading/base_type = &"Label"
+Heading/fonts/font = ExtResource("3")
+Heading/font_sizes/font_size = 20
+Compact/base_type = &"Label"
+Compact/font_sizes/font_size = 13
+TooltipLabel/fonts/font = ExtResource("1")
+TooltipLabel/font_sizes/font_size = 14
+VBoxContainer/constants/separation = 8
+HBoxContainer/constants/separation = 6

@@ -1,5 +1,5 @@
 {
-  "passed": 185,
+  "passed": 191,
   "checks": [
     "v1 schema and 24 plots",
     "all eight crops",
@@ -167,6 +167,12 @@
     "journal is detached and forecast delegates to authoritative world",
     "rotation history is available without mutable state access",
     "weak soil retains half-speed growth rule",
+    "display preferences default without touching farm save",
+    "display accessibility preferences survive reload",
+    "display preference bounds validated",
+    "corrupted display preference safely defaults",
+    "rapid display saves finish in order without temporary files",
+    "display preferences never create or migrate Farm v1",
     "new HTTP transport interoperates with unchanged server",
     "new network service preserves UUID idempotency and authoritative moisture",
     "reconnection retains server player identity",
