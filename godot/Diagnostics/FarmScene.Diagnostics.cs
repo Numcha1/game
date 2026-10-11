@@ -28,27 +28,31 @@ public partial class FarmScene
     {
         await NextFrame(SceneTree.SignalName.ProcessFrame);
         var checks = new List<string>();
+        void DeliverInput(InputEvent input, bool parse = false)
+        {
+            using (input) { if (parse) Input.ParseInputEvent(input); else _UnhandledInput(input); }
+        }
         void Check(bool pass, string label) { if (!pass) throw new InvalidOperationException(label); checks.Add(label); }
         try
         {
             Check(renderer.GroundCellCount == 494, "494 ground tiles loaded");
             Check(Session.Read.PlotCount == 24 && renderer.TreeCount == 10, "24 plots and ten seasonal trees");
             double startX = Session.Player.X;
-            Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.D, Pressed = true });
+            DeliverInput(new InputEventKey { PhysicalKeycode = Key.D, Pressed = true }, true);
             for (int i = 0; i < 20; i++) await NextFrame(SceneTree.SignalName.PhysicsFrame);
-            Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.D, Pressed = false });
+            DeliverInput(new InputEventKey { PhysicalKeycode = Key.D, Pressed = false }, true);
             Check(Session.Player.X > startX, "WASD through Godot physics input");
             Check(Farmer.Camera.GlobalPosition.X >= startX * 32, "camera follows player");
             Session.Move(8, 6); Tool = "plant";
-            _UnhandledInput(new InputEventMouseButton { Pressed = true, ButtonIndex = MouseButton.Left, Position = GetViewport().GetCanvasTransform() * new Vector2(256, 192) });
+            DeliverInput(new InputEventMouseButton { Pressed = true, ButtonIndex = MouseButton.Left, Position = GetViewport().GetCanvasTransform() * new Vector2(256, 192) });
             Check(Session.State.Plots[0].Crop == "carrot", "mouse picking uses camera inverse and original plot zero");
             Check(SelectedPlot == 0 && Hud.PlotInformation.Contains("แครอต") && renderer.SelectedPlot == 0, "plot inspection shows selected crop and aligned highlight");
-            _UnhandledInput(new InputEventMouseMotion { Position = GetViewport().GetCanvasTransform() * new Vector2(416, 288) });
+            DeliverInput(new InputEventMouseMotion { Position = GetViewport().GetCanvasTransform() * new Vector2(416, 288) });
             Check(SelectedPlot == 23 && Hud.PlotInformation.Contains("แปลง 24"), "hover inspects last plot using camera inverse");
-            _UnhandledInput(new InputEventMouseMotion { Position = GetViewport().GetCanvasTransform() * new Vector2(112, 128) });
+            DeliverInput(new InputEventMouseMotion { Position = GetViewport().GetCanvasTransform() * new Vector2(112, 128) });
             Check(SelectedPlot == -1 && !Hud.PlotInspectorVisible && renderer.SelectedPlot == -1, "leaving plots hides inspection so buildings remain visible");
             Tool = "clear";
-            _UnhandledInput(new InputEventMouseButton { Pressed = true, ButtonIndex = MouseButton.Left, Position = GetViewport().GetCanvasTransform() * new Vector2(256, 192) });
+            DeliverInput(new InputEventMouseButton { Pressed = true, ButtonIndex = MouseButton.Left, Position = GetViewport().GetCanvasTransform() * new Vector2(256, 192) });
             Check(Hud.ModalVisible && Farmer.InputBlocked && Session.State.Plots[0].Crop == "carrot", "clear opens confirmation without spending or removing crop");
             Hud.CloseModal(); Check(Session.State.Plots[0].Crop == "carrot", "cancel clear preserves crop");
             Hud.RequestPlotAction("clear", 0);
@@ -60,7 +64,7 @@ public partial class FarmScene
             Perform("harvest", 0); Check(Session.Player.Bag.GetValueOrDefault("carrot") == 3, "harvest original quality yield");
             Session.Move(20, 8); int before = Session.State.Coins; Perform("sell"); Check(Session.State.Coins > before, "sell at original shipping location");
             Session.Player.Bag["carrot"] = 4; Session.Move(4, 4); int sleepDay = Session.Read.World.Day;
-            _UnhandledInput(new InputEventKey { PhysicalKeycode = Key.Space, Pressed = true });
+            DeliverInput(new InputEventKey { PhysicalKeycode = Key.Space, Pressed = true });
             Check(Hud.ModalVisible && Session.Read.World.Day == sleepDay, "sleep warns about inventory spoilage before advancing day");
             Hud.CloseModal(); Check(Session.Player.Bag["carrot"] == 4, "cancel sleep preserves inventory");
             Hud.RequestSleep();
