@@ -29,6 +29,26 @@ internal static class RecoveryChecks
             Check(recoveryRefused && save.Load().Coins == 777, "backup recovery cannot race a live profile writer");
         }
         Check(await ProbeLock(locked) == 0, "profile lease releases after shutdown for an independent process");
+        foreach (Encoding encoding in new Encoding[] { new UTF8Encoding(true), Encoding.Unicode, Encoding.BigEndianUnicode, Encoding.UTF32 })
+        {
+            string source = Path.Combine(root, "encoded-" + encoding.WebName); Directory.CreateDirectory(source);
+            string session = Guid.NewGuid().ToString("N"); var farm = new Farm { Coins = 883 };
+            farm.Join(session, "เจ้าของไทย").Bag["carrot"] = 3;
+            byte[] json = encoding.GetPreamble().Concat(encoding.GetBytes(JsonSerializer.Serialize(farm))).ToArray();
+            byte[] identity = encoding.GetPreamble().Concat(encoding.GetBytes(session)).ToArray();
+            File.WriteAllBytes(Path.Combine(source, "farm.json"), json); File.WriteAllBytes(Path.Combine(source, "player.txt"), identity);
+            await using (var save = new SaveService(source)) {
+                Check(save.Load().Coins == Farm.Load(save.SavePath).Coins && save.LoadPlayerSession() == session,
+                    "legacy BOM save and identity match original reader: " + encoding.WebName);
+                Check(json.SequenceEqual(File.ReadAllBytes(save.SavePath)) && identity.SequenceEqual(File.ReadAllBytes(Path.Combine(source, "player.txt"))),
+                    "startup leaves encoded legacy files byte-for-byte unchanged: " + encoding.WebName);
+            }
+            await using (var save = new SaveService(Path.Combine(root, "encoded-target-" + encoding.WebName))) {
+                await save.ImportLegacyAsync(source);
+                Check(save.Load().Find(session)?.Bag["carrot"] == 3 && save.LoadPlayerSession() == session
+                    && json.SequenceEqual(File.ReadAllBytes(save.SavePath)), "paired import preserves encoded v1 ownership and inventory: " + encoding.WebName);
+            }
+        }
         byte[] oldFarm = JsonSerializer.SerializeToUtf8Bytes(new Farm { Coins = 333 });
         byte[] newFarm = JsonSerializer.SerializeToUtf8Bytes(new Farm { Coins = 888 });
         byte[] oldIdentity = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString("N"));

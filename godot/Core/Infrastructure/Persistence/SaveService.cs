@@ -11,6 +11,7 @@ namespace SeasonsTogether.Core.Infrastructure.Persistence;
 public sealed class SaveService : ISaveService
 {
     const int MaximumSaveBytes = 2 * 1024 * 1024;
+    const int MaximumIdentityBytes = 256;
     readonly record struct Snapshot(long Revision, byte[] Bytes);
     readonly Channel<Snapshot> queue = Channel.CreateBounded<Snapshot>(new BoundedChannelOptions(1) {
         FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = false });
@@ -43,7 +44,14 @@ public sealed class SaveService : ISaveService
     public static Farm Deserialize(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length > MaximumSaveBytes) throw new InvalidDataException("เซฟมีขนาดเกินขอบเขตที่รองรับ");
-        var farm = JsonSerializer.Deserialize<Farm>(bytes) ?? throw new InvalidDataException("เซฟไม่สมบูรณ์");
+        Farm? farm;
+        // Legacy File.ReadAllText accepted BOM-marked UTF-8/16/32. Preserve that acceptance at the new byte boundary.
+        if (bytes is [0xEF, 0xBB, 0xBF, ..] or [0xFF, 0xFE, ..] or [0xFE, 0xFF, ..] or [0x00, 0x00, 0xFE, 0xFF, ..]) {
+            using var reader = new StreamReader(new MemoryStream(bytes.ToArray()), System.Text.Encoding.UTF8, true);
+            farm = JsonSerializer.Deserialize<Farm>(reader.ReadToEnd());
+        }
+        else farm = JsonSerializer.Deserialize<Farm>(bytes);
+        if (farm == null) throw new InvalidDataException("เซฟไม่สมบูรณ์");
         FarmInvariants.Validate(farm); return farm;
     }
     public Farm Load()
@@ -59,7 +67,7 @@ public sealed class SaveService : ISaveService
     }
     public string LoadPlayerSession()
     {
-        string identity = File.Exists(IdentityPath) ? System.Text.Encoding.UTF8.GetString(ReadBounded(IdentityPath, 128)).Trim() : "";
+        string identity = File.Exists(IdentityPath) ? DecodeIdentity(ReadBounded(IdentityPath, MaximumIdentityBytes)) : "";
         if (Guid.TryParseExact(identity, "N", out _)) {
             if (File.Exists(SavePath)) {
                 var farm = Deserialize(ReadBounded(SavePath));
@@ -73,6 +81,11 @@ public sealed class SaveService : ISaveService
         identity = Guid.NewGuid().ToString("N");
         // Startup only; identity is not written every frame or every load.
         File.WriteAllText(IdentityPath, identity); return identity;
+    }
+    static string DecodeIdentity(byte[] bytes)
+    {
+        using var reader = new StreamReader(new MemoryStream(bytes), System.Text.Encoding.UTF8, true);
+        return reader.ReadToEnd().Trim();
     }
     public void RequestSave(Farm state)
     {
@@ -153,15 +166,15 @@ public sealed class SaveService : ISaveService
             if (Path.GetFullPath(sourceFarm).Equals(SavePath, StringComparison.OrdinalIgnoreCase)) throw new IOException("เลือกเซฟต้นทางคนละโปรไฟล์");
             byte[] bytes = await Task.Run(() => ReadBounded(sourceFarm), cancellationToken).ConfigureAwait(false);
             var importedFarm = Deserialize(bytes);
-            byte[]? identity = File.Exists(sourceIdentity) ? await Task.Run(() => ReadBounded(sourceIdentity, 128), cancellationToken).ConfigureAwait(false) : null;
-            if (identity != null && !Guid.TryParseExact(System.Text.Encoding.UTF8.GetString(identity).Trim(), "N", out _)) throw new InvalidDataException("identity เซฟเดิมไม่ถูกต้อง");
-            if (importedFarm.Players.Count > 0 && (identity == null || importedFarm.Find(System.Text.Encoding.UTF8.GetString(identity).Trim()) == null))
+            byte[]? identity = File.Exists(sourceIdentity) ? await Task.Run(() => ReadBounded(sourceIdentity, MaximumIdentityBytes), cancellationToken).ConfigureAwait(false) : null;
+            if (identity != null && !Guid.TryParseExact(DecodeIdentity(identity), "N", out _)) throw new InvalidDataException("identity เซฟเดิมไม่ถูกต้อง");
+            if (importedFarm.Players.Count > 0 && (identity == null || importedFarm.Find(DecodeIdentity(identity)) == null))
                 throw new InvalidDataException("เซฟเดิมต้องมี player.txt ที่ตรงกับผู้เล่นในฟาร์ม");
             await storageGate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 byte[]? original = File.Exists(SavePath) ? ReadBounded(SavePath) : null;
-                byte[]? oldIdentity = File.Exists(IdentityPath) ? ReadBounded(IdentityPath, 128) : null;
+                byte[]? oldIdentity = File.Exists(IdentityPath) ? ReadBounded(IdentityPath, MaximumIdentityBytes) : null;
                 string backup = SavePath + ".before-import-" + Guid.NewGuid().ToString("N");
                 if (original != null) await ReplaceAsync(backup, original).ConfigureAwait(false);
                 if (oldIdentity != null) await ReplaceAsync(backup + ".player", oldIdentity).ConfigureAwait(false);
@@ -194,8 +207,8 @@ public sealed class SaveService : ISaveService
     {
         if (journal.Version != 1) throw new InvalidDataException("เวอร์ชันบันทึกกู้คืนไม่รองรับ");
         if (journal.Farm != null) _ = Deserialize(journal.Farm);
-        if (journal.Identity != null && (journal.Identity.Length > 128 ||
-            !Guid.TryParseExact(System.Text.Encoding.UTF8.GetString(journal.Identity).Trim(), "N", out _)))
+        if (journal.Identity != null && (journal.Identity.Length > MaximumIdentityBytes ||
+            !Guid.TryParseExact(DecodeIdentity(journal.Identity), "N", out _)))
             throw new InvalidDataException("ข้อมูลผู้เล่นในบันทึกกู้คืนไม่ถูกต้อง");
     }
     void RecoverInterruptedImport()
@@ -228,7 +241,7 @@ public sealed class SaveService : ISaveService
         string identityPath = Path.Combine(Path.GetDirectoryName(savePath)!, "player.txt");
         if (farm.Players.Count > 0 || File.Exists(identityPath))
         {
-            string identity = System.Text.Encoding.UTF8.GetString(ReadBounded(identityPath, 128)).Trim();
+            string identity = DecodeIdentity(ReadBounded(identityPath, MaximumIdentityBytes));
             if (!Guid.TryParseExact(identity, "N", out _) || farm.Players.Count > 0 && farm.Find(identity) == null)
                 throw new InvalidDataException("ข้อมูลผู้เล่นไม่ตรงกับเซฟสำรอง ต้องกู้คืนไฟล์เป็นคู่");
         }
