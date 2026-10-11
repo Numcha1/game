@@ -18,7 +18,7 @@ public static class FarmInputRouter
             switch (key.PhysicalKeycode)
             {
                 case Key.Tab: farm.Seed = farm.CropKeys[(Array.IndexOf(farm.CropKeys, farm.Seed) + 1) % 8]; farm.Hud.Refresh(); break;
-                case Key.E: farm.Perform("sell"); break;
+                case Key.E: farm.Hud.RequestSale(); break;
                 case Key.Space: farm.Hud.RequestSleep(); break;
                 case Key.B: case Key.I: farm.Hud.OpenBag(); break;
                 case Key.O: farm.Hud.OpenShop(); break;

@@ -181,9 +181,28 @@ public partial class FarmHud : Control
         if (inventory.Count == 0) modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ยังไม่มีผลผลิตในกระเป๋า" });
         var grid=new GridContainer { Columns=2,SizeFlagsHorizontal=SizeFlags.ExpandFill };modalContent.AddChild(grid);
         foreach (var pair in inventory) AddItemCard(grid,pair.Crop,pair.Name,$"{pair.Quantity} ชิ้น\nราคาวันนี้ {pair.UnitPrice} เหรียญ",()=>OpenItem(pair));
-        modalContent.AddChild(Button("ขายทั้งหมด · ต้องยืนใกล้ลังขาย", () => { CloseModal(); farm.Perform("sell"); }));
+        modalContent.AddChild(Button("ตรวจรายได้และขายทั้งหมด · ใกล้ลังขาย", RequestSale));
         modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ผลผลิตลด 25% เมื่อข้ามคืน ควรขายก่อนเข้านอน" });
         currentMenu=1;menuDay=farm.Session.Read.World.Day;
+    }
+    public string SalePreviewText { get; private set; } = "";
+    public void RequestSale()
+    {
+        var quote = farm.Session.Read.QuoteSale();
+        if (quote.Items.Count == 0) { if (ModalVisible) CloseModal(); farm.Notify("ยังไม่มีผลผลิตในกระเป๋า"); return; }
+        Open("ตรวจรายได้ก่อนขาย");
+        SalePreviewText = string.Join("\n", quote.Items.Select(item => $"{item.Name} × {item.Quantity} · {item.UnitPrice} เหรียญ/ชิ้น"))
+            + $"\nรวม {quote.Total:N0} เหรียญ · ราคาวันนี้\nต้องยืนใกล้ลังขายด้านขวา ราคาจะตรวจอีกครั้งเมื่อยืนยัน";
+        modalContent.AddChild(new Label { Text = SalePreviewText, AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill });
+        bool submitted = false;
+        var confirm = Button("ยืนยันขายทั้งหมด", () => {
+            if (submitted) return;
+            if (!quote.Matches(farm.Session.Read.QuoteSale())) {
+                RequestSale(); farm.Notify("วันหรือผลผลิตเปลี่ยนแล้ว กรุณาตรวจรายได้ใหม่"); return;
+            }
+            submitted = true; CloseModal(); farm.Perform("sell");
+        });
+        confirm.Name = "ConfirmSale"; modalContent.AddChild(confirm);
     }
     void AddItemCard(GridContainer grid,string key,string title,string description,Action action,bool selected=false) {
         var card=farm.Art.ItemCardScene.Instantiate<FarmItemCard>();card.Name="Item-"+key;grid.AddChild(card);

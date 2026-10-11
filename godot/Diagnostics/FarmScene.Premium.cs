@@ -22,6 +22,30 @@ public partial class FarmScene
             StartPlaying();Hud.CloseModal();
             Check(!TitleActive && !Hud.ModalVisible && !Farmer.InputBlocked,"enter farm releases presentation input gate");
             Hud.ShowTutorial();Check(Hud.TutorialVisible && !Farmer.InputBlocked,"tutorial overlay keeps farming input responsive");
+            Session.Player.Bag["carrot"] = 3; Session.Move(20,8);
+            int quoteCoins = Session.State.Coins; long quoteTotal = Session.Read.QuoteSale().Total;
+            Hud.RequestSale();
+            Check(Hud.ModalVisible && Farmer.InputBlocked && Hud.SalePreviewText.Contains(quoteTotal.ToString("N0")) && Session.State.Coins == quoteCoins, "sale preview displays daily estimate without spending or selling");
+            if(DisplayServer.GetName()!="headless") {
+                for(int n=0;n<3;n++)await NextFrame(SceneTree.SignalName.ProcessFrame);await NextDraw();
+                using var shot=GetViewport().GetTexture().GetImage();shot.SavePng(Path.Combine(ProjectSettings.GlobalizePath("res://reports"),"sale-preview.png"));
+            }
+            Hud.CloseModal();
+            Check(Session.State.Coins == quoteCoins && Session.Player.Bag["carrot"] == 3 && !Farmer.InputBlocked, "cancel sale preserves inventory and releases input");
+            Hud.RequestSale();
+            var saleButton = Hud.FindChild("ConfirmSale", true, false) as Button ?? throw new InvalidOperationException("sale confirmation absent");
+            Session.State.Day++;
+            saleButton.EmitSignal(Button.SignalName.Pressed);
+            Check(Hud.ModalVisible && Session.State.Coins == quoteCoins && Session.Player.Bag["carrot"] == 3, "day transition requires fresh sale confirmation");
+            saleButton = Hud.FindChild("ConfirmSale", true, false) as Button ?? throw new InvalidOperationException("fresh sale confirmation absent");
+            quoteTotal = Session.Read.QuoteSale().Total;
+            saleButton.EmitSignal(Button.SignalName.Pressed); saleButton.EmitSignal(Button.SignalName.Pressed);
+            Check(!Hud.ModalVisible && Session.State.Coins == quoteCoins + quoteTotal && Session.Player.Bag.Count == 0, "confirmed sale pays authoritative price once despite repeated UI signal");
+            Session.Player.Bag["carrot"] = 1; Hud.RequestSale();
+            saleButton = Hud.FindChild("ConfirmSale", true, false) as Button ?? throw new InvalidOperationException("empty test confirmation absent");
+            Session.Player.Bag.Clear(); saleButton.EmitSignal(Button.SignalName.Pressed);
+            Check(!Hud.ModalVisible && Session.State.Coins == quoteCoins + quoteTotal, "emptied inventory dismisses stale preview without selling");
+            Session.State.Day--; Session.State.Coins = quoteCoins;
             Hud.OpenPause();
             if(DisplayServer.GetName()!="headless") { for(int n=0;n<3;n++)await NextFrame(SceneTree.SignalName.ProcessFrame);await NextDraw();using var shot=GetViewport().GetTexture().GetImage();shot.SavePng(Path.Combine(ProjectSettings.GlobalizePath("res://reports"),"pause.png")); }
             Hud.OpenSettings();Hud.CloseModal();

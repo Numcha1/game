@@ -13,6 +13,7 @@ public sealed class GameReadModel
     public PlayerView Player => new(player.X, player.Y, player.Energy, player.Sleeping);
     public int PlotCount => farm.Plots.Count;
     public string TomorrowWeather => farm.Forecast(farm.Day + 1);
+    public SaleQuote QuoteSale() => new(farm.Day, Array.AsReadOnly(Inventory().OrderBy(item => item.Crop, StringComparer.Ordinal).ToArray()));
     public IReadOnlyList<string> Journal() => Array.AsReadOnly(farm.Journal.ToArray());
     public PlotView Plot(int index)
     {
