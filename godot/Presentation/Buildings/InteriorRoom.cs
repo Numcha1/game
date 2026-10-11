@@ -14,7 +14,7 @@ public partial class InteriorRoom : Node2D
     int lastMinute=-1; bool lastLights;
     FarmScene owner=null!;
     AudioStreamPlayer ambience=null!;
-    public void Initialize(GameReadModel model,BuildingDefinition def,FarmScene scene)
+    public virtual void Initialize(GameReadModel model,BuildingDefinition def,FarmScene scene)
     {
         read=model;owner=scene;background=GetNode<Sprite2D>("Background");
         foreach(var marker in new[]{("Spawn",def.Spawn),("Exit",def.Exit),("Bed",def.Bed),("Chest",def.Chest)})

@@ -15,8 +15,9 @@ public static class NpcRegistry
         new NpcDefinition("clara","คลารา","คนทำขนม","","",false),new NpcDefinition("elias","อีไลอัส","ผู้ดูแลหมู่บ้าน","","",false),
         new NpcDefinition("iris","ไอริส","บรรณารักษ์","","",false),new NpcDefinition("bram","บราม","คนงานเหมือง","","",false),
         new NpcDefinition("selene","เซลีน","นักวิจัยฤดูกาล","","",false),new NpcDefinition("nia","เนีย","ผู้ดูแลสัตว์","","",false)});
-    public static IEnumerable<NpcDefinition> Active=>All.Where(n=>n.Implemented);
-    public static NpcDefinition? Find(string id)=>All.FirstOrDefault(n=>n.Id==id && n.Implemented);
+    public static IReadOnlyList<NpcDefinition> Active {get;}=Array.AsReadOnly(All.Where(n=>n.Implemented).ToArray());
+    static readonly IReadOnlyDictionary<string,NpcDefinition> Implemented=Active.ToDictionary(n=>n.Id);
+    public static NpcDefinition? Find(string id)=>id!=null && Implemented.TryGetValue(id,out var npc)?npc:null;
 }
 public sealed class NpcState
 {
@@ -132,8 +133,8 @@ public static class NpcDialogue
         ["rowan.greeting"]="สวัสดี ฉันโรวัน ช่างไม้ประจำหมู่บ้าน งานที่แข็งแรงเริ่มจากการวางแผนที่ดี",
         ["mira.guide"]="รดน้ำทุกวัน สลับชนิดพืชเพื่อถนอมดิน และดูฤดูก่อนปลูก เมล็ดที่ซื้อไว้จะใช้ก่อนเงินสดตอนปลูก",
         ["rowan.guide"]="ฉันติดตั้งหลังคาเรือนกระจกให้ได้ ใช้ 300 เหรียญ ปลูกได้ทุกฤดูและกันพายุ ตามกฎเดิมของฟาร์ม",
-        ["mira.request"]="ฉันอยากเห็นแครอทจากสวนของเธอ! ตอนนี้คุยเรื่องการปลูกกันได้ ระบบส่งคำขอและรางวัลจะมาในช่วงเควสต์",
-        ["rowan.project"]="บ้านต้องค่อย ๆ เติบโต ระบบขยายห้องและจัดเฟอร์นิเจอร์ยังไม่เปิด วันนี้ฉันช่วยเรื่องเรือนกระจกได้",
+        ["mira.request"]="ฉันสนใจแครอทจากสวนที่ดูแลอย่างใส่ใจ ลองสลับพืชและถนอมดินนะ วันนี้ฉันยังไม่รับซื้อเพิ่มเติม",
+        ["rowan.project"]="การขยายบ้านต้องเตรียมแบบและวัสดุก่อน ตอนนี้ฉันรับงานหลังคาเรือนกระจกให้สวนของเธอได้",
         ["mira.rain"]="ฝนวันนี้ช่วยรดน้ำ แต่ระวังดินแฉะนะ ฉันจะอยู่ในร้านแทนการไปพักที่ลาน",
         ["rowan.rain"]="ฝนลงแล้ว เก็บเครื่องมือให้แห้งก่อน ฉันทำงานอยู่ในโรงไม้",
         ["mira.friend"]="ดีใจที่ได้เจอชาวสวนที่ตั้งใจอย่างเธออีก วันนี้สวนเป็นอย่างไรบ้าง?",
@@ -144,5 +145,6 @@ public static class NpcDialogue
         ["rowan.home"]="เลิกงานแล้ว ขอพักมือสักหน่อย พรุ่งนี้ฉันกลับไปทำงานตั้งแต่แปดโมง"
     };
     public static bool Contains(string key)=>Thai.ContainsKey(key);
-    public static string Text(string key)=>Thai.GetValueOrDefault(key,"ขอโทษนะ ตอนนี้ฉันยังไม่มีเรื่องใหม่ แต่เธอกลับออกไปเล่นต่อได้เสมอ");
+    static readonly IReadOnlyDictionary<string,IReadOnlyDictionary<string,string>> Locales=new Dictionary<string,IReadOnlyDictionary<string,string>> { ["th"]=Thai };
+    public static string Text(string key,string locale="th")=>Locales.GetValueOrDefault(locale,Thai).GetValueOrDefault(key,"ขอโทษนะ ตอนนี้ฉันยังไม่มีเรื่องใหม่ แต่เธอกลับออกไปเล่นต่อได้เสมอ");
 }

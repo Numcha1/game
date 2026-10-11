@@ -11,7 +11,7 @@ public interface ISaveService : IAsyncDisposable
     string LoadPlayerSession();
     void RequestSave(Farm state);
     void RequestSave(Farm state, BuildingState buildings) {
-        if(buildings.Interiors.Count!=0)throw new NotSupportedException("Persistence adapter does not support buildings");
+        if(buildings.Interiors.Count!=0 || buildings.Village.Npcs.Count!=0 || buildings.Village.Seeds.Count!=0 || buildings.Village.AppliedCommands.Count!=0)throw new NotSupportedException("Persistence adapter does not support buildings");
         RequestSave(state);
     }
     Task FlushAsync(CancellationToken cancellationToken = default);

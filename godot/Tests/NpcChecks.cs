@@ -37,6 +37,7 @@ static class NpcChecks
         Check(!NpcDialogue.Text("missing").Contains("missing"),"missing dialogue has safe Thai fallback");
         string profile=Path.Combine(reports,"npc-profile-"+Guid.NewGuid().ToString("N"));Guid purchase=Guid.NewGuid(),carpentry=Guid.NewGuid();
         await using(var game=new GameSession(new SaveService(profile))) {
+            Check(game.NpcAccessError(null!)!="","null NPC command identity is rejected without throwing");
             game.State.Minute=600;game.State.Coins=500;
             Check(!game.BuySeeds("carrot",1,purchase).Changed,"remote seed purchase rejected");
             game.Move(23,8);Check(game.EnterBuilding(map.Id).Changed,"village entry retains native exterior anchor");
@@ -82,7 +83,17 @@ static class NpcChecks
             Check(refused,"strict NPC save validation rejects "+fault);
         }
         saved["Buildings"]!.AsObject().Remove("Village");
-        Check(SaveService.Deserialize(System.Text.Encoding.UTF8.GetBytes(saved.ToJsonString())).Version==1,"pre-NPC version-two building save loads without optional village member");
+        bool missingRefused=false;try{SaveService.Deserialize(System.Text.Encoding.UTF8.GetBytes(saved.ToJsonString()));}catch(InvalidDataException){missingRefused=true;}
+        Check(missingRefused,"used village cannot silently reset NPC state when its save section is missing");
+        saved["Buildings"]!["Interiors"]=new JsonObject {[BuildingRegistry.Farmhouse.Id]=System.Text.Json.JsonSerializer.SerializeToNode(new InteriorState())};
+        saved["Buildings"]!["Locations"]=new JsonObject();
+        Check(SaveService.Deserialize(System.Text.Encoding.UTF8.GetBytes(saved.ToJsonString())).Version==1,"actual pre-NPC farmhouse version-two save loads without village member");
+        string metadataProfile=Path.Combine(reports,"npc-profile-"+Guid.NewGuid().ToString("N"));Guid applied=Guid.NewGuid();
+        await using(var game=new GameSession(new SaveService(metadataProfile))) {
+            game.Buildings.Village.AppliedCommands.Add(applied);game.SaveAsync().GetAwaiter().GetResult();
+        }
+        await using(var game=new GameSession(new SaveService(metadataProfile)))
+            Check(game.Buildings.Village.AppliedCommands.SequenceEqual(new[]{applied}),"metadata-only NPC replay ledger survives atomic save without reverting to v1");
         return checks;
     }
 }

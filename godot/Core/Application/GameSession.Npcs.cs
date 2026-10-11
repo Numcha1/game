@@ -7,18 +7,31 @@ public readonly record struct NpcView(string Id,string Name,string Role,string R
 public sealed partial class GameSession
 {
     readonly NpcSimulation npcSimulation=new();
+    public bool TryNpc(string id,out NpcView view)
+    {
+        if(Buildings.Village.Npcs.TryGetValue(id,out var n) && NpcRegistry.Find(id) is {} def) {
+            view=new(def.Id,def.Name,def.Role,n.Region,n.X,n.Y,NpcSchedules.Resolve(def,(int)State.Minute,State.Weather,State.Season).Activity,n.Friendship.GetValueOrDefault(Player.Id)/100);return true;
+        }
+        view=default;return false;
+    }
     public IReadOnlyList<NpcView> Npcs()=>Array.AsReadOnly(Buildings.Village.Npcs.Select(pair=>{
         var def=NpcRegistry.Find(pair.Key)!;var n=pair.Value;
         return new NpcView(def.Id,def.Name,def.Role,n.Region,n.X,n.Y,NpcSchedules.Resolve(def,(int)State.Minute,State.Weather,State.Season).Activity,n.Friendship.GetValueOrDefault(Player.Id)/100);
     }).ToArray());
     public int SeedCount(string crop)=>Buildings.Village.Seeds.GetValueOrDefault(crop);
-    public string NearestNpc()=>Npcs().Where(n=>n.Region==ActiveBuildingId && Position.Distance(new(n.X,n.Y))<=1.7)
-        .OrderBy(n=>Position.Distance(new(n.X,n.Y))).Select(n=>n.Id).FirstOrDefault() ?? "";
+    public string NearestNpc()
+    {
+        string nearest="";double distance=1.7;var position=Position;string region=ActiveBuildingId;
+        foreach(var pair in Buildings.Village.Npcs)if(pair.Value.Region==region) {
+            double next=position.Distance(pair.Value.Position);if(next<=distance){distance=next;nearest=pair.Key;}
+        }
+        return nearest;
+    }
     public string NpcAccessError(string id)
     {
         CheckThread();
         if(State.Paused || Player.Sleeping)return "กลับเข้าเกมก่อนพูดคุย";
-        if(!Buildings.Village.Npcs.TryGetValue(id,out var n) || n.Region!=ActiveBuildingId || Position.Distance(n.Position)>1.7)return "เดินเข้าใกล้ตัวละครก่อน";
+        if(id==null || !Buildings.Village.Npcs.TryGetValue(id,out var n) || n.Region!=ActiveBuildingId || Position.Distance(n.Position)>1.7)return "เดินเข้าใกล้ตัวละครก่อน";
         return "";
     }
     public string Dialogue(string id,string choice="greeting")

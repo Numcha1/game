@@ -13,6 +13,10 @@ public partial class FarmAudio : Node
     {
         for(int i=0;i<voices.Length;i++){voices[i]=new AudioStreamPlayer { Bus="Effects" };AddChild(voices[i]);}
     }
+    public override void _ExitTree()
+    {
+        foreach(var voice in voices)if(GodotObject.IsInstanceValid(voice)){voice.Stop();voice.Stream=null;}
+    }
     public void Play(string action,bool success=true)
     {
         var key=!success?"error":action=="door"?"door":action=="water"?"water":action=="harvest"?"harvest":action=="sell"?"coin":"click";

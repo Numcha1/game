@@ -27,6 +27,9 @@ public partial class FarmScene
         doorPrompt.AddThemeColorOverride("font_shadow_color",new Color(.1f,.15f,.1f));doorPrompt.AddThemeConstantOverride("shadow_offset_x",2);doorPrompt.AddThemeConstantOverride("shadow_offset_y",2);layer.AddChild(doorPrompt);
         doorPrompt.AddThemeColorOverride("font_color",new Color("fff2cc"));
         doorPulse=new Sprite2D {Texture=Art.Glow,ZIndex=6,Visible=false,Scale=Vector2.One*.22f};AddChild(doorPulse);
+        AddChild(new Sprite2D {Name="VillageRouteSign",Texture=Art.Region("sign"),Position=new Vector2(726,236)});
+        var route=new Label {Name="VillageRouteLabel",Text="หมู่บ้าน →",Theme=FarmTypography.Shared,Position=new Vector2(670,206),Size=new Vector2(110,24)};
+        route.AddThemeFontSizeOverride("font_size",13);route.AddThemeColorOverride("font_color",new Color("fff0ca"));route.AddThemeColorOverride("font_shadow_color",new Color("24392b"));route.AddThemeConstantOverride("shadow_offset_x",1);route.AddThemeConstantOverride("shadow_offset_y",1);AddChild(route);
         if(Session.InsideBuilding)pendingTransition=TransitionBuilding(Session.ActiveBuildingId,false,true);
     }
     void UpdateDoorPrompt()
@@ -35,23 +38,30 @@ public partial class FarmScene
         if(doorPulse.Visible)doorPulse.Modulate=new Color(1,.8f,.45f,.35f+.15f*Mathf.Sin(Time.GetTicksMsec()/60f));
         if(transitioning || TitleActive || Hud.ModalVisible){doorPrompt.Text="";return;}
         var point=Session.Position;
+        string npc=Session.NearestNpc();
+        if(npc!=""){Session.TryNpc(npc,out var view);doorPrompt.Text="F · คุยกับ"+view.Name;return;}
+        var nearby=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId==Session.ActiveBuildingId && point.Distance(b.Entrance)<=1.3);
+        if(nearby!=null){doorPrompt.Text="F · เข้า"+nearby.Name;return;}
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } inside) {
-            doorPrompt.Text=point.Distance(inside.Exit)<=1.4 ? "F · ออกไปฟาร์ม" : point.Distance(inside.Bed)<=1.6 ? "F / Space · เข้านอน" : point.Distance(inside.Chest)<=1.6 ? "F · เปิดกล่องเก็บของ" : "บ้าน Moonroot · F โต้ตอบ · Esc เมนู";
+            doorPrompt.Text=point.Distance(inside.Exit)<=1.4 ? inside.ParentId==""?"F · กลับฟาร์ม":"F · กลับหมู่บ้าน" : point.Distance(inside.Bed)<=1.6 ? "F / Space · เข้านอน" : point.Distance(inside.Chest)<=1.6 ? "F · เปิดกล่องเก็บของ" : inside.Name+" · F โต้ตอบ · Esc เมนู";
         } else {
-            var building=BuildingRegistry.All.FirstOrDefault(b=>point.Distance(b.Entrance)<=1.8);
+            var building=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId=="" && point.Distance(b.Entrance)<=1.8);
             doorPrompt.Text=building==null?"":"F · เข้า"+building.Name;
         }
     }
     public void InteractBuilding()
     {
         if(!ReadyToPlay || IsBusy || Hud.ModalVisible || TitleActive)return;
+        string npc=Session.NearestNpc();if(npc!=""){Hud.OpenNpc(npc);return;}
+        var nearby=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId==Session.ActiveBuildingId && Session.Position.Distance(b.Entrance)<=1.3);
+        if(nearby!=null){RequestBuildingEntry(nearby.Id);return;}
         if(BuildingRegistry.Find(Session.ActiveBuildingId) is { } def) {
             if(Session.Position.Distance(def.Exit)<=1.4)RequestBuildingExit();
             else if(Session.Position.Distance(def.Bed)<=1.6)Hud.RequestSleep();
             else if(Session.Position.Distance(def.Chest)<=1.6)Hud.OpenStorage();
             else Notify("เดินใกล้จุดโต้ตอบก่อน");
         } else {
-            var building=BuildingRegistry.All.FirstOrDefault(b=>Session.Position.Distance(b.Entrance)<=1.8);
+            var building=BuildingRegistry.All.FirstOrDefault(b=>b.ParentId=="" && Session.Position.Distance(b.Entrance)<=1.8);
             if(building!=null)RequestBuildingEntry(building.Id);
         }
     }
@@ -83,15 +93,17 @@ public partial class FarmScene
         InteriorRoom? candidate=null;bool committed=false;
         try {
             var def=BuildingRegistry.Find(id) ?? throw new InvalidDataException("อาคารไม่รองรับ");
-            if(!exit) {
-                var scene=await interiorLoader.Load(IsDiagnosticSession && DiagnosticInteriorSceneOverride!=null ? DiagnosticInteriorSceneOverride : def.Scene,()=>NextFrame(SceneTree.SignalName.ProcessFrame),sceneLifetime.Token);
-                candidate=scene.Instantiate<InteriorRoom>();AddChild(candidate);candidate.Visible=false;candidate.Initialize(Session.Read,def,this);
+            var destination=exit && !restoreOrEmergency && def.ParentId!=""?BuildingRegistry.Find(def.ParentId):exit?null:def;
+            if(destination!=null) {
+                var scene=await interiorLoader.Load(IsDiagnosticSession && DiagnosticInteriorSceneOverride!=null ? DiagnosticInteriorSceneOverride : destination.Scene,()=>NextFrame(SceneTree.SignalName.ProcessFrame),sceneLifetime.Token);
+                candidate=scene.Instantiate<InteriorRoom>();AddChild(candidate);candidate.Visible=false;candidate.Initialize(Session.Read,destination,this);
             }
             audio.Play("door");await FadeDoor(1);
             var result=exit?Session.ExitBuilding(restoreOrEmergency):restoreOrEmergency?new Core.Application.CommandResult("กลับเข้าบ้านที่บันทึกไว้",true):Session.EnterBuilding(id);
             if(!result.Changed) {Notify(result.Message);await FadeDoor(0);return;}
             committed=true;
-            if(exit)RestoreExterior();else ShowInterior(candidate!);
+            RestoreExterior();
+            if(Session.InsideBuilding)ShowInterior(candidate!);
             candidate=null;Notify(result.Message);
             await FadeDoor(0);
         }
@@ -119,12 +131,14 @@ public partial class FarmScene
         }
         weather.SetProcess(false);accents.SetProcess(false);GetNode<CanvasModulate>("Ambient").Color=Colors.White;
         room.Visible=true;ResetBuildingCamera(true);
+        accents.PondRipplesEnabled=Session.ActiveBuildingId!=NpcRegistry.Village;
+        if(Session.ActiveBuildingId==NpcRegistry.Village){weather.Visible=true;accents.Visible=true;weather.SetProcess(true);accents.SetProcess(true);}
     }
     void RestoreExterior()
     {
         if(interior!=null){Farmer.Reparent(GetNode<Node2D>("Actors"));interior.QueueFree();interior=null;}
         foreach(var entry in hiddenExterior)if(GodotObject.IsInstanceValid(entry.Node))entry.Node.Visible=entry.Visible;
-        hiddenExterior.Clear();weather.SetProcess(true);accents.SetProcess(true);ResetBuildingCamera(false);
+        hiddenExterior.Clear();accents.PondRipplesEnabled=true;weather.SetProcess(true);accents.SetProcess(true);ResetBuildingCamera(false);
     }
     void ResetBuildingCamera(bool indoor)
     {

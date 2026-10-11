@@ -8,6 +8,7 @@ public partial class WeatherAccentPool : Node2D
     public GameReadModel Read { get; set; } = null!;
     public int Quality { get; set; } = 2;
     public bool ReducedMotion { get; set; }
+    public bool PondRipplesEnabled { get; set; } = true;
     readonly Line2D[] rings = new Line2D[12], splashes = new Line2D[16], leaves = new Line2D[18];
     readonly Vector2[] leafPositions = new Vector2[18];
     double elapsed;
@@ -52,7 +53,7 @@ public partial class WeatherAccentPool : Node2D
         }
         for(int i=0;i<rings.Length;i++) {
             float age=(float)((elapsed+i*.17)%1.8/1.8);var ring=rings[i];
-            ring.Visible=wet && !ReducedMotion && Quality>0 && (Quality==2 || i<6);
+            ring.Visible=PondRipplesEnabled && wet && !ReducedMotion && Quality>0 && (Quality==2 || i<6);
             if(!ring.Visible)continue;ring.Scale=Vector2.One*(.5f+age*1.8f);ring.Modulate=new Color(1,1,1,(1-age)*.45f);
         }
         for(int i=0;i<splashes.Length;i++) {

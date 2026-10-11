@@ -31,7 +31,7 @@ internal sealed class BuildingSaveDocument
     public static byte[] Encode(Farm farm, BuildingState buildings)
     {
         buildings.Validate(farm);
-        if(buildings.Interiors.Count==0 && buildings.Village.Npcs.Count==0 && buildings.Village.Seeds.Count==0)return JsonSerializer.SerializeToUtf8Bytes(farm);
+        if(buildings.Interiors.Count==0 && buildings.Village.Npcs.Count==0 && buildings.Village.Seeds.Count==0 && buildings.Village.AppliedCommands.Count==0)return JsonSerializer.SerializeToUtf8Bytes(farm);
         return JsonSerializer.SerializeToUtf8Bytes(new BuildingSaveDocument { Farm=JsonSerializer.SerializeToElement(farm),Buildings=buildings });
     }
 }

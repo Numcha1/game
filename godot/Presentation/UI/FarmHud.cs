@@ -183,6 +183,7 @@ public partial class FarmHud : Control
     {
         Open("กระเป๋าผลผลิต");
         var inventory = farm.Session.Read.Inventory();
+        AppendSeedInventory();
         if (inventory.Count == 0) modalContent.AddChild(new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = SizeFlags.ExpandFill, Text = "ยังไม่มีผลผลิตในกระเป๋า" });
         var grid=new GridContainer { Columns=2,SizeFlagsHorizontal=SizeFlags.ExpandFill };modalContent.AddChild(grid);
         foreach (var pair in inventory) AddItemCard(grid,pair.Crop,pair.Name,$"{pair.Quantity} ชิ้น\nราคาวันนี้ {pair.UnitPrice} เหรียญ",()=>OpenItem(pair));

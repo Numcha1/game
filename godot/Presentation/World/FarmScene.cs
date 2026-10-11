@@ -50,9 +50,9 @@ public partial class FarmScene : Node2D
         GetTree().AutoAcceptQuit = false;
         arguments = OS.GetCmdlineUserArgs();
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
-        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks") || arguments.Contains("--premium-checks") || arguments.Contains("--building-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
+        if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle") || arguments.Contains("--startup-checks") || arguments.Contains("--premium-checks") || arguments.Contains("--building-checks") || arguments.Contains("--npc-checks")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         if (arguments.Contains("--startup-checks") && DiagnosticDataDirectory != null) DataDirectory = DiagnosticDataDirectory;
-        if(arguments.Contains("--building-checks") && BuildingDiagnosticDirectory!=null)DataDirectory=BuildingDiagnosticDirectory;
+        if((arguments.Contains("--building-checks") || arguments.Contains("--npc-checks")) && BuildingDiagnosticDirectory!=null)DataDirectory=BuildingDiagnosticDirectory;
         if (arguments.Contains("--recovery-check")) DataDirectory = PrepareRecoveryDiagnostic();
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
         catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
@@ -97,6 +97,7 @@ public partial class FarmScene : Node2D
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         else if (arguments.Contains("--premium-checks")) _ = RunPremiumChecks();
         else if (arguments.Contains("--building-checks")) _ = RunBuildingChecks();
+        else if(arguments.Contains("--npc-checks")) _ = RunNpcChecks();
         if (arguments.Contains("--showcase")) PopulateShowcase();
         if (!IsDiagnosticSession && ReadyToPlay) Hud.OpenTitle();
     }
