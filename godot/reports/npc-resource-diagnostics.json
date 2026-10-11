@@ -1,0 +1,16 @@
+{
+  "resourceAcceptance": "open",
+  "functionalChecks": {
+    "rendered": 34,
+    "headless": 33,
+    "core": 326
+  },
+  "compilerWarnings": 0,
+  "compilerErrors": 0,
+  "finalRenderedExitWarning": "1 ObjectDB instance leaked at exit",
+  "finalHeadlessExitWarning": "1 ObjectDB instance leaked at exit",
+  "verboseProbe": "generic native RefCounted, reference count 0; unidentified ownership",
+  "npcSceneReloads": 3,
+  "nodeAndObserverBaselineAssertions": "passed",
+  "interpretation": "Finite tests do not certify absence of leaks. Native exit warning remains unresolved."
+}

@@ -1,3 +1,11 @@
+# Living village: NPC Milestones 1-2
+
+From the farm, walk to the village sign on the right near `(23, 8)` and press **F**. Press **F** near Mira/Rowan or a registered door. Mira sells the original eight crop seeds; bought seeds appear in the bag and are consumed before cash when planting. Rowan installs the existing greenhouse through the original game rules. Both walk between workplaces, square and visitable homes; NPCs, seeds and daily conversations persist.
+
+[Audit and architecture](docs/NPC_SYSTEM.md) | [Executed tests, performance and open resource warning](docs/NPC_MEASUREMENTS.md) | [Changed files](docs/NPC_CHANGED_FILES.md). Run using the existing `run.ps1`. Only two villagers are playable; gifts, reward-bearing quests, new house upgrades and NPC co-op are later milestones. One unidentified native ObjectDB instance is still reported at diagnostic exit; this slice is not leak-free certified.
+
+---
+
 # Playable farmhouse (building Milestones 1-2)
 
 Approach the home door and press **F**. Walk inside, use **F** at bed/chest/exit, or Space near the bed. Deposit/withdraw chosen quantities; room position, chest and lights persist. [Audit, architecture, save migration and remaining scope](docs/BUILDINGS.md), [executed tests and measured performance](docs/BUILDINGS_MEASUREMENTS.md). Saves v1 still load; using buildings writes an atomic Godot v2 envelope and retains the original v1 file when present. Native remains separate. Furniture placement/upgrades/shop interiors and building co-op are not yet implemented.
