@@ -1,11 +1,11 @@
 using Godot;
-using SeasonsTogether.Core;
+using SeasonsTogether.Core.Application;
 
 namespace SeasonsTogether;
 
 public partial class FarmerController : Node2D
 {
-    public LocalFarmSession Session { get; set; } = null!;
+    public GameSession Session { get; set; } = null!;
     public bool InputBlocked { get; set; }
     public AnimatedSprite2D Sprite { get; private set; } = null!;
     public Camera2D Camera { get; private set; } = null!;
@@ -16,23 +16,24 @@ public partial class FarmerController : Node2D
         Sprite = GetNode<AnimatedSprite2D>("Sprite"); Camera = GetNode<Camera2D>("Camera");
         Camera.LimitLeft = 0; Camera.LimitTop = 0; Camera.LimitRight = 800; Camera.LimitBottom = 576;
     }
-    public void Initialize(LocalFarmSession session, SpriteFrames frames)
+    public void Initialize(GameSession session, SpriteFrames frames)
     {
         Session = session; Sprite.SpriteFrames = frames; Sprite.Animation = "south";
-        Position = new Vector2((float)session.Player.X * 32, (float)session.Player.Y * 32);
+        Position = new Vector2((float)session.Read.Player.X * 32, (float)session.Read.Player.Y * 32);
         cameraPosition = Position; Camera.GlobalPosition = Position.Round();
     }
     static bool Down(Key a, Key b) => Input.IsPhysicalKeyPressed(a) || Input.IsPhysicalKeyPressed(b);
     public override void _PhysicsProcess(double delta)
     {
         if (Session == null) return;
-        var p = Session.Player;
+        var p = Session.Read.Player;
         Vector2 direction = new((Down(Key.D, Key.Right) ? 1 : 0) - (Down(Key.A, Key.Left) ? 1 : 0), (Down(Key.S, Key.Down) ? 1 : 0) - (Down(Key.W, Key.Up) ? 1 : 0));
-        if (InputBlocked || gesture > 0 || Session.State.Paused || p.Sleeping) direction = Vector2.Zero;
+        if (InputBlocked || gesture > 0 || Session.Read.World.Paused || p.Sleeping) direction = Vector2.Zero;
         direction = direction.Normalized();
         // Match the original four tiles/second speed and axis-separated collision rule.
         double x = p.X + direction.X * 4 * delta, y = p.Y + direction.Y * 4 * delta;
-        Session.Move(x, p.Y); Session.Move(p.X, y);
+        Session.Move(x, p.Y); Session.Move(Session.Read.Player.X, y);
+        p = Session.Read.Player;
         Position = new Vector2((float)p.X * 32, (float)p.Y * 32).Round();
         if (direction != Vector2.Zero)
         {

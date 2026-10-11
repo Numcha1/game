@@ -3,6 +3,12 @@ using SuanPleng;
 namespace SeasonsTogether;
 public partial class FarmScene
 {
+    void PopulateShowcase()
+    {
+        Session.State.Greenhouse = true;
+        for (int i = 0; i < 24; i++) { var p = Session.State.Plots[i]; p.Crop = CropKeys[i % 8]; p.Growth = Farm.Crops[p.Crop].Days; p.RipeDay = Session.State.Day; }
+        RefreshPlots();
+    }
     async Task NextFrame(StringName signal)
     {
         if (!sceneActive) throw new OperationCanceledException();
@@ -22,8 +28,8 @@ public partial class FarmScene
         void Check(bool pass, string label) { if (!pass) throw new InvalidOperationException(label); checks.Add(label); }
         try
         {
-            Check(ground.GetUsedCells().Count == 494, "494 ground tiles loaded");
-            Check(crops.Length == 24 && trees.Count == 10, "24 plots and ten seasonal trees");
+            Check(renderer.GroundCellCount == 494, "494 ground tiles loaded");
+            Check(Session.Read.PlotCount == 24 && renderer.TreeCount == 10, "24 plots and ten seasonal trees");
             double startX = Session.Player.X;
             Input.ParseInputEvent(new InputEventKey { PhysicalKeycode = Key.D, Pressed = true });
             for (int i = 0; i < 20; i++) await NextFrame(SceneTree.SignalName.PhysicsFrame);
@@ -38,7 +44,7 @@ public partial class FarmScene
             Perform("harvest", 0); Check(Session.Player.Bag.GetValueOrDefault("carrot") == 3, "harvest original quality yield");
             Session.Move(20, 8); int before = Session.State.Coins; Perform("sell"); Check(Session.State.Coins > before, "sell at original shipping location");
             Hud.OpenBag(); Check(Farmer.InputBlocked && Hud.ModalVisible, "modal blocks input"); Hud.CloseModal();
-            for (int s = 0; s < 4; s++) { Session.State.Day = 1 + s * 14; RefreshSeason(); RefreshPlots(); Check(season == s, "season " + s); }
+            for (int s = 0; s < 4; s++) { Session.State.Day = 1 + s * 14; RefreshSeason(); RefreshPlots(); Check(renderer.CurrentSeason == s, "season " + s); }
             Session.State.Day = 1; Session.State.Minute = 700; RefreshSeason();
             for (int i = 0; i < 24; i++) { var p = Session.State.Plots[i]; p.Crop = CropKeys[i % 8]; p.Growth = Farm.Crops[p.Crop].Days; p.RipeDay = 1; }
             RefreshPlots();

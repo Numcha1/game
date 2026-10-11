@@ -1,5 +1,6 @@
 using Godot;
-using SuanPleng;
+using SeasonsTogether.Core.Application;
+using SeasonsTogether.Core.Domain;
 
 namespace SeasonsTogether;
 
@@ -15,7 +16,9 @@ public partial class FarmHud : Control
     VBoxContainer modalContent = null!;
     Control modal = null!;
     Button[] tools = Array.Empty<Button>();
-    double toastTime;
+    double toastTime, refreshElapsed;
+    bool dirty;
+    void OnStateChanged(GameChange change) { if (change != GameChange.Position) dirty = true; }
     string lastStatus = "", lastCoins = "", lastSeed = "";
     StyleBoxFlat PanelStyle(string color, string border = "69553b") => new() {
         BgColor = new Color(color), BorderColor = new Color(border), BorderWidthLeft = 3, BorderWidthRight = 3, BorderWidthTop = 3, BorderWidthBottom = 3,
@@ -63,21 +66,21 @@ public partial class FarmHud : Control
         var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(470, 340) }; panel.AddChild(scroll);
         modalContent = new VBoxContainer { CustomMinimumSize = new Vector2(465, 320) }; scroll.AddChild(modalContent);
         scene.Message += OnMessage;
-        scene.FarmChanged += Refresh; Refresh();
+        scene.Session.StateChanged += OnStateChanged; Refresh();
     }
     void OnMessage(string message) { toast.Text = message; toast.Visible = true; toastTime = 5; }
     public override void _ExitTree()
     {
-        if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.FarmChanged -= Refresh; }
+        if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.Session.StateChanged -= OnStateChanged; }
     }
     public void Refresh()
     {
-        var state = farm.Session.State;
-        string s = $"{Farm.SeasonNames[state.Season]} · วันที่ {state.SeasonDay} · {(int)state.Minute / 60:00}:{(int)state.Minute % 60:00} · {state.Weather}";
+        var state = farm.Session.Read.World;
+        string s = $"{GameCatalog.SeasonNames[state.Season]} · วันที่ {state.SeasonDay} · {(int)state.Minute / 60:00}:{(int)state.Minute % 60:00} · {state.Weather}";
         if (s != lastStatus) { status.Text = s; lastStatus = s; }
         string c = $"● {state.Coins:N0} เหรียญ   แรง"; if (c != lastCoins) { coins.Text = c; lastCoins = c; }
-        energy.Value = farm.Session.Player.Energy;
-        string chosen = $"{Farm.Crops[farm.Seed].Name} · Tab เปลี่ยนเมล็ด · {Tools.First(t => t.Action == farm.Tool).Label}";
+        energy.Value = farm.Session.Read.Player.Energy;
+        string chosen = $"{GameCatalog.Crops[farm.Seed].Name} · Tab เปลี่ยนเมล็ด · {Tools.First(t => t.Action == farm.Tool).Label}";
         if (chosen != lastSeed) { seed.Text = chosen; lastSeed = chosen; }
         for (int i = 0; i < tools.Length; i++) tools[i].Modulate = Tools[i].Action == farm.Tool ? new Color("ffd484") : Colors.White;
     }
@@ -91,8 +94,9 @@ public partial class FarmHud : Control
     public void OpenBag()
     {
         Open("กระเป๋าผลผลิต");
-        if (farm.Session.Player.Bag.Count == 0) modalContent.AddChild(new Label { Text = "ยังไม่มีผลผลิตในกระเป๋า" });
-        foreach (var pair in farm.Session.Player.Bag) modalContent.AddChild(new Label { Text = $"{Farm.Crops[pair.Key].Name} × {pair.Value} · ราคาวันนี้ {farm.Session.State.SalePrice(pair.Key)} เหรียญ" });
+        var inventory = farm.Session.Read.Inventory();
+        if (inventory.Count == 0) modalContent.AddChild(new Label { Text = "ยังไม่มีผลผลิตในกระเป๋า" });
+        foreach (var pair in inventory) modalContent.AddChild(new Label { Text = $"{pair.Name} × {pair.Quantity} · ราคาวันนี้ {pair.UnitPrice} เหรียญ" });
         modalContent.AddChild(Button("ขายทั้งหมด · ต้องยืนใกล้ลังขาย", () => { CloseModal(); farm.Perform("sell"); }));
         modalContent.AddChild(new Label { Text = "ผลผลิตลด 25% เมื่อข้ามคืน ควรขายก่อนเข้านอน" });
     }
@@ -101,8 +105,8 @@ public partial class FarmHud : Control
         Open("เมล็ดและอุปกรณ์");
         foreach (var key in farm.CropKeys)
         {
-            string cropKey = key; var crop = Farm.Crops[key];
-            var row = Button($"{crop.Name} · {crop.Cost} เหรียญ · {crop.Days} วัน" + (crop.Seasons.Contains(farm.Session.State.Season) ? " · ฤดูนี้" : ""), () => { farm.Seed = cropKey; CloseModal(); Refresh(); });
+            string cropKey = key; var crop = GameCatalog.Crops[key];
+            var row = Button($"{crop.Name} · {crop.Cost} เหรียญ · {crop.Days} วัน" + (crop.Seasons.Contains(farm.Session.Read.World.Season) ? " · ฤดูนี้" : ""), () => { farm.Seed = cropKey; CloseModal(); Refresh(); });
             row.Icon = farm.Art.Region(key); row.ExpandIcon = true; row.AddThemeConstantOverride("icon_max_width", 24); modalContent.AddChild(row);
         }
         modalContent.AddChild(Button("หลังคาเรือนกระจก · 300 เหรียญ · ใกล้ร้านค้า", () => { CloseModal(); farm.Perform("greenhouse"); }));
@@ -117,7 +121,7 @@ public partial class FarmHud : Control
         modalContent.AddChild(Button("นำเข้าเซฟเกมเดิม (คัดลอก)", () => {
             var dialog = new ConfirmationDialog { DialogText = "แทนฟาร์ม Godot ด้วยสำเนาเซฟเดิม?\nเซฟเกมเดิมจะไม่ถูกแก้ไข และสำรองฟาร์ม Godot ปัจจุบันไว้ก่อน" };
             AddChild(dialog); dialog.Confirmed += () => { farm.ImportLegacySave(); dialog.QueueFree(); }; dialog.Canceled += () => dialog.QueueFree(); dialog.PopupCentered(); }));
-        modalContent.AddChild(Button("บันทึกฟาร์ม", () => { try { farm.Session.Save(); farm.Notify("บันทึกแล้ว"); } catch (IOException e) { farm.Notify(e.Message); } }));
+        modalContent.AddChild(Button("บันทึกฟาร์ม", farm.SaveNow));
     }
     public void OpenHelp()
     {
@@ -138,5 +142,5 @@ public partial class FarmHud : Control
     {
         if (ModalVisible && ev is InputEventKey { Pressed: true, Echo: false, PhysicalKeycode: Key.Escape }) { CloseModal(); GetViewport().SetInputAsHandled(); }
     }
-    public override void _Process(double delta) { if (toastTime > 0) { toastTime -= delta; if (toastTime <= 0) toast.Visible = false; } }
+    public override void _Process(double delta) { refreshElapsed += delta; if (dirty && refreshElapsed >= .25) { dirty = false; refreshElapsed = 0; Refresh(); } if (toastTime > 0) { toastTime -= delta; if (toastTime <= 0) toast.Visible = false; } }
 }

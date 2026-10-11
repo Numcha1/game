@@ -50,4 +50,5 @@ using(var server=new RoomServer(new Farm())){
     }finally{foreach(var client in clients)client.Dispose();}
 }
 passed.AddRange(await PersistenceChecks.Run(Path.GetDirectoryName(output)!));
+passed.AddRange(await ApplicationChecks.Run());
 File.WriteAllText(output,JsonSerializer.Serialize(new{passed=passed.Count,checks=passed,scope="Core/save regressions and legacy local protocol. Godot online UI and internet co-op not migrated."},new JsonSerializerOptions{WriteIndented=true}));Console.WriteLine("CORE PASS "+passed.Count);

@@ -1,11 +1,11 @@
 using Godot;
-using SuanPleng;
+using SeasonsTogether.Core.Application;
 
 namespace SeasonsTogether;
 
 public partial class WeatherLighting : Node2D
 {
-    public Farm State { get; set; } = null!;
+    public GameReadModel Read { get; set; } = null!;
     public int Quality { get; set; } = 2;
     public CanvasModulate Ambient { get; set; } = null!;
     readonly List<PointLight2D> lamps = new();
@@ -30,10 +30,10 @@ public partial class WeatherLighting : Node2D
     }
     public override void _Process(double delta)
     {
-        if (State == null) return;
+        if (Read == null) return;
         elapsed += delta;
-        float night = (float)Math.Clamp((State.Minute - 1000) / 240, 0, 1);
-        bool wet = State.Weather is "ฝนตก" or "พายุ";
+        float night = (float)Math.Clamp((Read.World.Minute - 1000) / 240, 0, 1);
+        bool wet = Read.World.Weather is "ฝนตก" or "พายุ";
         var tint = new Color(1 - night * .45f, 1 - night * .42f, 1 - night * .23f);
         if (wet) tint *= new Color(.83f, .89f, .96f);
         Ambient.Color = Ambient.Color.Lerp(tint, (float)(1 - Math.Exp(-delta * 2)));

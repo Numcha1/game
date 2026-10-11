@@ -8,6 +8,14 @@ public sealed class AssetCatalog
     public readonly Texture2D Tiles = GD.Load<Texture2D>("res://Assets/terrain.png");
     public readonly Texture2D Props = GD.Load<Texture2D>("res://Assets/props.png");
     public readonly Texture2D Characters = GD.Load<Texture2D>("res://Assets/characters.png");
+    public readonly Texture2D Pond = GD.Load<Texture2D>("res://Assets/pond.png");
+    public readonly Texture2D Shadow = GD.Load<Texture2D>("res://Assets/shadow.png");
+    public readonly Texture2D Stake = GD.Load<Texture2D>("res://Assets/stake.png");
+    public readonly Texture2D Glow = GD.Load<Texture2D>("res://Assets/glow.png");
+    public readonly Shader WaterShader = GD.Load<Shader>("res://Shaders/Water.gdshader");
+    public readonly Shader WindShader = GD.Load<Shader>("res://Shaders/Wind.gdshader");
+    public readonly TileSet TileSet = GD.Load<TileSet>("res://Assets/FarmTiles.tres");
+    SpriteFrames? farmerFrames;
     readonly Dictionary<string, AtlasTexture> regions = new();
     readonly Dictionary<string, int[]> definitions = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int[]>>(Godot.FileAccess.GetFileAsString("res://Assets/regions.json"))!;
     public AtlasTexture Region(string name)
@@ -19,6 +27,7 @@ public sealed class AssetCatalog
     }
     public SpriteFrames FarmerFrames()
     {
+        if (farmerFrames != null) return farmerFrames;
         var frames = new SpriteFrames(); frames.RemoveAnimation("default");
         string[] directions = { "south", "west", "east", "north" };
         for (int row = 0; row < 4; row++)
@@ -27,12 +36,6 @@ public sealed class AssetCatalog
             for (int col = 0; col < 4; col++)
                 frames.AddFrame(directions[row], new AtlasTexture { Atlas = Characters, Region = new Rect2(col * 40, row * 56, 40, 56), FilterClip = true });
         }
-        return frames;
-    }
-    public TileSet MakeTileSet()
-    {
-        var atlas = new TileSetAtlasSource { Texture = Tiles, TextureRegionSize = new Vector2I(32, 32) };
-        for (int row = 0; row < 4; row++) for (int col = 0; col < 16; col++) atlas.CreateTile(new Vector2I(col, row));
-        var set = new TileSet { TileSize = new Vector2I(32, 32) }; set.AddSource(atlas, 0); return set;
+        farmerFrames = frames; return frames;
     }
 }
