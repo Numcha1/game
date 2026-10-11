@@ -50,6 +50,7 @@ using(var server=new RoomServer(new Farm())){
     }finally{foreach(var client in clients)client.Dispose();}
 }
 passed.AddRange(await PersistenceChecks.Run(Path.GetDirectoryName(output)!));
+passed.AddRange(await RecoveryChecks.Run(Path.GetDirectoryName(output)!));
 passed.AddRange(await ApplicationChecks.Run());
 passed.AddRange(await NetworkChecks.Run());
 passed.AddRange(await ArchitectureChecks.Run(Path.GetDirectoryName(output)!));

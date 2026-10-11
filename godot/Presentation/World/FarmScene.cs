@@ -20,7 +20,7 @@ public partial class FarmScene : Node2D
     public int Quality { get; private set; } = 2;
     public string[] CropKeys { get; } = GameCatalog.Crops.Keys.ToArray();
     public bool IsBusy => operationInProgress;
-    public bool ReadyToPlay => Session != null;
+    public bool ReadyToPlay => Session != null && Farmer != null && Hud != null;
     FarmWorldPresenter renderer = null!;
     WeatherLighting weather = null!;
     EffectPool effects = null!;
@@ -44,9 +44,15 @@ public partial class FarmScene : Node2D
         DataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SuanPleng", "godot-slice");
         if (arguments.Contains("--smoke") || arguments.Contains("--showcase") || arguments.Contains("--lifecycle")) DataDirectory = Path.Combine(ProjectSettings.GlobalizePath("res://reports"), "smoke-profile-" + Guid.NewGuid().ToString("N"));
         try { log = new JsonGameLog(DataDirectory); saves = new SaveService(DataDirectory, log); settings = new GraphicsSettings(DataDirectory); Session = new GameSession(saves, log); }
-        catch (Exception e) when (e is IOException or System.Text.Json.JsonException or UnauthorizedAccessException)
+        catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
             GD.PushError("Cannot load farm: " + e.Message);
+            if (saves?.CanRestoreBackup == true)
+            {
+                var recovery = new ConfirmationDialog { DialogText = "เปิดเซฟไม่ได้ มีเซฟสำรองที่ตรวจสอบแล้ว\nกู้คืนเซฟสำรองหรือไม่? ข้อมูลล่าสุดอาจหายไปหนึ่งจุดบันทึก\nไฟล์ที่เสียจะเก็บไว้แยก ไม่ลบทิ้ง", OkButtonText = "กู้คืนสำรอง", CancelButtonText = "ออก" };
+                AddChild(recovery); recovery.Confirmed += () => _ = RecoverStartupBackup();
+                recovery.Canceled += () => GetTree().Quit(1); recovery.PopupCentered(); return;
+            }
             var dialog = new AcceptDialog { DialogText = "เปิดเซฟไม่ได้: " + e.Message + "\nโปรดสำรองและตรวจไฟล์ farm.json ก่อนลองอีกครั้ง" };
             AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered(); return;
         }
@@ -62,6 +68,20 @@ public partial class FarmScene : Node2D
         if (arguments.Contains("--lifecycle") && !lifecycleHarnessRunning) { lifecycleHarnessRunning = true; _ = RunLifecycle(); }
         else if (arguments.Contains("--smoke")) _ = RunSmoke();
         if (arguments.Contains("--showcase")) PopulateShowcase();
+    }
+    async Task RecoverStartupBackup()
+    {
+        try {
+            await saves.DisposeAsync(); await SaveService.RestoreBackupAsync(DataDirectory);
+            if (sceneActive) GetTree().ReloadCurrentScene();
+        }
+        catch (Exception e) when (e is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException) {
+            log.Write("error", "save.recovery.failed", e.GetType().Name);
+            if (sceneActive) {
+                var dialog = new AcceptDialog { DialogText = "กู้คืนไม่ได้ ข้อมูลเดิมยังเก็บไว้: " + e.Message };
+                AddChild(dialog); dialog.Confirmed += () => GetTree().Quit(1); dialog.PopupCentered();
+            }
+        }
     }
     void RefreshSeason() => renderer.RefreshSeason();
     public void RefreshPlots() => renderer.RefreshPlots();
@@ -125,7 +145,7 @@ public partial class FarmScene : Node2D
     public void ImportLegacySave() { if (!operationInProgress) pendingOperation = CompleteOperation(true); }
     async Task CompleteOperation(bool import)
     {
-        if (Session == null) { GetTree().Quit(); return; }
+        if (!ReadyToPlay) { GetTree().Quit(); return; }
         operationInProgress = true; Farmer.InputBlocked = true;
         try {
             await Session.SaveAsync();
@@ -133,7 +153,7 @@ public partial class FarmScene : Node2D
             finalCheckpoint = true;
             if (sceneActive) { if (import) GetTree().ReloadCurrentScene(); else GetTree().Quit(); }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException) {
+        catch (Exception e) when (e is IOException or InvalidDataException or UnauthorizedAccessException or System.Text.Json.JsonException) {
             if (sceneActive) { operationInProgress = false; Farmer.InputBlocked = Hud.ModalVisible; Notify("บันทึกหรือนำเข้าไม่ได้: " + e.Message); }
             log.Write("error", "save.operation", e.GetType().Name);
         }

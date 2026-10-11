@@ -26,11 +26,14 @@ public sealed class SaveService : ISaveService
     bool closing, importing;
     public string SavePath { get; }
     string IdentityPath => Path.Combine(Path.GetDirectoryName(SavePath)!, "player.txt");
+    string ImportJournalPath => SavePath + ".import-pending";
+    sealed record ImportJournal(int Version, byte[]? Farm, byte[]? Identity);
     public SaveService(string directory, IGameLog? logger = null)
     {
         Directory.CreateDirectory(directory);
         SavePath = Path.Combine(Path.GetFullPath(directory), "farm.json");
         log = logger ?? NullGameLog.Instance;
+        RecoverInterruptedImport();
         writer = Task.Run(WriteLoop);
     }
     static TaskCompletionSource NewProgress() => new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -46,15 +49,17 @@ public sealed class SaveService : ISaveService
         foreach (var player in farm.Players) { player.LastSeen = 0; player.Sleeping = false; }
         farm.Paused = false; return farm;
     }
-    static byte[] ReadBounded(string path)
+    static byte[] ReadBounded(string path, int maximum = MaximumSaveBytes)
     {
-        if (new FileInfo(path).Length > MaximumSaveBytes) throw new InvalidDataException("เซฟมีขนาดเกินขอบเขตที่รองรับ");
+        if (new FileInfo(path).Length > maximum) throw new InvalidDataException("เซฟมีขนาดเกินขอบเขตที่รองรับ");
         return File.ReadAllBytes(path);
     }
     public string LoadPlayerSession()
     {
-        string identity = File.Exists(IdentityPath) ? File.ReadAllText(IdentityPath).Trim() : "";
+        string identity = File.Exists(IdentityPath) ? System.Text.Encoding.UTF8.GetString(ReadBounded(IdentityPath, 128)).Trim() : "";
         if (Guid.TryParseExact(identity, "N", out _)) return identity;
+        if (File.Exists(IdentityPath) || (File.Exists(SavePath) && Deserialize(ReadBounded(SavePath)).Players.Count > 0))
+            throw new InvalidDataException("ข้อมูลผู้เล่นสูญหายหรือเสียหาย โปรดกู้คืน player.txt คู่กับเซฟเดิม ไม่มีการสร้างผู้เล่นใหม่ทับข้อมูล");
         identity = Guid.NewGuid().ToString("N");
         // Startup only; identity is not written every frame or every load.
         File.WriteAllText(IdentityPath, identity); return identity;
@@ -137,22 +142,28 @@ public sealed class SaveService : ISaveService
             string sourceFarm = Path.Combine(sourceDirectory, "farm.json"), sourceIdentity = Path.Combine(sourceDirectory, "player.txt");
             if (Path.GetFullPath(sourceFarm).Equals(SavePath, StringComparison.OrdinalIgnoreCase)) throw new IOException("เลือกเซฟต้นทางคนละโปรไฟล์");
             byte[] bytes = await Task.Run(() => ReadBounded(sourceFarm), cancellationToken).ConfigureAwait(false);
-            _ = Deserialize(bytes);
-            byte[]? identity = File.Exists(sourceIdentity) ? await File.ReadAllBytesAsync(sourceIdentity, cancellationToken).ConfigureAwait(false) : null;
+            var importedFarm = Deserialize(bytes);
+            byte[]? identity = File.Exists(sourceIdentity) ? await Task.Run(() => ReadBounded(sourceIdentity, 128), cancellationToken).ConfigureAwait(false) : null;
             if (identity != null && !Guid.TryParseExact(System.Text.Encoding.UTF8.GetString(identity).Trim(), "N", out _)) throw new InvalidDataException("identity เซฟเดิมไม่ถูกต้อง");
+            if (importedFarm.Players.Count > 0 && (identity == null || importedFarm.Find(System.Text.Encoding.UTF8.GetString(identity).Trim()) == null))
+                throw new InvalidDataException("เซฟเดิมต้องมี player.txt ที่ตรงกับผู้เล่นในฟาร์ม");
             await storageGate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                byte[]? original = File.Exists(SavePath) ? await File.ReadAllBytesAsync(SavePath, cancellationToken).ConfigureAwait(false) : null;
-                byte[]? oldIdentity = File.Exists(IdentityPath) ? await File.ReadAllBytesAsync(IdentityPath, cancellationToken).ConfigureAwait(false) : null;
+                byte[]? original = File.Exists(SavePath) ? ReadBounded(SavePath) : null;
+                byte[]? oldIdentity = File.Exists(IdentityPath) ? ReadBounded(IdentityPath, 128) : null;
                 string backup = SavePath + ".before-import-" + Guid.NewGuid().ToString("N");
                 if (original != null) await ReplaceAsync(backup, original).ConfigureAwait(false);
                 if (oldIdentity != null) await ReplaceAsync(backup + ".player", oldIdentity).ConfigureAwait(false);
+                ValidateJournal(new ImportJournal(1, original, oldIdentity));
+                // A durable undo record is installed before either live file changes. Deleting it commits the pair.
+                await ReplaceAsync(ImportJournalPath, JsonSerializer.SerializeToUtf8Bytes(new ImportJournal(1, original, oldIdentity))).ConfigureAwait(false);
                 try
                 {
                     // Once replacement starts, complete or rollback both files, even if UI cancellation arrives.
                     await ReplaceAsync(SavePath, bytes, SavePath + ".bak").ConfigureAwait(false);
                     if (identity != null) await ReplaceAsync(IdentityPath, identity).ConfigureAwait(false);
+                    File.Delete(ImportJournalPath);
                 }
                 catch
                 {
@@ -160,6 +171,7 @@ public sealed class SaveService : ISaveService
                     else if (File.Exists(SavePath)) File.Delete(SavePath);
                     if (oldIdentity != null) await ReplaceAsync(IdentityPath, oldIdentity).ConfigureAwait(false);
                     else if (File.Exists(IdentityPath)) File.Delete(IdentityPath);
+                    File.Delete(ImportJournalPath);
                     throw;
                 }
                 log.Write("info", "save.imported");
@@ -167,6 +179,60 @@ public sealed class SaveService : ISaveService
             finally { storageGate.Release(); }
         }
         finally { lock (gate) { importing = false; importFinished!.TrySetResult(); } }
+    }
+    static void ValidateJournal(ImportJournal journal)
+    {
+        if (journal.Version != 1) throw new InvalidDataException("เวอร์ชันบันทึกกู้คืนไม่รองรับ");
+        if (journal.Farm != null) _ = Deserialize(journal.Farm);
+        if (journal.Identity != null && (journal.Identity.Length > 128 ||
+            !Guid.TryParseExact(System.Text.Encoding.UTF8.GetString(journal.Identity).Trim(), "N", out _)))
+            throw new InvalidDataException("ข้อมูลผู้เล่นในบันทึกกู้คืนไม่ถูกต้อง");
+    }
+    void RecoverInterruptedImport()
+    {
+        if (!File.Exists(ImportJournalPath)) return;
+        if (new FileInfo(ImportJournalPath).Length > MaximumSaveBytes * 2)
+            throw new InvalidDataException("บันทึกกู้คืนมีขนาดเกินขอบเขตที่รองรับ");
+        var journal = JsonSerializer.Deserialize<ImportJournal>(File.ReadAllBytes(ImportJournalPath))
+            ?? throw new InvalidDataException("บันทึกกู้คืนไม่สมบูรณ์");
+        ValidateJournal(journal); // Validate both files before touching either; no paths come from the journal.
+        Restore(SavePath, journal.Farm);
+        Restore(IdentityPath, journal.Identity);
+        File.Delete(ImportJournalPath);
+        log.Write("warning", "save.import.recovered");
+    }
+    static void Restore(string path, byte[]? bytes)
+    {
+        if (bytes != null) ReplaceAsync(path, bytes).GetAwaiter().GetResult();
+        else if (File.Exists(path)) File.Delete(path);
+    }
+    public bool CanRestoreBackup
+    {
+        get { try { ValidateBackup(SavePath); return !File.Exists(ImportJournalPath); }
+            catch (Exception e) when (e is IOException or InvalidDataException or JsonException or UnauthorizedAccessException) { return false; } }
+    }
+    static byte[] ValidateBackup(string savePath)
+    {
+        byte[] bytes = ReadBounded(savePath + ".bak");
+        var farm = Deserialize(bytes);
+        if (farm.Players.Count > 0)
+        {
+            string identity = System.Text.Encoding.UTF8.GetString(ReadBounded(Path.Combine(Path.GetDirectoryName(savePath)!, "player.txt"), 128)).Trim();
+            if (!Guid.TryParseExact(identity, "N", out _) || farm.Find(identity) == null)
+                throw new InvalidDataException("ข้อมูลผู้เล่นไม่ตรงกับเซฟสำรอง ต้องกู้คืนไฟล์เป็นคู่");
+        }
+        return bytes;
+    }
+    // Call only after the live service is closed. Recovery is explicit; startup never substitutes a backup silently.
+    public static async Task RestoreBackupAsync(string directory)
+    {
+        string path = Path.Combine(Path.GetFullPath(directory), "farm.json");
+        if (File.Exists(path + ".import-pending")) throw new InvalidDataException("ต้องกู้คืนการนำเข้าให้เสร็จก่อน");
+        byte[] bytes = await Task.Run(() => ValidateBackup(path)).ConfigureAwait(false);
+        string preserved = path + ".corrupt-" + Guid.NewGuid().ToString("N");
+        if (File.Exists(path)) File.Move(path, preserved); // Retain exact damaged bytes for diagnosis/manual recovery.
+        try { await ReplaceAsync(path, bytes).ConfigureAwait(false); }
+        catch { if (File.Exists(preserved) && !File.Exists(path)) File.Move(preserved, path); throw; }
     }
     public async ValueTask DisposeAsync()
     {
