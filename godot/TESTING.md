@@ -1,3 +1,11 @@
+# Premium presentation verification (2026-10-11)
+
+Current branch: `feature/premium-polish`. Read [implementation and remaining acceptance](docs/PREMIUM_POLISH.md), [prioritized audit](docs/PREMIUM_AUDIT.md) and [measured evidence](docs/PREMIUM_MEASUREMENTS.md). Open `Run-Seasons-Together.cmd`, then choose **เข้าฟาร์ม**. The Godot launcher requires the installed .NET engine/SDK; it is not a standalone export.
+
+Bundled Thai typography, integer canvas scaling, original four-stage crops/tool icons, shared item cards, title/pause/loading menus, tutorial overlay and action audio are implemented. Native rules, Save v1 and the existing network protocol remain unchanged. The older sections below are historical evidence; current counts and limitations are in the premium report.
+
+---
+
 # Production core verification (2026-10-11)
 
 Current branch: `feature/production-core`. Read [progress](docs/PRODUCTION_PROGRESS.md), [focused audit](docs/PRODUCTION_AUDIT.md), [feature matrix](FEATURE_MATRIX.md) and [quality gates](QUALITY_GATES.md) for current evidence. The older vertical-slice numbers below remain historical.
