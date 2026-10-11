@@ -1,5 +1,5 @@
 {
-  "passed": 191,
+  "passed": 194,
   "checks": [
     "v1 schema and 24 plots",
     "all eight crops",
@@ -173,6 +173,9 @@
     "corrupted display preference safely defaults",
     "rapid display saves finish in order without temporary files",
     "display preferences never create or migrate Farm v1",
+    "muted effect audio preference survives reload",
+    "effect volume bounded independently from Farm v1",
+    "independent menu scale persists without changing world scaling",
     "new HTTP transport interoperates with unchanged server",
     "new network service preserves UUID idempotency and authoritative moisture",
     "reconnection retains server player identity",

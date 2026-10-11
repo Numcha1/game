@@ -74,16 +74,26 @@ public partial class FarmScene
             RefreshPlots();
             var reportDir = ProjectSettings.GlobalizePath("res://reports"); Directory.CreateDirectory(reportDir);
             var qualityReports = new List<object>();
+            var viewportRid=GetViewport().GetViewportRid();
+            RenderingServer.ViewportSetMeasureRenderTime(viewportRid,true);
             for (int q = 0; q < 3; q++)
             {
                 SetQuality(q); Session.State.Weather = "พายุ"; Session.State.Minute = 1210;
                 for (int n = 0; n < 60; n++) await NextFrame(SceneTree.SignalName.ProcessFrame);
                 frameTimes.Clear(); long managedBefore = GC.GetTotalMemory(false); long privateBefore = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64;
-                for (int n = 0; n < 600; n++) await NextFrame(SceneTree.SignalName.ProcessFrame);
+                double processCpu=0,renderCpu=0,gpu=0,drawCalls=0;
+                for (int n = 0; n < 600; n++) {
+                    await NextFrame(SceneTree.SignalName.ProcessFrame);
+                    processCpu+=Performance.GetMonitor(Performance.Monitor.TimeProcess)*1000;
+                    renderCpu+=RenderingServer.ViewportGetMeasuredRenderTimeCpu(viewportRid);
+                    gpu+=RenderingServer.ViewportGetMeasuredRenderTimeGpu(viewportRid);
+                    drawCalls+=Performance.GetMonitor(Performance.Monitor.RenderTotalDrawCallsInFrame);
+                }
                 var sample = frameTimes.Order().ToArray();
-                qualityReports.Add(new { quality = q, frames = sample.Length, meanMs = sample.Average(), p95Ms = sample[(int)(sample.Length * .95)], p99Ms = sample[(int)(sample.Length * .99)], fps = 1000 / sample.Average(), privateBefore, privateAfter = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64, managedBefore, managedAfter = GC.GetTotalMemory(false) });
+                qualityReports.Add(new { quality = q, frames = sample.Length, meanMs = sample.Average(), p95Ms = sample[(int)(sample.Length * .95)], p99Ms = sample[(int)(sample.Length * .99)], fps = 1000 / sample.Average(), meanEngineFrameMs=processCpu/600,meanRenderCpuMs=renderCpu>0?(double?)(renderCpu/600):null,meanGpuMs=gpu>0?(double?)(gpu/600):null,meanDrawCalls=drawCalls/600,privateBefore, privateAfter = System.Diagnostics.Process.GetCurrentProcess().PrivateMemorySize64, managedBefore, managedAfter = GC.GetTotalMemory(false) });
                 Check(weather.Quality == q && effects.Quality == q, "quality " + q);
             }
+            RenderingServer.ViewportSetMeasureRenderTime(viewportRid,false);
             if (DisplayServer.GetName() != "headless")
             {
                 Session.State.Weather = "แดดอ่อน"; Session.State.Minute = 720; Session.Move(10.5, 4);

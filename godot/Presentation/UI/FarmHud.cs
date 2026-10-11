@@ -29,34 +29,30 @@ public partial class FarmHud : Control
         if ((change & GameChange.Plots) != 0) RefreshInspector();
     }
     string lastStatus = "", lastCoins = "", lastSeed = "";
-    StyleBoxFlat PanelStyle(string color, string border = "69553b") => new() {
-        BgColor = new Color(color), BorderColor = new Color(border), BorderWidthLeft = 3, BorderWidthRight = 3, BorderWidthTop = 3, BorderWidthBottom = 3,
-        CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3, CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3,
-        ContentMarginLeft = 12, ContentMarginRight = 12, ContentMarginTop = 7, ContentMarginBottom = 7,
-        ShadowColor = new Color(0, 0, 0, .22f), ShadowSize = 4, ShadowOffset = new Vector2(0, 3) };
-    Button Button(string text, Action action)
+    Button Button(string text, Action action, float minimumWidth = 48)
     {
-        var button = new Button { Text = text, TooltipText = text, AutowrapMode = TextServer.AutowrapMode.WordSmart, FocusMode = FocusModeEnum.All, CustomMinimumSize = new Vector2(48, 30) };
-        button.Pressed += action; return button;
+        var button = new Button { Text = text, TooltipText = text, AutowrapMode = TextServer.AutowrapMode.WordSmart, FocusMode = FocusModeEnum.All, CustomMinimumSize = new Vector2(minimumWidth, 30) };
+        button.Pressed += () => { farm.PlayUiClick(); action(); }; return button;
     }
     public void Initialize(FarmScene scene)
     {
         if (farm != null) throw new InvalidOperationException("HUD already initialized");
         farm = scene;
         Theme = FarmTypography.Shared;
-        var top = new PanelContainer { Position = new Vector2(14, 12), CustomMinimumSize = new Vector2(310, 54) }; top.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); AddChild(top);
-        var topRows = new VBoxContainer(); top.AddChild(topRows); status = new Label(); topRows.AddChild(status);
+        var top = new PanelContainer { Position = new Vector2(14, 12), Size = new Vector2(280,54), CustomMinimumSize = new Vector2(280, 54) }; top.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","PanelContainer")); AddChild(top);
+        var topRows = new VBoxContainer(); top.AddChild(topRows); status = new Label { AutowrapMode=TextServer.AutowrapMode.WordSmart }; topRows.AddChild(status);
         var stats = new HBoxContainer(); topRows.AddChild(stats); coins = new Label { CustomMinimumSize = new Vector2(120, 22) }; stats.AddChild(coins);
-        energy = new ProgressBar { CustomMinimumSize = new Vector2(135, 15), MaxValue = 100, ShowPercentage = false }; stats.AddChild(energy);
-        energy.AddThemeStyleboxOverride("background", PanelStyle("bba985")); energy.AddThemeStyleboxOverride("fill", PanelStyle("729552", "729552"));
+        energy = new ProgressBar { CustomMinimumSize = new Vector2(90, 15), MaxValue = 100, ShowPercentage = false }; stats.AddChild(energy);
+        energy.AddThemeStyleboxOverride("background", Theme.GetStylebox("background","ProgressBar")); energy.AddThemeStyleboxOverride("fill", Theme.GetStylebox("fill","ProgressBar"));
         inspector = new PanelContainer { Position = new Vector2(14, 84), CustomMinimumSize = new Vector2(218, 126), MouseFilter = MouseFilterEnum.Ignore, Visible = false };
-        inspector.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); AddChild(inspector);
+        inspector.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","PanelContainer")); AddChild(inspector);
         plotInfo = new Label { CustomMinimumSize = new Vector2(190, 110), AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
         plotInfo.ThemeTypeVariation = "Compact"; inspector.AddChild(plotInfo);
-        var topRight = new HBoxContainer { AnchorLeft = 1, AnchorRight = 1, OffsetLeft = -246, OffsetRight = -14, OffsetTop = 12, OffsetBottom = 44 }; AddChild(topRight);
-        topRight.AddChild(Button("กระเป๋า B", OpenBag)); topRight.AddChild(Button("ร้านค้า O", OpenShop)); topRight.AddChild(Button("☰", OpenSettings));
+        top.Resized += () => inspector.Position = new Vector2(14,top.GetRect().End.Y+8);
+        var topRight = new HBoxContainer { AnchorLeft = 1, AnchorRight = 1, OffsetLeft = -310, OffsetRight = -14, OffsetTop = 12, OffsetBottom = 44 }; AddChild(topRight);
+        topRight.AddChild(Button("กระเป๋า B", OpenBag,110)); topRight.AddChild(Button("ร้านค้า O", OpenShop,110)); topRight.AddChild(Button("☰", OpenSettings));
         var bottom = new PanelContainer { AnchorLeft = .5f, AnchorRight = .5f, AnchorTop = 1, AnchorBottom = 1, OffsetLeft = -286, OffsetRight = 286, OffsetTop = -82, OffsetBottom = -12, GrowVertical = GrowDirection.Begin };
-        bottom.AddThemeStyleboxOverride("panel", PanelStyle("f0dfb8")); AddChild(bottom);
+        bottom.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","ToolPanel")); AddChild(bottom);
         var rows = new VBoxContainer(); bottom.AddChild(rows); seed = new Label { AutowrapMode = TextServer.AutowrapMode.WordSmart, HorizontalAlignment = HorizontalAlignment.Center }; rows.AddChild(seed);
         var bar = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center }; rows.AddChild(bar); tools = new Button[Tools.Length];
         for (int i = 0; i < Tools.Length; i++)
@@ -71,7 +67,7 @@ public partial class FarmHud : Control
         modal = new Control { AnchorRight = 1, AnchorBottom = 1, Visible = false, MouseFilter = MouseFilterEnum.Stop }; AddChild(modal);
         var dim = new ColorRect { AnchorRight = 1, AnchorBottom = 1, Color = new Color(0.08f, .13f, .1f, .65f) }; modal.AddChild(dim);
         var center = new CenterContainer { AnchorRight = 1, AnchorBottom = 1 }; modal.AddChild(center);
-        var panel = new PanelContainer { CustomMinimumSize = new Vector2(500, 350) }; panel.AddThemeStyleboxOverride("panel", PanelStyle("f3e5c7")); center.AddChild(panel);
+        var panel = new PanelContainer { CustomMinimumSize = new Vector2(500, 350) }; panel.AddThemeStyleboxOverride("panel", Theme.GetStylebox("panel","PanelContainer")); center.AddChild(panel);
         var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(470, 340) }; panel.AddChild(scroll);
         modalContent = new VBoxContainer { CustomMinimumSize = new Vector2(465, 320) }; scroll.AddChild(modalContent);
         scene.Message += OnMessage;
@@ -83,6 +79,10 @@ public partial class FarmHud : Control
         if (farm != null && GodotObject.IsInstanceValid(farm)) { farm.Message -= OnMessage; farm.Session.StateChanged -= OnStateChanged; }
     }
     public void SetTextScale(int index) { Theme = FarmTypography.AtScale(index); }
+    public void SetUiScale(int index) {
+        float zoom=1+Math.Clamp(index,0,2)*.1f;
+        SetAnchorsPreset(LayoutPreset.TopLeft);Position=Vector2.Zero;Size=GetViewport().GetVisibleRect().Size/zoom;Scale=Vector2.One*zoom;
+    }
     public void Refresh()
     {
         var state = farm.Session.Read.World;
@@ -168,8 +168,14 @@ public partial class FarmHud : Control
         foreach (var option in new[] { (0, "ตัวอักษรปกติ"), (1, "ตัวอักษรใหญ่"), (2, "ตัวอักษรใหญ่พิเศษ") }) {
             var chosen = option; modalContent.AddChild(Button(chosen.Item2, () => farm.SetTextScale(chosen.Item1)));
         }
+        foreach(var option in new[]{(0,"ขนาดเมนู 100%"),(1,"ขนาดเมนู 110%"),(2,"ขนาดเมนู 120%")}) {
+            var chosen=option;modalContent.AddChild(Button(chosen.Item2,()=>farm.SetUiScale(chosen.Item1)));
+        }
         var motion = new CheckButton { Text = "ลดการเคลื่อนไหว", ButtonPressed = farm.Display.ReducedMotion };
         motion.Toggled += farm.SetReducedMotion; modalContent.AddChild(motion);
+        modalContent.AddChild(new Label { Text="เสียงเอฟเฟกต์ · 0 ปิดเสียง" });
+        var volume=new HSlider { MinValue=0,MaxValue=100,Step=5,Value=farm.Display.EffectsVolume,CustomMinimumSize=new Vector2(240,24) };
+        volume.ValueChanged+=value=>farm.SetEffectsVolume((int)value);modalContent.AddChild(volume);
         modalContent.AddChild(Button("วิทยุ YouTube · เปิดในเบราว์เซอร์", OpenMusic));
         modalContent.AddChild(Button("วิธีเล่น", OpenHelp));
         modalContent.AddChild(Button("บันทึกเหตุการณ์ฟาร์ม", OpenJournal));

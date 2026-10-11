@@ -25,6 +25,7 @@ public partial class FarmScene : Node2D
     FarmWorldPresenter renderer = null!;
     WeatherLighting weather = null!;
     WeatherAccentPool accents = null!;
+    FarmAudio audio = null!;
     EffectPool effects = null!;
     SaveService saves = null!;
     JsonGameLog log = null!;
@@ -72,6 +73,7 @@ public partial class FarmScene : Node2D
         weather.AddLamp(new Vector2(112, 82), Art.Glow); weather.AddLamp(new Vector2(656, 82), Art.Glow);
         accents = new WeatherAccentPool { Read=Session.Read,ZIndex=9 }; AddChild(accents);
         effects = new EffectPool { ZIndex = 8 }; AddChild(effects);
+        audio = new FarmAudio { DiagnosticMuted=IsDiagnosticSession }; AddChild(audio);
         Hud = GetNode<FarmHud>("HUD/Control"); Hud.Initialize(this);
         lastDay = Session.Read.World.Day; Session.StateChanged += OnStateChanged; Session.PersistenceFailed += Notify;
         SetQuality(settings.Load()); InitializeDisplay();
@@ -139,6 +141,7 @@ public partial class FarmScene : Node2D
     {
         if (operationInProgress) return;
         var result = Session.Execute(new GameCommand(action, plot, Seed)); Notify(result.Message);
+        audio.Play(action,result.Changed);
         if (result.Effect != null) {
             var location = Farmer.Position;
             if (plot >= 0) { var t = GameCatalog.PlotTile(plot); location = new Vector2(t.X * 32, t.Y * 32); }
@@ -147,6 +150,7 @@ public partial class FarmScene : Node2D
     }
     public void SetQuality(int value) { Quality = Math.Clamp(value, 0, 2); weather.Quality = Quality; effects.Quality = Quality; accents.Quality=Quality; renderer.SetQuality(Quality); }
     public void Notify(string message) { if (sceneActive) EmitSignal(SignalName.Message, message); }
+    public void PlayUiClick() => audio.Play("click");
     public async void SaveQuality(int value)
     {
         SetQuality(value);

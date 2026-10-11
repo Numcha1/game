@@ -10,6 +10,8 @@ public sealed class AssetCatalog
     // Godot resources are initialized and consumed only on the scene thread.
     public AssetCatalog()
     {
+        foreach(string key in new[]{"click","water","harvest","coin","error"})
+            sounds[key]=GD.Load<AudioStream>("res://Assets/Audio/"+key+".wav") ?? throw new InvalidDataException("Missing action sound " + key);
         if (Growth == null || ToolIcons == null || ToolPoses == null || polishDefinitions == null || polishDefinitions.Count != 40)
             throw new InvalidDataException("Required growth/tool atlas missing");
         foreach (var pair in polishDefinitions) {
@@ -45,6 +47,8 @@ public sealed class AssetCatalog
     readonly Dictionary<string,int[]> polishDefinitions = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,int[]>>(Godot.FileAccess.GetFileAsString("res://Assets/polish-regions.json"))!;
     readonly Dictionary<string,AtlasTexture> polishRegions = new();
     readonly Dictionary<string,SpriteFrames> toolFrames = new();
+    readonly Dictionary<string,AudioStream> sounds = new();
+    public AudioStream Sound(string key) => sounds[key];
     public AtlasTexture CropStage(string crop, int stage) => PolishRegion(crop + "-" + Math.Clamp(stage,0,3), Growth);
     public AtlasTexture ToolIcon(string action) => PolishRegion("tool-" + action, ToolIcons);
     AtlasTexture PolishRegion(string key, Texture2D atlas) {

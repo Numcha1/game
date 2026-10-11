@@ -47,6 +47,8 @@ public partial class FarmWorldPresenter : Node
     {
         var texture = Art.Region(asset);
         var sprite = new Sprite2D { Texture = texture, Position = position, Offset = new Vector2(0, -texture.GetHeight() / 2f), Scale = Vector2.One * (width / texture.GetWidth()), ZIndex = z };
+        if(asset is "house" or "shop" or "crate" or "well" or "barrel") root.AddChild(new Sprite2D {
+            Texture=Art.Shadow,Position=position+new Vector2(5,3),Scale=new Vector2(width/Art.Shadow.GetWidth(),width*.23f/Art.Shadow.GetHeight()),ZIndex=-2 });
         actors.AddChild(sprite); return sprite;
     }
     void BuildEnvironment()
@@ -61,7 +63,7 @@ public partial class FarmWorldPresenter : Node
         water = new ShaderMaterial { Shader = Art.WaterShader }; pond.Material = water; root.AddChild(pond);
         for (int i = 0; i < treeLocations.Length; i++)
         {
-            var shadow = new Sprite2D { Texture = Art.Shadow, Position = treeLocations[i] + new Vector2(8, -2), Scale = new Vector2(1.6f, .8f), ZIndex = -2 }; root.AddChild(shadow); treeShadows.Add(shadow);
+            var shadow = new Sprite2D { Texture = Art.Shadow, Position = treeLocations[i] + new Vector2(8, 4), Scale = new Vector2(1.6f, .8f), ZIndex = -2 }; root.AddChild(shadow); treeShadows.Add(shadow);
             var tree = Prop("spring", treeLocations[i], i % 3 == 0 ? 95 : 78); tree.Material = wind; trees.Add(tree);
         }
         var rng = new Random(621);

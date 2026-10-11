@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=9 format=3]
+[gd_resource type="Theme" load_steps=13 format=3]
 
 [ext_resource type="FontFile" path="res://Assets/Fonts/sarabun/Sarabun-Regular.ttf" id="1"]
 [ext_resource type="FontFile" path="res://Assets/Fonts/sarabun/Sarabun-SemiBold.ttf" id="2"]
@@ -63,6 +63,63 @@ content_margin_right = 12.0
 content_margin_bottom = 6.0
 bg_color = Color(0.78, 0.75, 0.66, 1)
 
+[sub_resource type="StyleBoxFlat" id="Panel"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.953, 0.898, 0.780, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.412, 0.333, 0.231, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+shadow_color = Color(0,0,0,0.22)
+shadow_size = 4
+shadow_offset = Vector2(0,3)
+
+[sub_resource type="StyleBoxFlat" id="ToolPanel"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.941, 0.875, 0.722, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.412, 0.333, 0.231, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+shadow_color = Color(0,0,0,0.22)
+shadow_size = 4
+shadow_offset = Vector2(0,3)
+
+[sub_resource type="StyleBoxFlat" id="EnergyBackground"]
+bg_color = Color(0.733,0.663,0.522,1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.412,0.333,0.231,1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="EnergyFill"]
+bg_color = Color(0.447,0.584,0.322,1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
 [resource]
 default_font = ExtResource("1")
 default_font_size = 14
@@ -86,5 +143,15 @@ Compact/base_type = &"Label"
 Compact/font_sizes/font_size = 13
 TooltipLabel/fonts/font = ExtResource("1")
 TooltipLabel/font_sizes/font_size = 14
+TooltipLabel/colors/font_color = Color(0.267,0.239,0.184,1)
+TooltipPanel/styles/panel = SubResource("Panel")
+PanelContainer/styles/panel = SubResource("Panel")
+ToolPanel/base_type = &"PanelContainer"
+ToolPanel/styles/panel = SubResource("ToolPanel")
+ProgressBar/styles/background = SubResource("EnergyBackground")
+ProgressBar/styles/fill = SubResource("EnergyFill")
+HSlider/styles/slider = SubResource("EnergyBackground")
+HSlider/styles/grabber_area = SubResource("EnergyFill")
+HSlider/styles/grabber_area_highlight = SubResource("EnergyFill")
 VBoxContainer/constants/separation = 8
 HBoxContainer/constants/separation = 6

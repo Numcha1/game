@@ -18,6 +18,12 @@ public static class DisplayChecks
         await Task.WhenAll(Enumerable.Range(0, 20).Select(i => settings.SaveAsync(new(i % 3, i % 3, true))));
         Check(settings.Load() == new DisplayPreferences(1, 1, true) && !Directory.EnumerateFiles(profile, "*.tmp").Any(), "rapid display saves finish in order without temporary files");
         Check(!File.Exists(Path.Combine(profile, "farm.json")), "display preferences never create or migrate Farm v1");
+        await settings.SaveAsync(new(EffectsVolume:0));
+        Check(settings.Load().EffectsVolume==0,"muted effect audio preference survives reload");
+        await settings.SaveAsync(new(EffectsVolume:250));
+        Check(settings.Load().EffectsVolume==100,"effect volume bounded independently from Farm v1");
+        await settings.SaveAsync(new(UiScale:2));
+        Check(settings.Load().UiScale==2,"independent menu scale persists without changing world scaling");
         return checks;
     }
 }

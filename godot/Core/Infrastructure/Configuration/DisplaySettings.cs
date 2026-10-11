@@ -2,9 +2,9 @@ using System.Text.Json;
 
 namespace SeasonsTogether.Core.Infrastructure.Configuration;
 
-public sealed record DisplayPreferences(int Mode = 0, int TextScale = 0, bool ReducedMotion = false)
+public sealed record DisplayPreferences(int Mode = 0, int TextScale = 0, bool ReducedMotion = false, int EffectsVolume = 70, int UiScale = 0)
 {
-    public DisplayPreferences Normalize() => this with { Mode = Math.Clamp(Mode, 0, 2), TextScale = Math.Clamp(TextScale, 0, 2) };
+    public DisplayPreferences Normalize() => this with { Mode = Math.Clamp(Mode, 0, 2), TextScale = Math.Clamp(TextScale, 0, 2), EffectsVolume = Math.Clamp(EffectsVolume,0,100), UiScale=Math.Clamp(UiScale,0,2) };
 }
 
 /// <summary>Independent preferences; never stored in or migrated with Farm v1.</summary>

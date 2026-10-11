@@ -5,8 +5,21 @@ namespace SeasonsTogether;
 public static class FarmTypography
 {
     static Theme? shared;
-    public static Theme Shared => shared ??= GD.Load<Theme>("res://Presentation/UI/FarmTheme.tres")
-        ?? throw new InvalidDataException("Required farm typography theme missing");
+    public static Theme Shared {
+        get {
+            if(shared!=null)return shared;
+            var theme=GD.Load<Theme>("res://Presentation/UI/FarmTheme.tres") ?? throw new InvalidDataException("Required farm typography theme missing");
+            Validate(theme);return shared=theme;
+        }
+    }
+    public static void Validate(Theme theme) {
+        if(theme.DefaultFont is not FontFile || !theme.DefaultFont.ResourcePath.Contains("Sarabun-Regular.ttf") ||
+            theme.GetFont("font","Heading") is not FontFile || !theme.GetFont("font","Heading").ResourcePath.Contains("Mitr-Medium.ttf") ||
+            theme.GetFont("font","Button") is not FontFile || !theme.GetFont("font","Button").ResourcePath.Contains("Sarabun-SemiBold.ttf"))
+            throw new InvalidDataException("Required bundled Thai typography missing");
+        string supported=theme.DefaultFont.GetSupportedChars();
+        if(!"กิ่กี้กึ๊กื๋ปุ๋ยน้ำ".All(supported.Contains))throw new InvalidDataException("Bundled font lacks Thai coverage");
+    }
     static readonly Theme?[] scales = new Theme?[3];
     public static Theme AtScale(int index)
     {
