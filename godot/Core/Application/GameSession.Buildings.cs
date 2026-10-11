@@ -12,12 +12,12 @@ public sealed partial class GameSession
     public string EntryError(BuildingDefinition building)
     {
         CheckThread();
-        if(InsideBuilding)return "อยู่ในอาคารแล้ว";
+        if(ActiveBuildingId!=building.ParentId)return "เดินไปภูมิภาคของประตูก่อน";
         if(State.Paused || Player.Sleeping)return "กลับเข้าเกมก่อนเปิดประตู";
         if(Position.Distance(building.Entrance)>1.8)return "เดินเข้าใกล้ประตูก่อน";
         if(building.OwnerOnly && State.Owner!=Player.Id)return "เจ้าของบ้านเท่านั้นที่เข้าได้";
         if(State.Minute<building.Opens || State.Minute>=building.Closes)return "อาคารปิดในเวลานี้";
-        if(!building.Walkable(building.Spawn) || !SuanPleng.Farm.Walkable(building.Return.X,building.Return.Y))return "ทางเข้าอาคารไม่พร้อม";
+        if(!building.Walkable(building.Spawn) || !(building.ParentId=="" ? SuanPleng.Farm.Walkable(building.Return.X,building.Return.Y) : BuildingRegistry.Find(building.ParentId)?.Walkable(building.Return)==true))return "ทางเข้าอาคารไม่พร้อม";
         return "";
     }
     public CommandResult EnterBuilding(string id)
@@ -28,16 +28,24 @@ public sealed partial class GameSession
         string error=EntryError(building);if(error!="")return new(error,false);
         Buildings.Interiors.TryAdd(id,new InteriorState());
         Buildings.Locations[Player.Id]=new InteriorLocation { BuildingId=id,X=building.Spawn.X,Y=building.Spawn.Y };
-        Player.X=building.Return.X;Player.Y=building.Return.Y;
-        BuildingChanged();return new("เข้าบ้านแล้ว · F โต้ตอบกับเตียง กล่อง หรือประตู",true);
+        if(building.ParentId==""){Player.X=building.Return.X;Player.Y=building.Return.Y;}
+        if(id==NpcRegistry.Village)npcSimulation.Initialize(Buildings.Village,State);
+        BuildingChanged();return new("เข้าพื้นที่แล้ว · F โต้ตอบกับคนหรือประตู",true);
     }
     public CommandResult ExitBuilding(bool emergency=false)
     {
         CheckThread();
         if(BuildingRegistry.Find(ActiveBuildingId) is not { } building)return new("ไม่ได้อยู่ในอาคาร",false);
         if(!emergency && Position.Distance(building.Exit)>1.4)return new("เดินเข้าใกล้ประตูทางออกก่อน",false);
-        if(!SuanPleng.Farm.Walkable(building.Return.X,building.Return.Y))return new("จุดกลับฟาร์มไม่พร้อม",false);
-        Buildings.Locations.Remove(Player.Id);Player.X=building.Return.X;Player.Y=building.Return.Y;
+        if(!emergency && building.ParentId!="") {
+            var parent=BuildingRegistry.Find(building.ParentId)!;
+            if(!parent.Walkable(building.Return))return new("จุดกลับหมู่บ้านไม่พร้อม",false);
+            Buildings.Locations[Player.Id]=new InteriorLocation{BuildingId=parent.Id,X=building.Return.X,Y=building.Return.Y};
+        } else {
+            var exterior=building.ParentId==""?building:BuildingRegistry.Village;
+            if(!SuanPleng.Farm.Walkable(exterior.Return.X,exterior.Return.Y))return new("จุดกลับฟาร์มไม่พร้อม",false);
+            Buildings.Locations.Remove(Player.Id);Player.X=exterior.Return.X;Player.Y=exterior.Return.Y;
+        }
         BuildingChanged();return new("กลับฟาร์มแล้ว",true);
     }
     void BuildingChanged()

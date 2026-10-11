@@ -14,10 +14,10 @@ public readonly record struct BuildingObstacle(double X, double Y, double Width,
 public sealed record BuildingDefinition(string Id, string Name, string Type, string ExteriorRegion,
     WorldPoint Entrance, WorldPoint Return, string Scene, WorldPoint Spawn, WorldPoint Exit,
     WorldPoint Bed, WorldPoint Chest, IReadOnlyList<BuildingObstacle> Obstacles,
-    bool OwnerOnly = false, int Opens = 0, int Closes = 1440)
+    bool OwnerOnly = false, int Opens = 0, int Closes = 1440, string ParentId = "")
 {
     public bool Walkable(WorldPoint p) => double.IsFinite(p.X) && double.IsFinite(p.Y) &&
-        p.X >= 1.3 && p.X <= 22.7 && p.Y >= 3.8 && p.Y <= 14.4 && !Obstacles.Any(o=>o.Contains(p));
+        p.X >= 1.3 && p.X <= 22.7 && p.Y >= (Type=="village"?5.2:3.8) && p.Y <= 14.4 && !Obstacles.Any(o=>o.Contains(p));
 }
 public static class BuildingRegistry
 {
@@ -27,7 +27,11 @@ public static class BuildingRegistry
             new BuildingObstacle(3,2.5,3.2,4.9), new BuildingObstacle(17.8,2.9,2.7,2.5),
             new BuildingObstacle(1.6,2.8,1.4,2.1),new BuildingObstacle(9.5,2.6,5,2.2),
             new BuildingObstacle(20.7,2.2,1.7,2.4),new BuildingObstacle(1.1,8.5,1,1.7),new BuildingObstacle(21.6,8.5,1,3.2)}));
-    public static IReadOnlyList<BuildingDefinition> All { get; } = Array.AsReadOnly(new[]{Farmhouse});
+    public static readonly BuildingDefinition Village = new(NpcRegistry.Village,"หมู่บ้าน Moonroot","village","moonroot.farm",new(23,8),new(22.8,8),"res://Scenes/Village/Village.tscn",new(12,13.3),new(12,14),new(-100,-100),new(-100,-100),Array.Empty<BuildingObstacle>());
+    static BuildingDefinition Service(string id,string name,string type,double x,int closes=1260)=>new(id,name,type,NpcRegistry.Village,new(x,5.4),new(x,5.7),"res://Scenes/Village/ServiceRoom.tscn",new(12,13.3),new(12,14),new(-100,-100),new(-100,-100),Array.AsReadOnly(new[]{new BuildingObstacle(2,3.8,6,1.5),new BuildingObstacle(16,3.8,5,1.5)}),false,360,closes,NpcRegistry.Village);
+    public static IReadOnlyList<BuildingDefinition> All { get; } = Array.AsReadOnly(new[]{Farmhouse,Village,
+        Service("village.seed-shop","ร้านเมล็ดของมิรา","seed-shop",3.9),Service("village.workshop","โรงไม้ของโรวัน","workshop",9.7),
+        Service("village.mira-home","บ้านมิรา","npc-home",15.8,1200),Service("village.rowan-home","บ้านโรวัน","npc-home",21.2,1200)});
     public static BuildingDefinition? Find(string id) => All.FirstOrDefault(b=>b.Id==id);
 }
 public sealed class InteriorState
@@ -47,8 +51,10 @@ public sealed class BuildingState
 {
     [JsonRequired] public Dictionary<string,InteriorState> Interiors { get; set; } = new();
     [JsonRequired] public Dictionary<string,InteriorLocation> Locations { get; set; } = new();
+    public VillageState Village {get;set;}=new(); // Optional for existing v2 saves; strict when present.
     public void Validate(Farm farm)
     {
+        if(Village==null)throw new InvalidDataException("ไม่มีข้อมูลหมู่บ้าน");Village.Validate(farm);
         if(Interiors==null || Locations==null || Interiors.Count>BuildingRegistry.All.Count || Locations.Count>farm.Players.Count)
             throw new InvalidDataException("ข้อมูลอาคารไม่สมบูรณ์");
         foreach(var pair in Interiors)

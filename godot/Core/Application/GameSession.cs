@@ -44,6 +44,7 @@ public sealed partial class GameSession : IAsyncDisposable
         Player.LastSeen = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         int day = State.Day, minute = (int)State.Minute;
         State.Tick(seconds);
+        npcSimulation.Advance(Buildings.Village,State,ActiveBuildingId,seconds);
         if (State.Day != day) StateChanged?.Invoke(GameChange.World | GameChange.Plots | GameChange.Inventory | GameChange.Player | GameChange.Time);
         else if ((int)State.Minute != minute) StateChanged?.Invoke(GameChange.Time);
         saveElapsed += seconds;
@@ -64,7 +65,7 @@ public sealed partial class GameSession : IAsyncDisposable
         int energy = Player.Energy, coins = State.Coins, day = State.Day;
         bool sleeping = Player.Sleeping, paused = State.Paused, greenhouse = State.Greenhouse;
         string oldCrop = command.Plot >= 0 && command.Plot < State.Plots.Count ? State.Plots[command.Plot].Crop : "";
-        string message = command.Action == "rescue" ? State.Rescue(Player) : State.Action(Player, command.Action, command.Plot, command.Seed);
+        string message = command.Action == "rescue" ? State.Rescue(Player) : ApplyFarmCommand(command);
         if(InsideBuilding && command.Action=="sleep" && State.Day>day)message="ตื่นแล้ว · เริ่มวันใหม่ในบ้าน";
         ActionEffect? effect = null;
         if (Player.Energy < energy || State.Coins != coins)
