@@ -49,4 +49,5 @@ using(var server=new RoomServer(new Farm())){
         var sync=await clients[0].Send(new Request{Session=secrets[0],Action="sync"});Check(sync.Farm?.Players.Count==4,"authoritative state has all players");
     }finally{foreach(var client in clients)client.Dispose();}
 }
+passed.AddRange(await PersistenceChecks.Run(Path.GetDirectoryName(output)!));
 File.WriteAllText(output,JsonSerializer.Serialize(new{passed=passed.Count,checks=passed,scope="Core/save regressions and legacy local protocol. Godot online UI and internet co-op not migrated."},new JsonSerializerOptions{WriteIndented=true}));Console.WriteLine("CORE PASS "+passed.Count);
