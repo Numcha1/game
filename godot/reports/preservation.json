@@ -1,0 +1,22 @@
+﻿{
+    "unchangedNativeAndArt":  true,
+    "testsUseIsolatedProfiles":  true,
+    "hashes":  [
+                   {
+                       "sha256":  "F21875FE49B274AE598A466968E4B64C593675C365838323459D292F17154444",
+                       "file":  "native\\World.cs"
+                   },
+                   {
+                       "sha256":  "E3617A1038B262C31773E44BD03EA3A463117F95D7183A628143879253C96D8B",
+                       "file":  "native\\Network.cs"
+                   },
+                   {
+                       "sha256":  "4CC9A21581E51AC0E7961ED11EDB3441A55BE8B02157FCF0EA60BED890C6C24C",
+                       "file":  "SuanPleng.exe"
+                   }
+               ],
+    "unexpectedChanges":  [
+
+                          ],
+    "base":  "ecf7e3276197821d093b163113468383366aabd7"
+}
