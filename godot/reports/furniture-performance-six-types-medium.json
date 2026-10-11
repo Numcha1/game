@@ -1,0 +1,14 @@
+{
+  "frames": 600,
+  "fps": 60.00238209456916,
+  "medianFrameMs": 16.665,
+  "p95FrameMs": 16.698,
+  "processP95Ms": 9.698,
+  "memoryStart": 43872283,
+  "memoryEnd": 43873963,
+  "managedMemory": 5698592,
+  "nodes": 486,
+  "resources": 62,
+  "objects": 6,
+  "renderer": "Windows"
+}

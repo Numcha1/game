@@ -555,20 +555,20 @@
     {
       "scene": "village.seed-shop",
       "frames": 180,
-      "meanMs": 16.481940000000005,
-      "p95Ms": 16.6878,
-      "fps": 60.67246938163831,
-      "privateBytes": 332722176,
-      "managedBytes": 7861352
+      "meanMs": 16.481919444444436,
+      "p95Ms": 16.6959,
+      "fps": 60.672545049786066,
+      "privateBytes": 321138688,
+      "managedBytes": 8225904
     },
     {
       "scene": "farm",
       "frames": 180,
-      "meanMs": 16.481918333333322,
-      "p95Ms": 16.7012,
-      "fps": 60.6725491399616,
-      "privateBytes": 355254272,
-      "managedBytes": 8499088
+      "meanMs": 16.48193666666666,
+      "p95Ms": 16.6951,
+      "fps": 60.67248165213597,
+      "privateBytes": 354881536,
+      "managedBytes": 9280912
     }
   ]
 }

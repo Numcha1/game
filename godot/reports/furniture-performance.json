@@ -1,0 +1,11 @@
+{
+  "frames": 600,
+  "medianFrameMs": 16.666,
+  "p95FrameMs": 16.666666666666668,
+  "memoryStart": 43825187,
+  "memoryEnd": 43732183,
+  "managedMemory": 8270424,
+  "nodes": 494,
+  "objects": 6,
+  "renderer": "Windows"
+}

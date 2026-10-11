@@ -1,3 +1,13 @@
+# Playable six-type furniture loop
+
+Buy furniture/wood from Rowan, carry it in the bag, preview/place/move supported pieces in the farmhouse and use F. Tables/shelves display actual inventory items; boxes/chests store and organize them; chairs sit/stand; workbenches craft real furniture from wood. Original bed/chest and farming rules remain intact. Saves v1/v2 load; new furniture uses an explicit v3 envelope with a preserved original backup.
+
+[Player guide, audit, architecture and save migration](docs/FURNITURE_SYSTEM.md) · [Actual tests, screenshots, changed files and performance](docs/FURNITURE_VALIDATION.md). Core 470, first real box loop 14 and six-type Godot gate 60 pass; full regression/build passes. Furniture co-op, wardrobes, timed production and a new executable export are outside this first catalog. Open `Run-Seasons-Together.cmd`.
+
+---
+
+The following records describe earlier milestones; current furniture status is above.
+
 # Item foundation and backpack compatibility slice
 
 The 25-item catalog now drives existing seed-shop offers, icon references and validated item transactions. The backpack combines actual produce/seeds with filters, sorting and a 24-cell display; the farmhouse chest supports quick deposit/withdraw of a whole crop stack. Original save IDs, prices, farming and spoilage remain intact.

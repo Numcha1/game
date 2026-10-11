@@ -1,0 +1,19 @@
+{
+  "passed": 14,
+  "checks": [
+    "actual scene transition moonroot.village",
+    "actual scene transition village.workshop",
+    "F opens Rowan real workshop furniture shop",
+    "real shop UI purchases box into backpack",
+    "actual scene transition moonroot.farmhouse",
+    "real inventory starts preview wooden-box",
+    "ghost drawn inside farmhouse wooden-box",
+    "real mouse placement commits wooden-box",
+    "box has actual scene sprite and collision",
+    "F opens real storage interface and blocks world input",
+    "real deposit UI transfers original four produce",
+    "nonempty pickup UI protects stored items",
+    "actual atomic v3 save contains box and original farm",
+    "real withdraw and pickup completes first furniture loop without loss"
+  ]
+}

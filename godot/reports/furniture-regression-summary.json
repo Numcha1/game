@@ -1,0 +1,120 @@
+{
+  "utc": "2026-10-11T22:14:52.255235+00:00",
+  "branch": "feature/premium-game-systems",
+  "engine": "Godot 4.7.2 .NET",
+  "core_before": 383,
+  "passed": {
+    "core": 470,
+    "native": 35,
+    "startup": 60,
+    "recovery": 10,
+    "smoke": 101,
+    "premium": 180,
+    "buildings": 51,
+    "npc": 34,
+    "indoor": 46,
+    "inventory": 21,
+    "furniture_box": 14,
+    "furniture_six": 60,
+    "composition": 190,
+    "lifecycle": 70
+  },
+  "build": {
+    "Godot": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "Native": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "lifecycle": {
+    "rounds": 10,
+    "menu_cycles": 100,
+    "samples": [
+      {
+        "round": 0,
+        "nodes": 437,
+        "managedBytes": 1717216,
+        "privateBytes": 261713920,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 1,
+        "nodes": 437,
+        "managedBytes": 1722792,
+        "privateBytes": 260325376,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 2,
+        "nodes": 437,
+        "managedBytes": 1740464,
+        "privateBytes": 259653632,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 3,
+        "nodes": 437,
+        "managedBytes": 1741288,
+        "privateBytes": 261193728,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 4,
+        "nodes": 437,
+        "managedBytes": 1742368,
+        "privateBytes": 264245248,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 5,
+        "nodes": 437,
+        "managedBytes": 1759952,
+        "privateBytes": 300343296,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 6,
+        "nodes": 437,
+        "managedBytes": 1823456,
+        "privateBytes": 300589056,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 7,
+        "nodes": 437,
+        "managedBytes": 1824816,
+        "privateBytes": 299454464,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 8,
+        "nodes": 437,
+        "managedBytes": 1825640,
+        "privateBytes": 300212224,
+        "resources": 51,
+        "orphans": 0
+      },
+      {
+        "round": 9,
+        "nodes": 437,
+        "managedBytes": 1827040,
+        "privateBytes": 300097536,
+        "resources": 51,
+        "orphans": 0
+      }
+    ]
+  },
+  "known_warning": "One pre-existing ObjectDB instance warning at NPC/composition diagnostic shutdown",
+  "scope": "Isolated local profiles. Legacy local protocol regressions included; furniture network replication and Internet testing excluded."
+}

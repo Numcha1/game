@@ -1,3 +1,5 @@
+> Status update 2026-10-12: the initial six-type placed furniture loop is now implemented and tested. [Current furniture architecture/migration](FURNITURE_SYSTEM.md) and [actual validation](FURNITURE_VALIDATION.md) supersede the pending placement/crafting statements below. Full slot inventory, wardrobes, timed production and furniture co-op remain open. The following text retains earlier M1/M2 evidence.
+
 # Premium item systems: verified milestone boundaries
 
 Base `8b0388b`, branch `feature/premium-game-systems`. Reference images guide readability, functional furniture grouping and clear paths; no copyrighted reference sprites are imported. Native/dist stay untouched.

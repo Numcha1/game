@@ -56,11 +56,11 @@
   "indoorMeasurement": {
     "frames": 300,
     "quality": 2,
-    "meanMs": 16.555652000000013,
-    "p95Ms": 16.6991,
-    "fps": 60.40233268976657,
-    "privateBytes": 293236736,
-    "managedBytes": 9045176,
+    "meanMs": 16.555642000000002,
+    "p95Ms": 16.6975,
+    "fps": 60.402369174206584,
+    "privateBytes": 294780928,
+    "managedBytes": 9463936,
     "scope": "300 actual rendered night/storm farmhouse frames after settling, not a long-session guarantee"
   },
   "scope": "Real Godot farmhouse entrance/exit/resource failure/actor/collision/storage/bed/restart tests in isolated profile"
