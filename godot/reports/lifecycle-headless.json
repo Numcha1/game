@@ -66,80 +66,80 @@
     {
       "round": 0,
       "nodes": 371,
-      "managedBytes": 1371016,
-      "privateBytes": 89444352,
+      "managedBytes": 1369040,
+      "privateBytes": 89702400,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 1,
       "nodes": 371,
-      "managedBytes": 1388536,
-      "privateBytes": 84422656,
+      "managedBytes": 1386640,
+      "privateBytes": 85344256,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 2,
       "nodes": 371,
-      "managedBytes": 1389344,
-      "privateBytes": 85319680,
+      "managedBytes": 1387408,
+      "privateBytes": 85524480,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 3,
       "nodes": 371,
-      "managedBytes": 1390560,
-      "privateBytes": 85393408,
+      "managedBytes": 1388048,
+      "privateBytes": 85598208,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 4,
       "nodes": 371,
-      "managedBytes": 1391200,
-      "privateBytes": 85590016,
+      "managedBytes": 1388728,
+      "privateBytes": 86560768,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 5,
       "nodes": 371,
-      "managedBytes": 1392128,
-      "privateBytes": 86355968,
+      "managedBytes": 1389656,
+      "privateBytes": 85803008,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 6,
       "nodes": 371,
-      "managedBytes": 1392768,
-      "privateBytes": 86433792,
+      "managedBytes": 1390296,
+      "privateBytes": 85876736,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 7,
       "nodes": 371,
-      "managedBytes": 1393408,
-      "privateBytes": 86089728,
+      "managedBytes": 1390936,
+      "privateBytes": 85532672,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 8,
       "nodes": 371,
-      "managedBytes": 1394072,
-      "privateBytes": 86167552,
+      "managedBytes": 1392136,
+      "privateBytes": 85676032,
       "resources": 22,
       "orphans": 0
     },
     {
       "round": 9,
       "nodes": 371,
-      "managedBytes": 1394800,
-      "privateBytes": 86433792,
+      "managedBytes": 1392864,
+      "privateBytes": 85872640,
       "resources": 22,
       "orphans": 0
     }
